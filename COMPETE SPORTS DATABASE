@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VolleyNet | Tournament Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; }
+        .card-hover:hover { transform: translateY(-2px); transition: all 0.2s; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+<header class="bg-blue-700 text-white shadow-md">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-black italic tracking-tighter">VOLLEYNET</h1>
+        <div class="flex gap-4">
+            <button onclick="exportData()" class="text-xs bg-blue-800 hover:bg-blue-900 px-3 py-2 rounded font-bold uppercase">Export Database</button>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-4 py-8">
+    <div class="flex space-x-8 border-b border-slate-200 mb-8">
+        <button id="tab-find" onclick="showView('find')" class="pb-3 px-2 tab-active font-bold uppercase text-sm tracking-wider">Find Tournaments</button>
+        <button id="tab-host" onclick="showView('host')" class="pb-3 px-2 text-slate-500 font-bold uppercase text-sm tracking-wider">Organizer Portal</button>
+    </div>
+
+    <section id="view-find" class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <aside class="space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">Location Search</h3>
+                <input type="text" id="search-zip" placeholder="Zip Code (MO, IL, TN...)" class="w-full border rounded-lg p-3 mb-3 focus:ring-2 focus:ring-blue-500 outline-none" oninput="applyAllFilters()">
+                <select id="search-radius" class="w-full border rounded-lg p-3 text-sm" onchange="applyAllFilters()">
+                    <option value="50">Within 50 miles</option>
+                    <option value="100">Within 100 miles</option>
+                    <option value="200">Within 200 miles</option>
+                    <option value="9999">Anywhere</option>
+                </select>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">Skill Divisions</h3>
+                <div class="space-y-2 max-height-48 overflow-y-auto">
+                    <label class="flex items-center text-sm cursor-pointer"><input type="checkbox" class="div-filter mr-3 h-4 w-4 rounded" value="Open" onchange="applyAllFilters()"> Open / Pro</label>
+                    <label class="flex items-center text-sm cursor-pointer"><input type="checkbox" class="div-filter mr-3 h-4 w-4 rounded" value="AA" onchange="applyAllFilters()"> AA / AAA</label>
+                    <label class="flex items-center text-sm cursor-pointer"><input type="checkbox" class="div-filter mr-3 h-4 w-4 rounded" value="A" onchange="applyAllFilters()"> A</label>
+                    <label class="flex items-center text-sm cursor-pointer"><input type="checkbox" class="div-filter mr-3 h-4 w-4 rounded" value="BB" onchange="applyAllFilters()"> BB</label>
+                    <label class="flex items-center text-sm cursor-pointer"><input type="checkbox" class="div-filter mr-3 h-4 w-4 rounded" value="B" onchange="applyAllFilters()"> B / C</label>
+                </div>
+            </div>
+        </aside>
+
+        <div class="lg:col-span-3">
+            <div id="results-count" class="text-sm font-semibold text-slate-500 mb-4 uppercase tracking-widest">Available Tournaments</div>
+            <div id="tournament-results" class="grid gap-4">
+                </div>
+        </div>
+    </section>
+
+    <section id="view-host" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-xl font-black mb-6">Host New Tournament</h2>
+            <form id="tournament-form" class="space-y-4" oninput="updatePreview()">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Tournament Name</label>
+                    <input type="text" name="name" required class="w-full border rounded-lg p-2 mt-1">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Zip Code</label>
+                        <input type="text" name="zip" required placeholder="Ex: 63101" class="w-full border rounded-lg p-2 mt-1">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase">Date</label>
+                        <input type="date" name="date" required class="w-full border rounded-lg p-2 mt-1">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Divisions Offered</label>
+                    <div class="flex flex-wrap gap-3">
+                        <label class="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold"><input type="checkbox" name="skill" value="Open"> Open</label>
+                        <label class="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold"><input type="checkbox" name="skill" value="AA"> AA</label>
+                        <label class="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold"><input type="checkbox" name="skill" value="BB"> BB</label>
+                        <label class="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold"><input type="checkbox" name="skill" value="B"> B</label>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200">Publish Tournament</button>
+            </form>
+        </div>
+
+        <div class="space-y-8">
+            <div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase mb-4 tracking-widest">Live Preview</h3>
+                <div id="preview-card-container"></div>
+            </div>
+            <div class="bg-slate-100 p-6 rounded-2xl border border-dashed border-slate-300">
+                <h3 class="text-sm font-black text-slate-800 mb-4 uppercase">My Active Listings</h3>
+                <div id="manage-list" class="space-y-2"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // 1. Regional ZIP Database (Coordinates for major cities in MO, IL, TN, KY, FL)
+    const zipCoords = {
+        "63101": {lat: 38.627, lng: -90.199}, // St. Louis, MO
+        "64101": {lat: 39.099, lng: -94.578}, // Kansas City, MO
+        "60601": {lat: 41.878, lng: -87.629}, // Chicago, IL
+        "62701": {lat: 39.781, lng: -89.650}, // Springfield, IL
+        "37201": {lat: 36.162, lng: -86.781}, // Nashville, TN
+        "38101": {lat: 35.149, lng: -90.048}, // Memphis, TN
+        "40201": {lat: 38.252, lng: -85.758}, // Louisville, KY
+        "40502": {lat: 38.040, lng: -84.503}, // Lexington, KY
+        "33101": {lat: 25.761, lng: -80.191}, // Miami, FL
+        "32801": {lat: 28.538, lng: -81.379}  // Orlando, FL
+    };
+
+    let tournaments = JSON.parse(localStorage.getItem('vb_db')) || [];
+
+    // 2. Haversine Distance Formula
+    function getDistance(lat1, lon1, lat2, lon2) {
+        const R = 3958.8; // Miles
+        const dLat = (lat2-lat1) * Math.PI/180;
+        const dLon = (lon2-lon1) * Math.PI/180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // 3. Main Search Engine
+    function applyAllFilters() {
+        const userZip = document.getElementById('search-zip').value;
+        const radius = parseInt(document.getElementById('search-radius').value);
+        const selectedSkills = Array.from(document.querySelectorAll('.div-filter:checked')).map(cb => cb.value);
+
+        const filtered = tournaments.filter(t => {
+            // Distance Check
+            if(userZip && zipCoords[userZip] && zipCoords[t.zip]) {
+                const dist = getDistance(zipCoords[userZip].lat, zipCoords[userZip].lng, zipCoords[t.zip].lat, zipCoords[t.zip].lng);
+                if(dist > radius) return false;
+            }
+            // Skill Check
+            if(selectedSkills.length > 0) {
+                if(!t.skills.some(s => selectedSkills.includes(s))) return false;
+            }
+            return true;
+        });
+
+        renderList(filtered);
+    }
+
+    // 4. UI Rendering
+    function renderList(list) {
+        const container = document.getElementById('tournament-results');
+        container.innerHTML = list.length ? '' : '<div class="p-10 text-center text-slate-400">No matching tournaments found in this area.</div>';
+        
+        list.forEach(t => {
+            container.innerHTML += `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 card-hover flex justify-between items-center">
+                    <div>
+                        <h4 class="text-xl font-black text-slate-800">${t.name}</h4>
+                        <p class="text-sm text-blue-600 font-bold uppercase tracking-tighter mt-1">📍 ${t.zip} • ${t.date}</p>
+                        <div class="flex gap-2 mt-3">${t.skills.map(s => `<span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded">${s}</span>`).join('')}</div>
+                    </div>
+                    <button class="bg-blue-50 text-blue-600 font-bold px-4 py-2 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition">View Details</button>
+                </div>
+            `;
+        });
+        document.getElementById('results-count').innerText = `${list.length} Tournaments Found`;
+    }
+
+    // 5. Form & Management Logic
+    document.getElementById('tournament-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const entry = {
+            id: Date.now(),
+            name: fd.get('name'),
+            zip: fd.get('zip'),
+            date: fd.get('date'),
+            skills: fd.getAll('skill')
+        };
+        tournaments.push(entry);
+        localStorage.setItem('vb_db', JSON.stringify(tournaments));
+        e.target.reset();
+        alert('Tournament Published!');
+        showView('find');
+        renderManagementList();
+    });
+
+    function deleteTourney(id) {
+        tournaments = tournaments.filter(t => t.id !== id);
+        localStorage.setItem('vb_db', JSON.stringify(tournaments));
+        applyAllFilters();
+        renderManagementList();
+    }
+
+    function renderManagementList() {
+        const container = document.getElementById('manage-list');
+        container.innerHTML = '';
+        tournaments.forEach(t => {
+            container.innerHTML += `
+                <div class="bg-white p-3 rounded-lg flex justify-between items-center text-sm shadow-sm border">
+                    <span class="font-bold">${t.name}</span>
+                    <button onclick="deleteTourney(${t.id})" class="text-red-500 hover:font-bold">Remove</button>
+                </div>
+            `;
+        });
+    }
+
+    function showView(view) {
+        document.getElementById('view-find').classList.toggle('hidden', view !== 'find');
+        document.getElementById('view-host').classList.toggle('hidden', view !== 'host');
+        document.getElementById('tab-find').className = view === 'find' ? 'pb-3 px-2 tab-active font-bold uppercase text-sm' : 'pb-3 px-2 text-slate-500 font-bold uppercase text-sm';
+        document.getElementById('tab-host').className = view === 'host' ? 'pb-3 px-2 tab-active font-bold uppercase text-sm' : 'pb-3 px-2 text-slate-500 font-bold uppercase text-sm';
+        if(view === 'find') applyAllFilters();
+    }
+
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tournaments, null, 2));
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "volleyball_db.json");
+        dl.click();
+    }
+
+    function updatePreview() {
+        const fd = new FormData(document.getElementById('tournament-form'));
+        const container = document.getElementById('preview-card-container');
+        const skills = fd.getAll('skill').join(', ') || 'No divisions selected';
+        container.innerHTML = `<div class="bg-white p-6 rounded-2xl shadow-lg border-2 border-blue-500 opacity-80"><h4 class="font-black">${fd.get('name') || 'New Tournament'}</h4><p class="text-xs text-blue-600 font-bold mt-1">📍 ${fd.get('zip') || '00000'}</p><p class="text-xs mt-2">${skills}</p></div>`;
+    }
+
+    // Init
+    applyAllFilters();
+    renderManagementList();
+</script>
+</body>
+</html>
