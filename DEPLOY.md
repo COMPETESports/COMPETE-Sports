@@ -51,13 +51,32 @@ earlier ones.
 
 ## 3. Get the connection string
 
-Top of the page → **Connect** → the **Transaction pooler** tab.
+Top of the page → **Connect** → the **Direct** tab (labelled "Connection
+string") → Connection Method **Transaction pooler** → Type **URI**.
 
-Not "Direct connection". Not "Session pooler". **Port must be 6543** — the
-driver is configured for the transaction pooler and the direct connection
-will not survive serverless traffic.
+The tab named "Direct" is the connection-string tab; the *method* inside it
+is what has to be Transaction pooler. Not "Direct connection", not "Session
+pooler". **Port must be 6543** — the driver is configured for the
+transaction pooler and the direct connection will not survive serverless
+traffic.
 
 Replace `[YOUR-PASSWORD]`, append `?sslmode=require`, and keep it to hand.
+
+Two things that look alarming on that screen and are not:
+
+- **"Transaction pooler uses IPv6 by default — enable the IPv4 add-on."**
+  Not needed. The shared pooler host resolves to IPv4 as well
+  (`aws-0-us-east-2.pooler.supabase.com` → three A records, checked 6 Oct
+  2026), so Vercel reaches it without the paid add-on.
+- **"Database access requires the Data API"**, on the Framework tab. Also
+  not needed, and should stay off. That API exists for the Supabase client
+  library, which this app does not use. Leaving it disabled removes a
+  public surface rather than breaking anything.
+
+**If the database password contains any of** `@ : / ? # [ ] % & + space`,
+percent-encode it inside the URI or the string will be parsed wrongly —
+`@` becomes `%40`, `#` becomes `%23`, `%` becomes `%25`, and so on. The
+symptom is a confusing authentication or host error, not a clear one.
 
 You will **not** need Supabase's `anon` or `service_role` API keys. This app
 talks to plain Postgres and uses neither. If any tutorial tells you to paste
