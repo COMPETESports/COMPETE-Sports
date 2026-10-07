@@ -72,18 +72,29 @@ function SiteHeader({ signedIn }: { signedIn: boolean }) {
           </span>
         </Link>
 
-        {/* On a phone the logo already gets you home, so only the two links
-            that go somewhere new are kept. */}
+        {/* On a phone the logo already gets you home, so the nav keeps only
+            the links that go somewhere new. "Find events" used to be hidden
+            there — reasonably, while it pointed at "/" and did nothing. Now
+            that it reaches the search page it is the most useful link on
+            the site, so it takes the phone slot and Communities waits for
+            a wider screen.
+
+            It is a swap, not an addition: at 360px the header overflowed
+            its own width with three links and the button, which is a
+            horizontal scrollbar on the smallest phones. */}
         <nav className="flex items-center gap-1 sm:gap-3">
+          {/* Goes to the search page with its filter rail, not the homepage.
+              It pointed at "/" until 7 Oct 2026, so the one link named after
+              the site's whole purpose did nothing. */}
           <Link
-            href="/"
-            className="t-kicker hidden px-2 py-2 text-[color:var(--muted)] hover:text-[color:var(--indoor)] sm:block"
+            href="/events"
+            className="t-kicker px-2 py-2 text-[color:var(--muted)] hover:text-[color:var(--indoor)]"
           >
             Find events
           </Link>
           <Link
             href="/communities"
-            className="t-kicker px-2 py-2 text-[color:var(--muted)] hover:text-[color:var(--indoor)]"
+            className="t-kicker hidden px-2 py-2 text-[color:var(--muted)] hover:text-[color:var(--indoor)] sm:block"
           >
             Communities
           </Link>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Facets, SearchFilters } from '@/lib/types';
 import { GENDER_LABELS } from '@/lib/types';
-import { RADIUS_CHOICES } from '@/lib/search-params';
+import { RADIUS_MAX, RADIUS_MIN, RADIUS_STEP } from '@/lib/search-params';
 import { today } from '@/lib/dates';
 
 /**
@@ -17,11 +17,25 @@ export function FilterForm({
   filters,
   facets,
   resultCount,
+  variant = 'rail',
 }: {
   filters: SearchFilters;
   facets: Facets;
-  resultCount: number;
+  /** Omitted on the landing page, where nothing has been searched yet. */
+  resultCount?: number;
+  /**
+   * 'rail' is the search page: a tall column beside the results, where
+   * ticking a box re-runs the search immediately because the results are
+   * right there to watch change.
+   *
+   * 'landing' is the homepage: a wide grid under the map, where ticking a
+   * box must NOT navigate. Someone setting four filters would be thrown to
+   * the results page after the first one, having chosen a quarter of what
+   * they meant. They press the button when they are ready.
+   */
+  variant?: 'rail' | 'landing';
 }) {
+  const landing = variant === 'landing';
   const formRef = useRef<HTMLFormElement>(null);
   const [enhanced, setEnhanced] = useState(false);
   const [openOnMobile, setOpenOnMobile] = useState(false);
@@ -30,7 +44,7 @@ export function FilterForm({
   useEffect(() => setEnhanced(true), []);
 
   const submit = () => {
-    if (enhanced) formRef.current?.requestSubmit();
+    if (enhanced && !landing) formRef.current?.requestSubmit();
   };
 
   // `from` falls back to today when nobody picked one, so only a date the
@@ -67,7 +81,9 @@ export function FilterForm({
         ref={formRef}
         method="get"
         action="/events"
-        className={`${openOnMobile ? 'block' : 'hidden'} panel p-4 lg:block`}
+        className={`${openOnMobile ? 'block' : 'hidden'} panel p-4 lg:block ${
+          landing ? 'sm:p-6' : ''
+        }`}
       >
         <input type="hidden" name="sort" value={filters.sort} />
         {filters.sport !== 'volleyball' && (
@@ -77,7 +93,17 @@ export function FilterForm({
             was chosen on the Communities map. */}
         {filters.state && <input type="hidden" name="state" value={filters.state} />}
 
-        <div className="mb-5">
+        {/* On the landing page these spread across the width instead of
+            stacking; as one column under a map they would be two screens
+            tall and nobody would reach the button.
+
+            Two bands rather than one six-cell grid — where and when, then
+            what. A single grid gave every row the height of its tallest
+            cell, and the location block (an input plus a slider) is twice
+            the height of a facet list, so it punched a hole next to
+            Surface wherever it landed. */}
+        <div className={landing ? 'grid gap-x-6 gap-y-5 sm:grid-cols-2 lg:max-w-3xl' : ''}>
+        <div className={landing ? '' : 'mb-5'}>
           <label className="label" htmlFor="near">
             Near
           </label>
@@ -91,28 +117,19 @@ export function FilterForm({
             autoComplete="postal-code"
             enterKeyHint="search"
           />
-          <div className="mt-2">
-            <label className="label" htmlFor="radius">
-              Within
-            </label>
-            <select
-              id="radius"
-              name="radius"
-              defaultValue={filters.radius}
-              onChange={submit}
-              className="field"
-            >
-              {RADIUS_CHOICES.map((r) => (
-                <option key={r} value={r}>
-                  {r} miles
-                </option>
-              ))}
-            </select>
-          </div>
+          <RadiusSlider value={filters.radius} onCommit={submit} />
         </div>
 
         <DateRange from={chosenFrom} to={filters.to} onChange={submit} />
+        </div>
 
+        <div
+          className={
+            landing
+              ? 'mt-7 grid items-start gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4'
+              : ''
+          }
+        >
         <FacetGroup
           legend="Surface"
           name="surface"
@@ -166,25 +183,47 @@ export function FilterForm({
           onToggle={submit}
         />
 
-        <div className="mt-5 flex flex-col gap-2">
-          {!enhanced && (
-            <button type="submit" className="btn-primary w-full">
-              Apply filters
-            </button>
-          )}
-          <button
-            type="submit"
-            className="btn-primary w-full lg:hidden"
-            onClick={() => setOpenOnMobile(false)}
-          >
-            Show {resultCount} {resultCount === 1 ? 'event' : 'events'}
-          </button>
-          {activeCount > 0 && (
-            <a href="/events" className="btn-ghost w-full">
-              Clear filters
-            </a>
-          )}
         </div>
+
+        {landing ? (
+          /* One button, always visible, always the way out of this panel.
+             It is the only thing on the homepage that runs a search. */
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button type="submit" className="btn-primary">
+              Search events
+            </button>
+            {activeCount > 0 && (
+              <>
+                <a href="/" className="btn-ghost">
+                  Clear
+                </a>
+                <span className="t-mono text-[11px] text-[color:var(--faint)]">
+                  {activeCount} {activeCount === 1 ? 'filter' : 'filters'} set
+                </span>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="mt-5 flex flex-col gap-2">
+            {!enhanced && (
+              <button type="submit" className="btn-primary w-full">
+                Apply filters
+              </button>
+            )}
+            <button
+              type="submit"
+              className="btn-primary w-full lg:hidden"
+              onClick={() => setOpenOnMobile(false)}
+            >
+              Show {resultCount ?? 0} {resultCount === 1 ? 'event' : 'events'}
+            </button>
+            {activeCount > 0 && (
+              <a href="/events" className="btn-ghost w-full">
+                Clear filters
+              </a>
+            )}
+          </div>
+        )}
       </form>
     </>
   );
@@ -229,6 +268,65 @@ function prettyDay(iso: string): string {
  * The inputs stay mounted while the panel is closed so the form still
  * submits them, and so this keeps working without JavaScript.
  */
+/**
+ * How far the visitor will travel, as a dial.
+ *
+ * Two deliberate choices. The label tracks the thumb as it moves, because a
+ * slider whose number only appears after you let go is a slider you cannot
+ * aim. But the search only re-runs on release — dragging from 20 to 400
+ * would otherwise fire thirty-eight queries, and the results flickering
+ * underneath makes the page feel broken rather than responsive.
+ *
+ * With JavaScript off it is still a named input in a GET form, so the
+ * Apply button submits whatever it is set to.
+ */
+function RadiusSlider({ value, onCommit }: { value: number; onCommit: () => void }) {
+  const [shown, setShown] = useState(value);
+
+  // A new value arriving from the URL (back button, a cleared filter) has to
+  // win over what the thumb was last dragged to.
+  useEffect(() => setShown(value), [value]);
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <label className="label" htmlFor="radius">
+          Within
+        </label>
+        <output
+          htmlFor="radius"
+          className="t-head text-sm text-[color:var(--indoor)]"
+          style={{ fontVariantNumeric: 'tabular-nums' }}
+        >
+          {shown === 0 ? 'This ZIP only' : `${shown} miles`}
+        </output>
+      </div>
+      <input
+        id="radius"
+        name="radius"
+        type="range"
+        min={RADIUS_MIN}
+        max={RADIUS_MAX}
+        step={RADIUS_STEP}
+        value={shown}
+        onChange={(e) => setShown(Number(e.target.value))}
+        onPointerUp={onCommit}
+        onKeyUp={onCommit}
+        onBlur={onCommit}
+        className="radius-range mt-1.5 w-full"
+        aria-describedby="radius-ends"
+      />
+      <div
+        id="radius-ends"
+        className="t-mono mt-0.5 flex justify-between text-[10px] text-[color:var(--faint)]"
+      >
+        <span>{RADIUS_MIN}</span>
+        <span>{RADIUS_MAX} mi</span>
+      </div>
+    </div>
+  );
+}
+
 function DateRange({
   from,
   to,

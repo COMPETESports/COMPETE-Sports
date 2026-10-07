@@ -111,11 +111,16 @@ export default async function BrowsePage({
           {events.length === 0 ? (
             <EmptyState filtered={filtered} origin={origin} radius={filters.radius} />
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2">
+            /* One card a row, full width. Two columns squeezed the date
+               block, title, venue, surface chips, divisions and fee into
+               about 300px and the result was unreadable — Tom's review,
+               7 Oct 2026. The results page has the whole width available;
+               there is no reason to spend half of it on a gutter. */
+            <ul className="grid gap-4">
               {events.map((event) => (
                 <li key={event.id} className="flex min-w-0 flex-col gap-2">
                   <div className="flex w-full flex-1">
-                    <EventCard event={event} />
+                    <EventCard event={event} wide />
                   </div>
                   <div className="flex justify-end">
                     <SaveButton

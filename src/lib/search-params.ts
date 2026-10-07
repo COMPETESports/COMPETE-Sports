@@ -3,8 +3,31 @@ import { today } from './dates';
 
 export type RawParams = Record<string, string | string[] | undefined>;
 
-export const RADIUS_CHOICES = [10, 25, 50, 100, 250] as const;
-export const DEFAULT_RADIUS = 50;
+/**
+ * How far someone will travel is a dial, not a menu. Five fixed options
+ * (10/25/50/100/250) forced a choice between "too close" and "half the
+ * country", so it is now a continuous range the visitor sets themselves.
+ *
+ * Stepped in tens so the value in the URL stays tidy and shareable, and so
+ * the slider has 51 stops rather than 501 — fine motor control on a phone
+ * is not a thing to rely on.
+ *
+ * 0 is legal and means "this postcode only". It will usually find nothing,
+ * which is the honest answer to that question.
+ */
+export const RADIUS_MIN = 0;
+export const RADIUS_MAX = 500;
+export const RADIUS_STEP = 10;
+
+/** 90 miles: roughly an hour and a half, which is a Saturday, not a trip. */
+export const DEFAULT_RADIUS = 90;
+
+/** Snaps anything to a legal radius. Out-of-range and junk fall back. */
+export function clampRadius(value: unknown): number {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < RADIUS_MIN || n > RADIUS_MAX) return DEFAULT_RADIUS;
+  return Math.round(n / RADIUS_STEP) * RADIUS_STEP;
+}
 
 const asArray = (v: string | string[] | undefined): string[] => {
   if (!v) return [];
@@ -22,10 +45,7 @@ const isIsoDate = (s: string | null): s is string => !!s && /^\d{4}-\d{2}-\d{2}$
 
 /** Turns a URL query string into validated filters. Unknown input is dropped. */
 export function parseFilters(params: RawParams): SearchFilters {
-  const radiusRaw = Number(asString(params.radius));
-  const radius = (RADIUS_CHOICES as readonly number[]).includes(radiusRaw)
-    ? radiusRaw
-    : DEFAULT_RADIUS;
+  const radius = params.radius === undefined ? DEFAULT_RADIUS : clampRadius(asString(params.radius));
 
   const sortRaw = asString(params.sort);
   const sort: SearchFilters['sort'] =

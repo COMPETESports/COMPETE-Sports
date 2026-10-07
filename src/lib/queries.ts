@@ -145,6 +145,25 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
   };
 }
 
+/**
+ * Facet options and counts for every upcoming event in a sport.
+ *
+ * The homepage filter panel needs the same checkboxes the search page has,
+ * but nothing has been searched yet, so there is no result set to derive
+ * them from. Running a whole `searchEvents` just to throw the rows away
+ * would cost a page query and a count for nothing.
+ */
+export async function getFacetsForSport(sportSlug: string): Promise<Facets> {
+  return loadFacets(
+    andAll([
+      sql`status = 'approved'`,
+      sql`sport_slug = ${sportSlug}`,
+      sql`starts_on >= ${today()}`,
+    ]),
+    sportSlug,
+  );
+}
+
 async function loadFacets(scopeWhere: Frag, sportSlug: string): Promise<Facets> {
   const [surfaces, formats, genders, divisions] = await Promise.all([
     sql<FacetOption[]>`
@@ -463,6 +482,44 @@ export async function getLocalEvents(
       and longitude between ${box.minLng} and ${box.maxLng}
       and miles_between(${lat}, ${lng}, latitude, longitude) <= ${radiusMiles}
     order by starts_on, distance_miles
+    limit ${limit}`;
+  return rows.map(normalise);
+}
+
+/**
+ * Upcoming events across a whole region, for the "Upcoming in the Midwest"
+ * rail — the step between "within 90 miles of me" and the national map.
+ *
+ * `excludeIds` takes whatever the local rail already showed, so the two
+ * sections do not print the same tournament twice. Without it, a visitor in
+ * Columbus sees the same Ohio event under both headings and the page looks
+ * like it has less in it than it does.
+ *
+ * Ordered by date alone. There is no distance here: the point of a region
+ * is that it is somewhere you'd travel to, so "soonest" is the useful sort,
+ * not "nearest".
+ */
+export async function getRegionalEvents(
+  sportSlug: string,
+  stateCodes: readonly string[],
+  excludeIds: readonly string[] = [],
+  limit = 6,
+): Promise<DiscoveryEvent[]> {
+  if (stateCodes.length === 0) return [];
+
+  // postgres.js expands an empty array to `in ()`, which is a syntax error,
+  // so the no-exclusions case gets a sentinel that matches no uuid.
+  const excluded = excludeIds.length > 0 ? excludeIds : ['00000000-0000-0000-0000-000000000000'];
+
+  const rows = await sql<DiscoveryEvent[]>`
+    select *, null::double precision as distance_miles
+    from event_discovery
+    where status = 'approved'
+      and sport_slug = ${sportSlug}
+      and starts_on >= ${today()}
+      and state = any(${stateCodes as string[]})
+      and id <> all(${excluded as string[]}::uuid[])
+    order by starts_on
     limit ${limit}`;
   return rows.map(normalise);
 }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { DEFAULT_RADIUS } from '../src/lib/search-params';
 
 /**
  * End-to-end checks over the real application and a real database.
@@ -11,12 +12,58 @@ test('a visitor can browse events without signing in', async ({ page }) => {
   await expect(page.locator('a[href^="/events/"]').first()).toBeVisible();
 });
 
-test('the homepage leads with featured, local and the map', async ({ page }) => {
+test('the homepage leads with the map and filters, then the event rails', async ({ page }) => {
   await page.goto('/');
+
+  // Order is the point of this test, not just presence. Rebuilt 7 Oct 2026:
+  // the map and the filters come first because they are what a visitor can
+  // act on, and the reading comes after. A regression here would be someone
+  // quietly putting the prose back on top.
+  const positions = await page.evaluate(() => {
+    // The headline is split by a <br>, so textContent has no space where
+    // the line breaks. Compare on letters only rather than on whitespace.
+    const key = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '');
+    const y = (text: string) => {
+      const el = [...document.querySelectorAll('h1, h2')].find(
+        (n) => key(n.textContent ?? '') === key(text),
+      );
+      return el ? el.getBoundingClientRect().top + window.scrollY : -1;
+    };
+    const map = document.querySelector('svg')?.getBoundingClientRect().top ?? -1;
+    return {
+      headline: y('Discover your next competition.'),
+      map: map + window.scrollY,
+      filters: y('Find your event'),
+      featured: y('Featured events'),
+      local: y('Events near you'),
+    };
+  });
+
+  expect(positions.headline).toBeGreaterThanOrEqual(0);
+  expect(positions.map).toBeGreaterThan(positions.headline);
+  expect(positions.filters).toBeGreaterThan(positions.map);
+  expect(positions.featured).toBeGreaterThan(positions.filters);
+  expect(positions.local).toBeGreaterThan(positions.featured);
+
+  // The full filter set is on the landing page, not just a location box.
+  for (const legend of ['Surface', 'Playing as', 'Division', 'Format']) {
+    await expect(page.getByRole('group', { name: legend })).toBeVisible();
+  }
+
+  // Ticking a box here must NOT navigate — someone setting four filters
+  // would be thrown to the results page after the first one.
+  // force: the real input is visually hidden behind its styled label.
+  await page
+    .getByRole('group', { name: 'Surface' })
+    .getByRole('checkbox')
+    .first()
+    .check({ force: true });
+  await page.waitForTimeout(400);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('button', { name: 'Search events' })).toBeVisible();
 
   await expect(page.getByRole('heading', { name: 'Featured events' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Events near you' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Browse the country' })).toBeVisible();
 
   // Every card in the rail is labelled, and only a real staff pick may carry
   // the "Featured" label — filler says what it is. Asserted as a contract
@@ -45,13 +92,17 @@ test('a ZIP typed on the homepage fills Local and is remembered', async ({ page 
   await page.getByLabel('Your ZIP code or city').fill('60614');
   await page.getByRole('button', { name: /Show my area/ }).click();
 
-  await expect(page.getByText(/Within 100 miles of/)).toBeVisible();
+  // Asserted against the constant, not a literal. The default moved from
+  // 100 to 90 on 7 Oct and a hard-coded number would have hidden whether
+  // the heading and the query agree — which is the bug this guards.
+  const within = new RegExp(`Within ${DEFAULT_RADIUS} miles of`);
+  await expect(page.getByText(within)).toBeVisible();
   const local = page.locator('section', { hasText: 'Events near you' }).locator('.card');
   expect(await local.count()).toBeGreaterThan(0);
 
   // Still there on a fresh visit.
   await page.goto('/');
-  await expect(page.getByText(/Within 100 miles of/)).toBeVisible();
+  await expect(page.getByText(within)).toBeVisible();
 });
 
 test('location search narrows results and reports the place it matched', async ({ page }) => {
@@ -134,8 +185,11 @@ test('staff can create an event and it appears in public discovery', async ({ pa
   await page.getByRole('button', { name: /Create event/ }).click();
   await expect(page.locator('form [role="status"]')).toContainText('Event created');
 
-  // It must now be findable by a player searching near that venue.
-  await page.goto('/events?near=63112&radius=25');
+  // It must now be findable by a player searching near that venue. Pinned
+  // to the event's date as well as its ZIP: each run of this suite adds
+  // another St. Louis event, and without the date window the newest one
+  // eventually sorts onto page two and fails a working app.
+  await page.goto(`/events?near=63112&radius=25&from=${future}&to=${future}`);
   await expect(page.getByText(name)).toBeVisible();
 });
 
@@ -205,7 +259,12 @@ test('paste-and-parse fills the form from a pasted post, and it saves', async ({
   await page.getByRole('button', { name: /Create event/ }).click();
   await expect(page.locator('form [role="status"]')).toContainText('Event created');
 
-  await page.goto('/events?near=63112&radius=25');
+  // Pinned to the event's own date, not just its ZIP. Every run of this
+  // suite leaves another St. Louis event behind, and once there were more
+  // than a page of them the newest one — dated sixty days out, so last by
+  // date — fell onto page two and the assertion failed with the app working
+  // perfectly. A test should not get flakier the more often it runs.
+  await page.goto(`/events?near=63112&radius=25&from=${y}-${m}-${d}&to=${y}-${m}-${d}`);
   await expect(page.getByText(name)).toBeVisible();
 });
 

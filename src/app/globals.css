@@ -432,6 +432,65 @@
     @apply t-kicker mb-1.5 block;
   }
 
+  /* --- travel radius slider -------------------------------------------
+     Written long-hand per engine because a range input cannot be styled
+     through a shared selector: Chrome and Safari need ::-webkit-slider-*
+     and Firefox needs ::-moz-range-*, and listing them together makes
+     every browser drop the whole rule. The two blocks must stay in step.
+
+     The filled portion is a left-to-right gradient on the track itself
+     rather than a second element, so there is nothing to keep in sync
+     with the thumb while dragging. */
+  .radius-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 22px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .radius-range::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--indoor), var(--turf));
+    border: 1px solid var(--line-strong);
+  }
+  .radius-range::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--indoor), var(--turf));
+    border: 1px solid var(--line-strong);
+  }
+  .radius-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    /* 22px: the thumb is also the touch target, and anything under about
+       20 is a fiddle on a phone. */
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+    border-radius: 999px;
+    background: var(--ink);
+    border: 3px solid var(--beach);
+    box-shadow: 0 0 12px -2px var(--beach);
+  }
+  .radius-range::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--ink);
+    border: 3px solid var(--beach);
+    box-shadow: 0 0 12px -2px var(--beach);
+  }
+  .radius-range:focus-visible {
+    outline: none;
+  }
+  .radius-range:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--beach) 45%, transparent);
+  }
+  .radius-range:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--beach) 45%, transparent);
+  }
+
   /* --- chips ---------------------------------------------------------
      THE SEMANTIC CORE. Each surface owns its hue everywhere it appears.
      Do not reassign these. */

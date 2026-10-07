@@ -4,6 +4,16 @@ export interface GeoPoint {
   label: string;
   lat: number;
   lng: number;
+  /**
+   * Two-letter USPS code, when the lookup knew one. The postal table and a
+   * "City, ST" query always do; Mapbox returns a formatted string and is
+   * not parsed back apart, so it reports null rather than a guess.
+   *
+   * Used to pick the visitor's region, so a wrong value here would put
+   * someone in Missouri under a Southeast heading. Null means "no regional
+   * rail", which is the honest outcome.
+   */
+  state: string | null;
   source: 'postal' | 'city' | 'mapbox';
 }
 
@@ -37,6 +47,7 @@ export async function geocode(input: string): Promise<GeoPoint | null> {
         label: `${hit.city}, ${hit.state} ${zipMatch[1]}`,
         lat: hit.latitude,
         lng: hit.longitude,
+        state: hit.state,
         source: 'postal',
       };
     }
@@ -57,6 +68,7 @@ export async function geocode(input: string): Promise<GeoPoint | null> {
             label: `${candidate}, ${state}`,
             lat: avg(hits.map((h) => h.latitude)),
             lng: avg(hits.map((h) => h.longitude)),
+            state,
             source: 'city',
           };
         }
@@ -87,6 +99,7 @@ async function geocodeWithMapbox(query: string): Promise<GeoPoint | null> {
       label: feature.place_name.replace(/, United States$/, ''),
       lat: feature.center[1],
       lng: feature.center[0],
+      state: null,
       source: 'mapbox',
     };
   } catch {

@@ -1,117 +1,166 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { EventCard } from '@/components/EventCard';
+import { FilterForm } from '@/components/FilterForm';
 import { HomeSearch } from '@/components/HomeSearch';
 import { StateMap } from '@/components/StateMap';
 import {
+  getFacetsForSport,
   getFeaturedEvents,
   getLocalEvents,
-  getSiteStats,
+  getRegionalEvents,
   getStateCounts,
 } from '@/lib/queries';
+import { parseFilters } from '@/lib/search-params';
 import { geocode } from '@/lib/geocode';
+import { regionForState, type Region } from '@/lib/regions';
 import { currentAccount, getAthleteProfile } from '@/lib/accounts';
 import { HOME_ZIP_COOKIE, LOCAL_RADIUS_MILES } from '@/lib/home-location';
-import type { DiscoveryEvent } from '@/lib/types';
+import type { DiscoveryEvent, Facets } from '@/lib/types';
 import type { StateCount } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * The landing page, rebuilt 7 Oct 2026 after Tom and a friend reviewed the
+ * live site.
+ *
+ * What changed and why: the old page opened with a headline, a paragraph,
+ * a search box and a stats row — about 500 pixels of reading before the
+ * visitor could do anything. The map, the most interactive thing on the
+ * site, was at the bottom where most people never scrolled.
+ *
+ * It now opens with one line and then hands over control: map, filters,
+ * then events ordered by how close they are to you — featured, local,
+ * regional. Nothing above the fold asks to be read.
+ */
 export default async function HomePage() {
   const sport = 'volleyball';
 
   // Where "near you" comes from, in order of how much we trust it: the
-  // signed-in player's profile — their ZIP and the radius they actually said
-  // they would drive — then the ZIP a visitor last searched, remembered in a
-  // cookie. Signed out, the cookie is all there is, and that is fine.
+  // signed-in player's profile — their ZIP and the radius they actually
+  // said they would drive — then the ZIP a visitor last searched,
+  // remembered in a cookie. Signed out, the cookie is all there is.
   const account = await currentAccount();
   const profile = account ? await getAthleteProfile(account.id) : null;
 
   const store = await cookies();
   const cookieZip = store.get(HOME_ZIP_COOKIE)?.value ?? null;
 
+  const geocoded = cookieZip ? await geocode(cookieZip) : null;
+
   const origin =
     profile?.latitude != null && profile.longitude != null
       ? { lat: profile.latitude, lng: profile.longitude, label: profile.home_city ?? '' }
-      : cookieZip
-        ? await geocode(cookieZip)
-        : null;
+      : geocoded;
 
+  // Whichever radius is in play must also be the number printed in the
+  // heading. Labelling a 200-mile result set "within 90 miles" is a small
+  // lie that teaches someone not to trust the rest of the page.
   const radius = profile?.travel_radius_miles ?? LOCAL_RADIUS_MILES;
 
-  const [featured, local, stats, stateCounts] = await Promise.all([
+  // The region comes from a state code, never from a guess: a signed-in
+  // player's stated home state, else the state behind the ZIP they
+  // searched. No location means no regional rail at all, rather than
+  // defaulting someone into the Midwest.
+  const region = regionForState(profile?.home_state ?? geocoded?.state ?? null);
+
+  const [featured, local, stateCounts, facets] = await Promise.all([
     getFeaturedEvents(sport, 3),
-    origin
-      ? getLocalEvents(sport, origin.lat, origin.lng, radius, 6)
-      : Promise.resolve([]),
-    getSiteStats(),
+    origin ? getLocalEvents(sport, origin.lat, origin.lng, radius, 6) : Promise.resolve([]),
     getStateCounts(sport),
+    getFacetsForSport(sport),
   ]);
+
+  // Regional runs after local so it can skip whatever local already showed
+  // — the same tournament under two headings makes the page look emptier
+  // than it is.
+  const regional = region
+    ? await getRegionalEvents(
+        sport,
+        region.states,
+        [...local.map((e) => e.id), ...featured.map((e) => e.id)],
+        6,
+      )
+    : [];
+
+  const homeZip = profile?.home_postal_code ?? cookieZip;
 
   return (
     <>
-      <Hero stats={stats} homeZip={profile?.home_postal_code ?? cookieZip} />
+      <Masthead />
+      <MapAndFilters sport={sport} counts={stateCounts} facets={facets} />
       <FeaturedRail events={featured} />
-      <LocalRail events={local} origin={origin} hasZip={Boolean(profile?.home_postal_code ?? cookieZip)} />
-      <MapStrip sport={sport} counts={stateCounts} />
+      <LocalRail
+        events={local}
+        origin={origin}
+        hasZip={Boolean(homeZip)}
+        homeZip={homeZip}
+        radius={radius}
+      />
+      <RegionalRail region={region} events={regional} />
     </>
   );
 }
 
-/* ------------------------------------------------------------------ hero */
+/* -------------------------------------------------------------- masthead */
 
-function Hero({
-  stats,
-  homeZip,
-}: {
-  stats: { events: number; states: number; organizers: number };
-  homeZip: string | null;
-}) {
+function Masthead() {
   return (
-    /* The hero is a POSTER MOMENT: dark ground, perspective chevrons,
-       display type with layered offset shadows. Short text, big type, all
-       the attitude. The cards below it go back to ecru paper, because a
-       database of forty-field cards is unreadable on black. */
+    /* One line, and then out of the way. The chevron ground and the layered
+       display shadow keep the poster feel the brand is built on; what went
+       is the paragraph, the stats row and the second search box, none of
+       which a visitor needs before they can act. */
     <section className="pat-chevron relative overflow-hidden">
-      <div className="wrap relative py-14 sm:py-20">
+      <div className="wrap relative py-8 sm:py-11">
         <p className="t-kicker !text-[color:var(--grass)]">
           Adult recreational sports · United States
         </p>
-        {/* The survey said "we save you time" lands for about a quarter of
-            players — a fifth do not search at all. What they do not have is a
-            way to find the events nobody told them about. So the promise is
-            discovery, and the second line is the community it adds up to. */}
-        <h1 className="t-display t-3d mt-5 text-[2.05rem] leading-[1.45] sm:text-[4.1rem] sm:leading-[1.18]">
-          Find the events
+        <h1 className="t-display t-3d mt-3 text-[1.85rem] leading-[1.35] sm:text-[3.4rem] sm:leading-[1.14]">
+          Discover your
           <br />
-          you never knew existed.
+          next competition.
         </h1>
-        <p className="mt-7 max-w-xl text-lg leading-relaxed text-white/80">
-          Every adult tournament, league and open play in one place — connecting
-          the people who run events with the people looking for their next one.
-        </p>
+      </div>
+    </section>
+  );
+}
 
-        <div className="mt-8 max-w-xl">
-          <HomeSearch defaultZip={homeZip} />
+/* --------------------------------------------------------- map + filters */
+
+function MapAndFilters({
+  sport,
+  counts,
+  facets,
+}: {
+  sport: string;
+  counts: StateCount[];
+  facets: Facets;
+}) {
+  // The landing panel is a plain GET form posting to /events, so no filter
+  // state needs to live here — defaults are enough, and the URL the visitor
+  // lands on is shareable.
+  const filters = parseFilters({});
+
+  return (
+    <section className="wrap py-9 sm:py-11">
+      <StateMap sport={sport} counts={counts} />
+
+      <div className="mt-8">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="t-kicker" style={{ color: 'var(--grape)' }}>
+              Narrow it down
+            </p>
+            <h2 className="t-display mt-1.5 text-2xl sm:text-3xl">Find your event</h2>
+          </div>
+          <Link href="/events" className="btn-ghost">
+            Browse everything
+          </Link>
         </div>
 
-        <dl className="mt-9 flex flex-wrap gap-x-9 gap-y-3">
-          {[
-            [stats.events, 'upcoming events'],
-            [stats.states, 'states'],
-            [stats.organizers, 'organizers'],
-          ].map(([value, label]) => (
-            <div key={label as string} className="flex items-baseline gap-2">
-              <dt className="sr-only">{label as string}</dt>
-              <dd className="t-head text-3xl text-[color:var(--indoor)]">
-                {value as number}
-              </dd>
-              <span className="t-kicker !text-white/70">{label as string}</span>
-            </div>
-          ))}
-        </dl>
+        <FilterForm filters={filters} facets={facets} variant="landing" />
       </div>
-
     </section>
   );
 }
@@ -148,6 +197,17 @@ function SectionHead({
   );
 }
 
+/**
+ * Two cards a row, not three.
+ *
+ * At three columns the card was about 300px wide and its date, venue,
+ * surface chips, divisions and fee were all competing for the same line
+ * endings. Tom's review: "too condensed and too much to read." Two columns
+ * gives each card roughly the width of two, which is what the content
+ * needed all along.
+ */
+const CARD_GRID = 'grid gap-5 sm:grid-cols-2';
+
 function FeaturedRail({ events }: { events: DiscoveryEvent[] }) {
   if (!events.length) return null;
 
@@ -162,7 +222,7 @@ function FeaturedRail({ events }: { events: DiscoveryEvent[] }) {
           linkLabel="Browse all"
         />
 
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className={CARD_GRID}>
           {events.map((event) => (
             <li key={event.id} className="flex min-w-0">
               <div className="flex w-full min-w-0 flex-col">
@@ -188,18 +248,20 @@ function LocalRail({
   events,
   origin,
   hasZip,
+  homeZip,
+  radius,
 }: {
   events: DiscoveryEvent[];
   origin: { label: string } | null;
   hasZip: boolean;
+  homeZip: string | null;
+  radius: number;
 }) {
   return (
     <section className="band-aqua relative">
       <div className="wrap py-12 sm:py-14">
         <SectionHead
-          kicker={
-            origin ? `Within ${LOCAL_RADIUS_MILES} miles of ${origin.label}` : 'Near you'
-          }
+          kicker={origin ? `Within ${radius} miles of ${origin.label}` : 'Near you'}
           title="Events near you"
           accent="var(--surf-ink)"
           href={origin ? '/events' : undefined}
@@ -207,64 +269,110 @@ function LocalRail({
         />
 
         {!hasZip ? (
+          /* The location box lives here rather than in the masthead, beside
+             the one section whose contents it changes. */
           <div className="panel p-6 sm:p-8">
             <p className="t-head text-lg">Tell us where you play</p>
             <p className="mt-2 max-w-md leading-relaxed text-[color:var(--muted)]">
-              Put your ZIP code in the search above and this fills with
-              everything within {LOCAL_RADIUS_MILES} miles of you. We remember
-              it, so it is here next time.
+              Put in your ZIP code and this fills with everything within{' '}
+              {radius} miles of you. We remember it, so it is here next time.
             </p>
+            <div className="mt-5 max-w-xl">
+              <HomeSearch defaultZip={null} />
+            </div>
           </div>
         ) : !origin ? (
           <div className="panel tone-warn p-6">
             <p className="font-semibold">We couldn&apos;t place that ZIP code.</p>
             <p className="mt-1.5 text-sm leading-relaxed">
-              Search again above with a five-digit ZIP, or a city and state like
+              Try again with a five-digit ZIP, or a city and state like
               &ldquo;St. Louis, MO&rdquo;.
             </p>
+            <div className="mt-4 max-w-xl">
+              <HomeSearch defaultZip={homeZip} />
+            </div>
           </div>
         ) : events.length === 0 ? (
           <div className="panel p-6 sm:p-8">
-            <p className="t-head text-lg">
-              Nothing within {LOCAL_RADIUS_MILES} miles yet
-            </p>
+            <p className="t-head text-lg">Nothing within {radius} miles yet</p>
             <p className="mt-2 max-w-md leading-relaxed text-[color:var(--muted)]">
               No volleyball is on the calendar near {origin.label} right now.
-              The map below shows where the scene is — every state that has
-              hosted before is marked, even the ones between seasons.
+              The map at the top shows where the scene is — every state that
+              has hosted before is marked, even the ones between seasons.
             </p>
-            <Link href="/communities/volleyball" className="btn-primary mt-5">
-              See the map
-            </Link>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <Link href="/events" className="btn-primary">
+                Widen the search
+              </Link>
+            </div>
+            <div className="mt-5 max-w-xl">
+              <HomeSearch defaultZip={homeZip} />
+            </div>
           </div>
         ) : (
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {events.map((event) => (
-              <li key={event.id} className="flex min-w-0">
-                <div className="flex w-full">
-                  <EventCard event={event} />
-                </div>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className={CARD_GRID}>
+              {events.map((event) => (
+                <li key={event.id} className="flex min-w-0">
+                  <div className="flex w-full">
+                    <EventCard event={event} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <details className="mt-6">
+              <summary className="t-kicker cursor-pointer text-[color:var(--muted)] hover:text-[color:var(--surf-ink)]">
+                Change your location
+              </summary>
+              <div className="mt-3 max-w-xl">
+                <HomeSearch defaultZip={homeZip} />
+              </div>
+            </details>
+          </>
         )}
       </div>
-
     </section>
   );
 }
 
-function MapStrip({ sport, counts }: { sport: string; counts: StateCount[] }) {
+/**
+ * The step between "within 90 miles of me" and the whole country.
+ *
+ * A named region — the Midwest, the Southeast — is a thing people already
+ * belong to, which a radius never is. Nobody thinks of themselves as living
+ * inside a 250-mile circle.
+ */
+function RegionalRail({
+  region,
+  events,
+}: {
+  region: Region | null;
+  events: DiscoveryEvent[];
+}) {
+  // No region, or nothing in it, means no section. An empty rail headed
+  // "Upcoming in the Midwest" is worse than no rail.
+  if (!region || events.length === 0) return null;
+
   return (
-    <section className="wrap py-12 sm:py-14">
-      <SectionHead
-        kicker="Every state"
-        title="Browse the country"
-        accent="var(--grape)"
-        href="/communities"
-        linkLabel="All communities"
-      />
-      <StateMap sport={sport} counts={counts} />
+    <section className="relative">
+      <div className="wrap py-12 sm:py-14">
+        <SectionHead
+          kicker="Worth the drive"
+          title={`Upcoming in the ${region.name}`}
+          accent="var(--grape)"
+          href="/events"
+          linkLabel="Browse all"
+        />
+        <ul className={CARD_GRID}>
+          {events.map((event) => (
+            <li key={event.id} className="flex min-w-0">
+              <div className="flex w-full">
+                <EventCard event={event} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
