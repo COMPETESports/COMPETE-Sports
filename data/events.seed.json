@@ -1,0 +1,5061 @@
+{
+  "generated_at": "2026-09-26T21:39:08.488Z",
+  "source_file": "Compete_Sports_Database.csv",
+  "venues": [
+    {
+      "key": "milwaukee-yard-indoor-sports-complex-oak-creek-wi",
+      "name": "Milwaukee Yard Indoor Sports Complex",
+      "address_line": "7727 S Longwater Dr, Oak Creek, WI 53154",
+      "city": "Oak Creek",
+      "state": "WI",
+      "postal_code": "53154",
+      "latitude": 42.8892,
+      "longitude": -87.9027,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "pier-60-clearwater-beach-fl",
+      "name": "Pier 60",
+      "address_line": "7000 Gulf Blvd, Clearwater Beach, Florida 33767",
+      "city": "Clearwater Beach",
+      "state": "FL",
+      "postal_code": "33767",
+      "latitude": 27.9598,
+      "longitude": -82.8286,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "karn-s-sports-park-field-knoxville-tn",
+      "name": "Karn's Sports Park Field",
+      "address_line": "8050 Oak Ridge Hwy, Knoxville, TN 37931",
+      "city": "Knoxville",
+      "state": "TN",
+      "postal_code": "37931",
+      "latitude": 35.9924,
+      "longitude": -84.1201,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "tobey-park-memphis-tn",
+      "name": "Tobey Park",
+      "address_line": "2599 Avery Ave Memphis, TN 38112, USA",
+      "city": "Memphis",
+      "state": "TN",
+      "postal_code": "38112",
+      "latitude": 35.1483,
+      "longitude": -89.9729,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "the-dock-at-montrose-beach-chicago-il",
+      "name": "The Dock at Montrose Beach",
+      "address_line": "200 W Montrose Harbor Dr, Chicago, IL, United States, 60640",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60640",
+      "latitude": 41.9719,
+      "longitude": -87.6624,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "hyden-beach-spring-hill-tn",
+      "name": "Hyden Beach",
+      "address_line": "5191 Joe Peay Rd, Spring Hill, Tennessee 37174",
+      "city": "Spring Hill",
+      "state": "TN",
+      "postal_code": "37174",
+      "latitude": 35.7173,
+      "longitude": -86.9048,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "bilmar-beach-resort-st-pete-beach-fl",
+      "name": "Bilmar Beach Resort",
+      "address_line": "10650 Gulf Blvd, Treasure Island, Florida 33706",
+      "city": "St. Pete Beach",
+      "state": "FL",
+      "postal_code": "33706",
+      "latitude": 27.7456,
+      "longitude": -82.7516,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "honeysuckle-park-doraville-ga",
+      "name": "Honeysuckle Park",
+      "address_line": "3037 Pleasant Valley Dr., Doraville, GA 30340",
+      "city": "Doraville",
+      "state": "GA",
+      "postal_code": "30340",
+      "latitude": 33.8932,
+      "longitude": -84.2539,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "the-boardwalk-on-okaloosa-island-fort-walton-beach-fl",
+      "name": "The Boardwalk on Okaloosa Island",
+      "address_line": "1450 Miracle Strip Pkwy SE, Fort Walton Beach, FL 32548, USA",
+      "city": "Fort Walton Beach",
+      "state": "FL",
+      "postal_code": "32548",
+      "latitude": 30.4206,
+      "longitude": -86.6286,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "siesta-beach-siesta-key-fl",
+      "name": "Siesta Beach",
+      "address_line": "948 Beach Rd, Sarasota, Florida 34242",
+      "city": "Siesta Key",
+      "state": "FL",
+      "postal_code": "34242",
+      "latitude": 27.2566,
+      "longitude": -82.5398,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "montrose-grove-chicago-il",
+      "name": "Montrose Grove",
+      "address_line": "601 W Montrose Ave Chicago, IL 60613",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60613",
+      "latitude": 41.9543,
+      "longitude": -87.6575,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "gahagan-park-summerville-sc",
+      "name": "Gahagan Park",
+      "address_line": "184 W Boundary St, Summerville, SC 29485, USA",
+      "city": "Summerville",
+      "state": "SC",
+      "postal_code": "29485",
+      "latitude": 32.9756,
+      "longitude": -80.1831,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "tiemeyer-park-st-ann-mo",
+      "name": "Tiemeyer Park",
+      "address_line": "3311 Ashby Rd, St Ann, Missouri 63074",
+      "city": "St. Ann",
+      "state": "MO",
+      "postal_code": "63074",
+      "latitude": 38.7259,
+      "longitude": -90.3864,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "nashville-beach-joelton-tn",
+      "name": "Nashville Beach",
+      "address_line": "7531 Bidwell Rd, Joelton, Tennessee 37080",
+      "city": "Joelton",
+      "state": "TN",
+      "postal_code": "37080",
+      "latitude": 36.329,
+      "longitude": -86.9163,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "pat-jones-ymca-springfield-mo",
+      "name": "Pat Jones YMCA",
+      "address_line": "1901 E Republic Rd, Springfield, MO 65804",
+      "city": "Springfield",
+      "state": "MO",
+      "postal_code": "65804",
+      "latitude": 37.1654,
+      "longitude": -93.2522,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "hendersonville-memorial-park-hendersonville-tn",
+      "name": "Hendersonville Memorial Park",
+      "address_line": "151 E Main Street, Hendersonville, Tennessee 37075",
+      "city": "Hendersonville",
+      "state": "TN",
+      "postal_code": "37075",
+      "latitude": 36.3054,
+      "longitude": -86.6072,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "grand-sands-volleyball-loveland-oh",
+      "name": "Grand Sands Volleyball",
+      "address_line": "10750 Loveland-Madeira Rd, Loveland, Ohio 45140",
+      "city": "Loveland",
+      "state": "OH",
+      "postal_code": "45140",
+      "latitude": 39.2445,
+      "longitude": -84.2588,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "samara-beach-costa-rica-fl",
+      "name": "Samara Beach",
+      "address_line": "Samara, Costa Rica",
+      "city": "Costa Rica",
+      "state": "FL",
+      "postal_code": null,
+      "latitude": null,
+      "longitude": null,
+      "geo_precision": "unknown"
+    },
+    {
+      "key": "north-avenue-beach-chicago-il",
+      "name": "North Avenue Beach",
+      "address_line": "1600 N. Jean-Baptiste Pointe DuSable Lake Shore Drive, Chicago, IL 60611",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60611",
+      "latitude": 41.8971,
+      "longitude": -87.6223,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "southland-park-lexington-ky",
+      "name": "Southland Park",
+      "address_line": "625 Hill N Dale RdLexington, KY 40503",
+      "city": "Lexington",
+      "state": "KY",
+      "postal_code": "40503",
+      "latitude": 38.001,
+      "longitude": -84.5282,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "tbd-nashville-tn",
+      "name": "TBD",
+      "address_line": null,
+      "city": "Nashville",
+      "state": "TN",
+      "postal_code": "37207",
+      "latitude": 36.2195,
+      "longitude": -86.774,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "mike-rose-soccer-complex-memphis-tn",
+      "name": "Mike Rose Soccer Complex",
+      "address_line": "9000 E Shelby Dr, Memphis, Tennessee 38125",
+      "city": "Memphis",
+      "state": "TN",
+      "postal_code": "38125",
+      "latitude": 35.0312,
+      "longitude": -89.8124,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "drakes-creek-park-hendersonville-tn",
+      "name": "Drakes Creek Park",
+      "address_line": "120 E Main St, Hendersonville, TN 37075, USA",
+      "city": "Hendersonville",
+      "state": "TN",
+      "postal_code": "37075",
+      "latitude": 36.3054,
+      "longitude": -86.6072,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "coquina-beach-anna-maria-island-fl",
+      "name": "Coquina Beach",
+      "address_line": "2650 Gulf Dr S, Bradenton Beach, Florida 34217",
+      "city": "Anna Maria Island",
+      "state": "FL",
+      "postal_code": "34217",
+      "latitude": 27.4859,
+      "longitude": -82.7102,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "deer-creek-park-hendersonville-tn",
+      "name": "Deer Creek Park",
+      "address_line": "120 E Main St, Hendersonville, TN 37075, USA",
+      "city": "Hendersonville",
+      "state": "TN",
+      "postal_code": "37075",
+      "latitude": 36.3054,
+      "longitude": -86.6072,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "sugarfire-dardenne-prairie-dardenne-prairie-mo",
+      "name": "Sugarfire - Dardenne Prairie",
+      "address_line": "1541 Bryan Rd, Dardenne Prairie, MO 63366",
+      "city": "Dardenne Prairie",
+      "state": "MO",
+      "postal_code": "63366",
+      "latitude": 38.8239,
+      "longitude": -90.7427,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "holy-rosary-catholic-church-memphis-tn",
+      "name": "Holy Rosary Catholic Church",
+      "address_line": "4851 Park Ave, Memphis, Tennessee 38117",
+      "city": "Memphis",
+      "state": "TN",
+      "postal_code": "38117",
+      "latitude": 35.1124,
+      "longitude": -89.9034,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "montrose-cricket-hill-chicago-il",
+      "name": "Montrose Cricket Hill",
+      "address_line": "601 W Montrose Ave Chicago, IL 60613",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60613",
+      "latitude": 41.9543,
+      "longitude": -87.6575,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "msoe-viets-field-milwaukee-wi",
+      "name": "MSOE Viets Field",
+      "address_line": "1305 N Broadway, Milwaukee, WI 53202",
+      "city": "Milwaukee",
+      "state": "WI",
+      "postal_code": "53202",
+      "latitude": 43.0506,
+      "longitude": -87.8968,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "pottstown-memorial-park-pottstown-pa",
+      "name": "Pottstown Memorial Park",
+      "address_line": "75 West King Street, Pottstown, PA 19464",
+      "city": "Pottstown",
+      "state": "PA",
+      "postal_code": "19464",
+      "latitude": 40.2635,
+      "longitude": -75.6172,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "montrose-beach-chicago-il",
+      "name": "Montrose Beach",
+      "address_line": "4400 N. Jean-Baptiste Pointe DuSable Lake Shore Drive, Chicago, IL 60613",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60613",
+      "latitude": 41.9543,
+      "longitude": -87.6575,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "bilmar-beach-resort-treasure-island-fl",
+      "name": "Bilmar Beach Resort",
+      "address_line": "10650 Gulf Blvd, Treasure Island, Florida 33706",
+      "city": "Treasure Island",
+      "state": "FL",
+      "postal_code": "33706",
+      "latitude": 27.7456,
+      "longitude": -82.7516,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "brighton-acres-oshkosh-wi",
+      "name": "Brighton Acres",
+      "address_line": "4057 Fisk Avenue, Oshkosh, WI 54904",
+      "city": "Oshkosh",
+      "state": "WI",
+      "postal_code": "54904",
+      "latitude": 44.0304,
+      "longitude": -88.607,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "st-louis-venue-tbd-st-louis-mo",
+      "name": "St. Louis (venue TBD)",
+      "address_line": null,
+      "city": "St. Louis",
+      "state": "MO",
+      "postal_code": null,
+      "latitude": 38.63997681159422,
+      "longitude": -90.28505942028978,
+      "geo_precision": "city"
+    },
+    {
+      "key": "ephram-white-park-bowling-green-ky",
+      "name": "Ephram White Park",
+      "address_line": "885 Mount Olivet Rd, Bowling Green, KY 42101",
+      "city": "Bowling Green",
+      "state": "KY",
+      "postal_code": "42101",
+      "latitude": 37.0174,
+      "longitude": -86.4518,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "wagner-park-aspen-co",
+      "name": "Wagner Park",
+      "address_line": "350 E Durant Ave, Aspen, CO 81611, USA",
+      "city": "Aspen",
+      "state": "CO",
+      "postal_code": "81611",
+      "latitude": 39.1951,
+      "longitude": -106.8236,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "tom-lee-park-memphis-tn",
+      "name": "Tom Lee Park",
+      "address_line": "Riverside Dr, Memphis, Tennessee 38103",
+      "city": "Memphis",
+      "state": "TN",
+      "postal_code": "38103",
+      "latitude": 35.144,
+      "longitude": -90.048,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "sydney-marovitz-golf-course-chicago-il",
+      "name": "Sydney Marovitz Golf Course",
+      "address_line": "3701 N Recreation Dr, Chicago, IL 60613",
+      "city": "Chicago",
+      "state": "IL",
+      "postal_code": "60613",
+      "latitude": 41.9543,
+      "longitude": -87.6575,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "siesta-key-beach-siesta-key-beach-fl",
+      "name": "Siesta Key Beach",
+      "address_line": "948 Beach Rd, Sarasota, Florida 34242",
+      "city": "Siesta Key Beach",
+      "state": "FL",
+      "postal_code": "34242",
+      "latitude": 27.2566,
+      "longitude": -82.5398,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "st-pete-beach-st-pete-beach-fl",
+      "name": "St. Pete Beach",
+      "address_line": "6850 Beach Plaza, St Pete Beach, Florida 33706",
+      "city": "St. Pete Beach",
+      "state": "FL",
+      "postal_code": "33706",
+      "latitude": 27.7456,
+      "longitude": -82.7516,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "pompano-beach-pompano-beach-fl",
+      "name": "Pompano Beach",
+      "address_line": "222 N Pompano Beach Blvd, Pompano Beach, Florida 33062",
+      "city": "Pompano Beach",
+      "state": "FL",
+      "postal_code": "33062",
+      "latitude": 26.2343,
+      "longitude": -80.0941,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "tobey-park-sand-volleyball-courts-memphis-tn",
+      "name": "Tobey Park Sand Volleyball Courts",
+      "address_line": "2599 Avery Ave, Memphis, Tennessee 38112",
+      "city": "Memphis",
+      "state": "TN",
+      "postal_code": "38112",
+      "latitude": 35.1483,
+      "longitude": -89.9729,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "gulfport-gulfport-fl",
+      "name": "Gulfport",
+      "address_line": "5500 Shore Blvd S, Gulfport, Florida 33707",
+      "city": "Gulfport",
+      "state": "FL",
+      "postal_code": "33707",
+      "latitude": 27.7549,
+      "longitude": -82.7208,
+      "geo_precision": "postal"
+    },
+    {
+      "key": "treasure-island-treasure-island-fl",
+      "name": "Treasure Island",
+      "address_line": "10650 Gulf Blvd, Treasure Island, Florida 33706",
+      "city": "Treasure Island",
+      "state": "FL",
+      "postal_code": "33706",
+      "latitude": 27.7456,
+      "longitude": -82.7516,
+      "geo_precision": "postal"
+    }
+  ],
+  "organizers": [
+    {
+      "slug": "steven-mulvey-and-mauricio-vidal",
+      "name": "Steven Mulvey & Mauricio Vidal",
+      "contact_email": null,
+      "website_url": null
+    },
+    {
+      "slug": "ssova",
+      "name": "SSOVA",
+      "contact_email": "director@ssova.com",
+      "website_url": null
+    },
+    {
+      "slug": "met-volleyball",
+      "name": "MET Volleyball",
+      "contact_email": "catelyn.krings4@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "901-volleyball",
+      "name": "901 Volleyball",
+      "contact_email": "901volleyball@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "chicago-players-sports-and-social-group",
+      "name": "Chicago Players Sports & Social Group",
+      "contact_email": "play@playerssports.net",
+      "website_url": null
+    },
+    {
+      "slug": "hyden-beach",
+      "name": "Hyden Beach",
+      "contact_email": "hydenbeach@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "angry-dragon-volleyball",
+      "name": "Angry Dragon Volleyball",
+      "contact_email": "angrydragon@angrydragonvolleyball.com",
+      "website_url": null
+    },
+    {
+      "slug": "mike-munich",
+      "name": "Mike Munich",
+      "contact_email": "info@emeraldcoastvolleyball.com",
+      "website_url": null
+    },
+    {
+      "slug": "chucktown-volleyball",
+      "name": "Chucktown Volleyball",
+      "contact_email": "Chucktownvolleyball@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "steve-winzenburger-and-jen-divan",
+      "name": "Steve Winzenburger & Jen Divan",
+      "contact_email": null,
+      "website_url": null
+    },
+    {
+      "slug": "nashville-beach",
+      "name": "Nashville Beach",
+      "contact_email": "beachresearch@yahoo.com",
+      "website_url": null
+    },
+    {
+      "slug": "matthew-beknazarov",
+      "name": "Matthew Beknazarov",
+      "contact_email": null,
+      "website_url": null
+    },
+    {
+      "slug": "valhalla-volley",
+      "name": "Valhalla Volley",
+      "contact_email": "valhallavolley@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "cin-city-volleyball",
+      "name": "Cin-City Volleyball",
+      "contact_email": "play@cincityvolleyball.com",
+      "website_url": null
+    },
+    {
+      "slug": "bluegrass-blaze",
+      "name": "Bluegrass Blaze",
+      "contact_email": "bluegrassblazevball@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "sean-fallon",
+      "name": "Sean Fallon",
+      "contact_email": "seanfallon77@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "out-of-system",
+      "name": "Out of System",
+      "contact_email": "smashvillevb@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "sugarfire-dardenne-prairie",
+      "name": "Sugarfire - Dardenne Prairie",
+      "contact_email": "mmartin0325@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "coach-shane-reid",
+      "name": "Coach Shane Reid",
+      "contact_email": "reid@msoe.edu",
+      "website_url": null
+    },
+    {
+      "slug": "pottstown-rumble",
+      "name": "Pottstown Rumble",
+      "contact_email": "questions@pottstownrumble.com",
+      "website_url": null
+    },
+    {
+      "slug": "waupaca-boatride",
+      "name": "Waupaca Boatride",
+      "contact_email": "volleyball@waupacaboatride.com",
+      "website_url": null
+    },
+    {
+      "slug": "riley-marshall",
+      "name": "Riley Marshall",
+      "contact_email": "rileyd.marshall@gmail.com",
+      "website_url": null
+    },
+    {
+      "slug": "let-s-go-volleyball",
+      "name": "Let’s go volleyball",
+      "contact_email": null,
+      "website_url": null
+    }
+  ],
+  "events": [
+    {
+      "slug": "mke-turf-oak-creek-2026-02-28",
+      "name": "MKE Turf",
+      "sport": "volleyball",
+      "surfaces": [
+        "turf"
+      ],
+      "venue_key": "milwaukee-yard-indoor-sports-complex-oak-creek-wi",
+      "organizer_slug": "steven-mulvey-and-mauricio-vidal",
+      "starts_on": "2026-02-28",
+      "registration_deadline": null,
+      "entry_fee_cents": 20000,
+      "payout_text": null,
+      "event_page_url": "https://fb.me/e/7fQHHdH7O",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-quads",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-clearwater-beach-clearwater-beach-2026-03-14",
+      "name": "SSOVA Beach Series - Clearwater Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pier-60-clearwater-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-03-14",
+      "registration_deadline": "2026-03-12",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-clearwater-beach-clearwater-beach-2026-03-15",
+      "name": "SSOVA Beach Series - Clearwater Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pier-60-clearwater-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-03-15",
+      "registration_deadline": "2026-03-13",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "met-volley-grass-season-debut-knoxville-2026-03-21",
+      "name": "Met Volley Grass Season Debut",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "karn-s-sports-park-field-knoxville-tn",
+      "organizer_slug": "met-volleyball",
+      "starts_on": "2026-03-21",
+      "registration_deadline": "2026-03-19",
+      "entry_fee_cents": 7500,
+      "payout_text": "Yes",
+      "event_page_url": "https://www.facebook.com/share/1F4po5PegD/",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "901-volleyball-grass-series-01-memphis-2026-04-11",
+      "name": "901 Volleyball Grass Series #01",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "tobey-park-memphis-tn",
+      "organizer_slug": "901-volleyball",
+      "starts_on": "2026-04-11",
+      "registration_deadline": "2026-04-09",
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://901volleyball.volleyballlife.com/event/36038?tab=information",
+      "flyer_url": null,
+      "notes": "Check-in 8:15 AM - 8:45 AM. Players meeting at 8:50 AM.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-1-early-bird-tourney-chicago-2026-04-11",
+      "name": "2026 Players Grass Series #1 - Early Bird Tourney",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "the-dock-at-montrose-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-04-11",
+      "registration_deadline": "2026-04-10",
+      "entry_fee_cents": 10500,
+      "payout_text": "Yes",
+      "event_page_url": "https://www.playerssports.net/page/upcoming-volleyball-tournaments?fbclid=IwY2xjawQggHxleHRuA2FlbQIxMABicmlkETFoMkhZaktzTGQ0aHdOSGI1c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHmCumT0FWdC06y4erIk1hGSJoEbyhkw1_b5E3xHSH6Csa1QE2QBWnG0TQ4RC_aem_uOMf490MRCsJClJg4NTiOQ",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 4/5",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "avpa-coed-doubles-spring-hill-2026-04-11",
+      "name": "AVPA COED Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-04-11",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "AVPArmerica membership required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-st-pete-beach-st-pete-beach-2026-04-11",
+      "name": "SSOVA Beach Series - St. Pete Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "bilmar-beach-resort-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-04-11",
+      "registration_deadline": "2026-04-09",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-st-pete-beach-st-pete-beach-2026-04-12",
+      "name": "SSOVA Beach Series - St. Pete Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "bilmar-beach-resort-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-04-12",
+      "registration_deadline": "2026-04-10",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "outdoor-opener-adv-doraville-2026-04-18",
+      "name": "Outdoor Opener - ADV",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "honeysuckle-park-doraville-ga",
+      "organizer_slug": "angry-dragon-volleyball",
+      "starts_on": "2026-04-18",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Yes",
+      "event_page_url": "https://www.angrydragonvolleyball.com/tournaments/outdoor-opener26",
+      "flyer_url": null,
+      "notes": "Cash in Open (based on FAQ)",
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "fuds-fort-walton-beach-2026-04-22",
+      "name": "FUDS",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "the-boardwalk-on-okaloosa-island-fort-walton-beach-fl",
+      "organizer_slug": "mike-munich",
+      "starts_on": "2026-04-22",
+      "registration_deadline": null,
+      "entry_fee_cents": 12000,
+      "payout_text": null,
+      "event_page_url": "https://emeraldcoast.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "fuds-fort-walton-beach-2026-04-23",
+      "name": "FUDS",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "the-boardwalk-on-okaloosa-island-fort-walton-beach-fl",
+      "organizer_slug": "mike-munich",
+      "starts_on": "2026-04-23",
+      "registration_deadline": null,
+      "entry_fee_cents": 12000,
+      "payout_text": null,
+      "event_page_url": "https://emeraldcoast.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "fuds-fort-walton-beach-2026-04-24",
+      "name": "FUDS",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "the-boardwalk-on-okaloosa-island-fort-walton-beach-fl",
+      "organizer_slug": "mike-munich",
+      "starts_on": "2026-04-24",
+      "registration_deadline": null,
+      "entry_fee_cents": 24000,
+      "payout_text": null,
+      "event_page_url": "https://emeraldcoast.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "avpa-adult-king-and-queen-of-the-court-spring-hill-2026-04-25",
+      "name": "AVPA ADULT King and Queen of the Court",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-04-25",
+      "registration_deadline": "2026-04-24",
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "Staggered start time. Check-in 9:45 AM. Play begins 10:15 AM.",
+      "formats": [
+        "king-queen-of-the-beach"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "fuds-fort-walton-beach-2026-04-25",
+      "name": "FUDS",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "the-boardwalk-on-okaloosa-island-fort-walton-beach-fl",
+      "organizer_slug": "mike-munich",
+      "starts_on": "2026-04-25",
+      "registration_deadline": null,
+      "entry_fee_cents": 24000,
+      "payout_text": null,
+      "event_page_url": "https://emeraldcoast.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-quads",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-siesta-key-siesta-key-2026-04-25",
+      "name": "SSOVA Beach Series - Siesta Key",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-beach-siesta-key-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-04-25",
+      "registration_deadline": "2026-04-23",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "fuds-fort-walton-beach-2026-04-26",
+      "name": "FUDS",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "the-boardwalk-on-okaloosa-island-fort-walton-beach-fl",
+      "organizer_slug": "mike-munich",
+      "starts_on": "2026-04-26",
+      "registration_deadline": null,
+      "entry_fee_cents": 24000,
+      "payout_text": null,
+      "event_page_url": "https://emeraldcoast.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-quads",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-siesta-key-siesta-key-2026-04-26",
+      "name": "SSOVA Beach Series - Siesta Key",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-beach-siesta-key-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-04-26",
+      "registration_deadline": "2026-04-24",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-2-spring-grass-luau-chicago-2026-05-02",
+      "name": "2026 Players Grass Series #2 - Spring Grass Luau",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-05-02",
+      "registration_deadline": "2026-04-29",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/page/players-grass-series",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 4/26",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-05-02",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-05-02",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "mayday-mayhem-st-ann-2026-05-02",
+      "name": "Mayday Mayhem",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "tiemeyer-park-st-ann-mo",
+      "organizer_slug": "steve-winzenburger-and-jen-divan",
+      "starts_on": "2026-05-02",
+      "registration_deadline": "2026-04-30",
+      "entry_fee_cents": 4000,
+      "payout_text": "Cash payout for Open; Prizes for BB",
+      "event_page_url": null,
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "nashville-beach-men-s-and-women-s-2-s-joelton-2026-05-02",
+      "name": "Nashville Beach Men's & Women's 2's",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "nashville-beach-joelton-tn",
+      "organizer_slug": "nashville-beach",
+      "starts_on": "2026-05-02",
+      "registration_deadline": "2026-05-01",
+      "entry_fee_cents": 4000,
+      "payout_text": "AVP America & Nashville Beach merchandise",
+      "event_page_url": "https://nashvillebeach.com/",
+      "flyer_url": null,
+      "notes": "AVP America Silver membership required. Sign-in 8:30 AM, Captain's meeting 8:45 AM, Start 9:00 AM.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "smashfest-the-quad-series-springfield-2026-05-02",
+      "name": "Smashfest: The Quad Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "pat-jones-ymca-springfield-mo",
+      "organizer_slug": "matthew-beknazarov",
+      "starts_on": "2026-05-02",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": null,
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-quads",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-05-03",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-05-03",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "mayday-mayhem-st-ann-2026-05-03",
+      "name": "Mayday Mayhem",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "tiemeyer-park-st-ann-mo",
+      "organizer_slug": "steve-winzenburger-and-jen-divan",
+      "starts_on": "2026-05-03",
+      "registration_deadline": "2026-04-30",
+      "entry_fee_cents": 4000,
+      "payout_text": "Cash payout for Open; Prizes for BB",
+      "event_page_url": null,
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "nashville-beach-coed-2-s-joelton-2026-05-03",
+      "name": "Nashville Beach Coed 2's",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "nashville-beach-joelton-tn",
+      "organizer_slug": "nashville-beach",
+      "starts_on": "2026-05-03",
+      "registration_deadline": "2026-05-02",
+      "entry_fee_cents": 4000,
+      "payout_text": "AVP America & Nashville Beach merchandise",
+      "event_page_url": "https://nashvillebeach.com/",
+      "flyer_url": null,
+      "notes": "AVP America points. 4 white sand courts, tiki hut, and hot shower available.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "utl-avpa-coed-doubles-spring-hill-2026-05-09",
+      "name": "'UTL' AVPA COED Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-05-09",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "UTL Series event.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "123thor-regular-and-reverse-grass-coed-4s-hendersonville-2026-05-09",
+      "name": "123Thor — Regular & Reverse Grass Coed 4s",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "hendersonville-memorial-park-hendersonville-tn",
+      "organizer_slug": "valhalla-volley",
+      "starts_on": "2026-05-09",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://www.facebook.com/events/",
+      "flyer_url": null,
+      "notes": "Two divisions: Regular Coed 4s (men's net) and Reverse Coed 4s (women's net). At least 1 female required in Regular; at least 1 male required in Reverse. $160/team ($40/player). Registration via Venmo to Timothy Spurgeon Carlson. Pool play followed by single elimination. Semis & finals are match play 21-21-15. 8:15am arrival, 8:30am meeting & prayer, 9:00am serves.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-open-doubles-loveland-2026-05-09",
+      "name": "Cin-City Volleyball - AVP Open Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-05-09",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-costa-rica-vacation-costa-rica-2026-05-15",
+      "name": "SSOVA Costa Rica Vacation",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "samara-beach-costa-rica-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-05-15",
+      "registration_deadline": "2026-05-13",
+      "entry_fee_cents": 29900,
+      "payout_text": "Vacation Experience",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "3 nights of volleyball activities with lights. Round trip shuttle included.",
+      "formats": [
+        "mixer"
+      ],
+      "divisions": [],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-1-season-opener-chicago-2026-05-16",
+      "name": "2026 Players Beach Series #1 - Season Opener",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-05-16",
+      "registration_deadline": "2026-05-14",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96088/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 5/10",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "bluegrass-battle-lexington-2026-05-16",
+      "name": "Bluegrass Battle",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "southland-park-lexington-ky",
+      "organizer_slug": "bluegrass-blaze",
+      "starts_on": "2026-05-16",
+      "registration_deadline": "2026-05-08",
+      "entry_fee_cents": 4000,
+      "payout_text": "Cash Prizes & Sponsor Merch",
+      "event_page_url": "https://www.facebook.com/share/1PN25eDjxS/?mibextid=wwXIfr",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-quads",
+        "coed-sixes"
+      ],
+      "divisions": [
+        "a",
+        "bb",
+        "b",
+        "c"
+      ],
+      "status": "draft",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "mayhem-adv-doraville-2026-05-16",
+      "name": "Mayhem - ADV",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "honeysuckle-park-doraville-ga",
+      "organizer_slug": "angry-dragon-volleyball",
+      "starts_on": "2026-05-16",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Yes",
+      "event_page_url": "https://www.angrydragonvolleyball.com/tournaments/mayhem26",
+      "flyer_url": null,
+      "notes": "Cash in Open (based on FAQ)",
+      "formats": [
+        "reverse-coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "new-hands-byop-coed-quads-loveland-2026-05-16",
+      "name": "New Hands BYOP Coed Quads",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-05-16",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "BYOP = Bring Your Own Partner. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "bluegrass-battle-lexington-2026-05-17",
+      "name": "Bluegrass Battle",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "southland-park-lexington-ky",
+      "organizer_slug": "bluegrass-blaze",
+      "starts_on": "2026-05-17",
+      "registration_deadline": "2026-05-08",
+      "entry_fee_cents": 4000,
+      "payout_text": "Cash Prizes & Sponsor Merch",
+      "event_page_url": "https://www.facebook.com/share/1PN25eDjxS/?mibextid=wwXIfr",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "a",
+        "b",
+        "c"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "m-w-grass-trips-100-payout-1k-minimum-payout-per-division-nashville-2026-05-17",
+      "name": "M/W Grass Trips - 100% Payout - $1k minimum payout per division",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "tbd-nashville-tn",
+      "organizer_slug": "sean-fallon",
+      "starts_on": "2026-05-17",
+      "registration_deadline": "2026-05-16",
+      "entry_fee_cents": 4000,
+      "payout_text": "100% of net after field/gear rental",
+      "event_page_url": "https://www.facebook.com/events/1668786274304795/?acontext=%7B%22event_action_history%22%3A[%7B%22mechanism%22%3A%22calendar_tab_event%22%2C%22surface%22%3A%22bookmark_calendar%22%7D]%2C%22ref_notif_type%22%3Anull%7D",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "womens-triples",
+        "mens-triples"
+      ],
+      "divisions": [
+        "open",
+        "aa",
+        "a"
+      ],
+      "status": "draft",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "ribs-coed-4v4-grass-volleyball-tournament-benefiting-le-bonheur-children-s-hospi",
+      "name": "RIBS Coed 4v4 Grass Volleyball Tournament Benefiting Le Bonheur Children's Hospital",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "mike-rose-soccer-complex-memphis-tn",
+      "organizer_slug": "901-volleyball",
+      "starts_on": "2026-05-17",
+      "registration_deadline": "2026-05-14",
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://901volleyball.volleyballlife.com/event/36035?tab=information",
+      "flyer_url": null,
+      "notes": "Benefit tournament for Le Bonheur Children's Hospital Neuroscience Institute & NICU. At least 2 ladies on court at all times. 5 players max per team. All players must play both days. Merchandise and sponsor prizes awarded to all divisions. No cash prizes.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "avpa-adult-king-and-queen-of-the-court-spring-hill-2026-05-23",
+      "name": "AVPA ADULT King and Queen of the Court",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-05-23",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "Adult divisions only.",
+      "formats": [
+        "king-queen-of-the-beach"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "smashville-hendersonville-2026-05-23",
+      "name": "Smashville",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "drakes-creek-park-hendersonville-tn",
+      "organizer_slug": "out-of-system",
+      "starts_on": "2026-05-23",
+      "registration_deadline": "2026-05-15",
+      "entry_fee_cents": 15000,
+      "payout_text": null,
+      "event_page_url": "https://smashville.volleyballlife.com/event/35002?tab=information",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-anna-maria-island-anna-maria-island-2026-05-23",
+      "name": "SSOVA Beach Series - Anna Maria Island",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "coquina-beach-anna-maria-island-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-05-23",
+      "registration_deadline": "2026-05-21",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "smashville-hendersonville-2026-05-24",
+      "name": "Smashville",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "deer-creek-park-hendersonville-tn",
+      "organizer_slug": "out-of-system",
+      "starts_on": "2026-05-24",
+      "registration_deadline": "2026-05-15",
+      "entry_fee_cents": 5000,
+      "payout_text": null,
+      "event_page_url": "https://smashville.volleyballlife.com/event/35002?tab=information",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-quads"
+      ],
+      "divisions": [
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-anna-maria-island-anna-maria-island-2026-05-24",
+      "name": "SSOVA Beach Series - Anna Maria Island",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "coquina-beach-anna-maria-island-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-05-24",
+      "registration_deadline": "2026-05-22",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-3-may-madness-chicago-2026-05-25",
+      "name": "2026 Players Grass Series #3 - May Madness",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-05-25",
+      "registration_deadline": "2026-05-23",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96244/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 5/19",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "sugarfire-spring-league-dardenne-prarie-dardenne-prairie-2026-05-26",
+      "name": "Sugarfire Spring League @ Dardenne Prarie",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "sugarfire-dardenne-prairie-dardenne-prairie-mo",
+      "organizer_slug": "sugarfire-dardenne-prairie",
+      "starts_on": "2026-05-26",
+      "registration_deadline": "2026-05-24",
+      "entry_fee_cents": 25000,
+      "payout_text": "T-Shirts",
+      "event_page_url": "https://sugarfirevolleyball.com/home",
+      "flyer_url": null,
+      "notes": "5 weeks of double headers + playoffs. Games @ 5:50, 6:40, 7:30, 8:20, 9:10",
+      "formats": [
+        "coed-sixes"
+      ],
+      "divisions": [
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-2-chicago-2026-05-30",
+      "name": "2026 Players Beach Series #2",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-05-30",
+      "registration_deadline": "2026-05-27",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96243/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 5/24",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "memphis-italianfest-volleyball-classic-benefiting-holy-rosary-parish-school-memp",
+      "name": "Memphis Italianfest Volleyball Classic Benefiting Holy Rosary Parish School",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "holy-rosary-catholic-church-memphis-tn",
+      "organizer_slug": "901-volleyball",
+      "starts_on": "2026-05-30",
+      "registration_deadline": "2026-05-27",
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://901volleyball.volleyballlife.com/event/36028?tab=information",
+      "flyer_url": null,
+      "notes": "Benefit tournament for Holy Rosary Parish School. 5 players max per team. All players receive festival entry. Merchandise and sponsor prizes awarded to all divisions. No cash prizes.",
+      "formats": [
+        "mens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-3-chicago-2026-06-06",
+      "name": "2026 Players Beach Series #3",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-06-06",
+      "registration_deadline": "2026-06-03",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96244/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 5/31",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "ssova-beach-series-clearwater-beach-clearwater-beach-2026-06-06",
+      "name": "SSOVA Beach Series - Clearwater Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pier-60-clearwater-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-06-06",
+      "registration_deadline": "2026-06-04",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-4-grasshopper-tourney-chicago-2026-06-07",
+      "name": "2026 Players Grass Series #4 - Grasshopper Tourney",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-cricket-hill-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-06-07",
+      "registration_deadline": "2026-06-04",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96277/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 5/31",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "ssova-beach-series-clearwater-beach-clearwater-beach-2026-06-07",
+      "name": "SSOVA Beach Series - Clearwater Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pier-60-clearwater-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-06-07",
+      "registration_deadline": "2026-06-05",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "utl-avpa-coed-doubles-spring-hill-2026-06-12",
+      "name": "'UTL' AVPA COED Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-06-12",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "Friday event.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "msoe-the-raiders-open-milwaukee-2026-06-12",
+      "name": "MSOE The Raiders Open",
+      "sport": "volleyball",
+      "surfaces": [
+        "turf"
+      ],
+      "venue_key": "msoe-viets-field-milwaukee-wi",
+      "organizer_slug": "coach-shane-reid",
+      "starts_on": "2026-06-12",
+      "registration_deadline": "2026-06-12",
+      "entry_fee_cents": 3000,
+      "payout_text": "Prizes for 1st - 3rd place",
+      "event_page_url": "https://msoeraiders.com/sports/2023/3/17/volleyball-grass-tournament.aspx",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-a-b-doubles-loveland-2026-06-13",
+      "name": "Cin-City Volleyball - AVP A/B Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-06-13",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "dragonslayer-adv-doraville-2026-06-13",
+      "name": "DragonSlayer - ADV",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "honeysuckle-park-doraville-ga",
+      "organizer_slug": "angry-dragon-volleyball",
+      "starts_on": "2026-06-13",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Yes",
+      "event_page_url": "https://www.angrydragonvolleyball.com/tournaments/dragonslayer-saturday26",
+      "flyer_url": null,
+      "notes": "Cash in Open (based on FAQ)",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "msoe-the-raiders-open-milwaukee-2026-06-13",
+      "name": "MSOE The Raiders Open",
+      "sport": "volleyball",
+      "surfaces": [
+        "turf"
+      ],
+      "venue_key": "msoe-viets-field-milwaukee-wi",
+      "organizer_slug": "coach-shane-reid",
+      "starts_on": "2026-06-13",
+      "registration_deadline": "2026-06-12",
+      "entry_fee_cents": 4500,
+      "payout_text": "Prizes for 1st - 3rd place",
+      "event_page_url": "https://msoeraiders.com/sports/2023/3/17/volleyball-grass-tournament.aspx",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "dragonslayer-adv-doraville-2026-06-14",
+      "name": "DragonSlayer - ADV",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "honeysuckle-park-doraville-ga",
+      "organizer_slug": "angry-dragon-volleyball",
+      "starts_on": "2026-06-14",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Yes",
+      "event_page_url": "https://www.angrydragonvolleyball.com/tournaments/dragonslayer-sunday26",
+      "flyer_url": null,
+      "notes": "Cash in Open (based on FAQ)",
+      "formats": [
+        "reverse-coed-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "msoe-the-raiders-open-milwaukee-2026-06-14",
+      "name": "MSOE The Raiders Open",
+      "sport": "volleyball",
+      "surfaces": [
+        "turf"
+      ],
+      "venue_key": "msoe-viets-field-milwaukee-wi",
+      "organizer_slug": "coach-shane-reid",
+      "starts_on": "2026-06-14",
+      "registration_deadline": "2026-06-13",
+      "entry_fee_cents": 3000,
+      "payout_text": "Prizes for 1st-3rd place",
+      "event_page_url": "https://msoeraiders.com/sports/2023/3/17/volleyball-grass-tournament.aspx",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "reverse-coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "utl-avpa-king-and-queen-of-the-court-spring-hill-2026-06-20",
+      "name": "'UTL' AVPA King and Queen of the Court",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-06-20",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "UTL Series event.",
+      "formats": [
+        "king-queen-of-the-beach"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-5-lakefront-showdown-chicago-2026-06-20",
+      "name": "2026 Players Grass Series #5 - Lakefront Showdown",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-06-20",
+      "registration_deadline": "2026-06-20",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96276/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 6/14",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "chucktown-volleyball-coastal-clash-summerville-2026-06-20",
+      "name": "Chucktown Volleyball - Coastal Clash",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-06-20",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Coastal Clash",
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "coed-quads-lottery-loveland-2026-06-20",
+      "name": "Coed Quads Lottery",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-06-20",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "Lottery format registration. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-siesta-key-siesta-key-2026-06-20",
+      "name": "SSOVA Beach Series - Siesta Key",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-beach-siesta-key-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-06-20",
+      "registration_deadline": "2026-06-18",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-coastal-clash-summerville-2026-06-21",
+      "name": "Chucktown Volleyball - Coastal Clash",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-06-21",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Coastal Clash",
+      "formats": [
+        "reverse-coed-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-siesta-key-siesta-key-2026-06-21",
+      "name": "SSOVA Beach Series - Siesta Key",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-beach-siesta-key-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-06-21",
+      "registration_deadline": "2026-06-19",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "pottstown-rumble-pottstown-2026-06-26",
+      "name": "Pottstown Rumble",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "pottstown-memorial-park-pottstown-pa",
+      "organizer_slug": "pottstown-rumble",
+      "starts_on": "2026-06-26",
+      "registration_deadline": null,
+      "entry_fee_cents": 16500,
+      "payout_text": null,
+      "event_page_url": "https://www.pottstownrumble.com/registration",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-4-chicago-2026-06-27",
+      "name": "2026 Players Beach Series #4",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "montrose-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-06-27",
+      "registration_deadline": "2026-06-24",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96245/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 6/21",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "pottstown-rumble-pottstown-2026-06-27",
+      "name": "Pottstown Rumble",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "pottstown-memorial-park-pottstown-pa",
+      "organizer_slug": "pottstown-rumble",
+      "starts_on": "2026-06-27",
+      "registration_deadline": null,
+      "entry_fee_cents": 11000,
+      "payout_text": null,
+      "event_page_url": "https://www.pottstownrumble.com/registration",
+      "flyer_url": null,
+      "notes": "Open Men's Doubles: Saturday & Sunday Open Women's Doubles: Friday & Saturday Open Division: Registration per team is $220",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "pottstown-rumble-pottstown-2026-06-28",
+      "name": "Pottstown Rumble",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "pottstown-memorial-park-pottstown-pa",
+      "organizer_slug": "pottstown-rumble",
+      "starts_on": "2026-06-28",
+      "registration_deadline": "2026-06-19",
+      "entry_fee_cents": 22000,
+      "payout_text": null,
+      "event_page_url": "https://www.pottstownrumble.com/registration",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-quads",
+        "womens-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "pottstown-rumble-pottstown-2026-06-28-2",
+      "name": "Pottstown Rumble",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "pottstown-memorial-park-pottstown-pa",
+      "organizer_slug": "pottstown-rumble",
+      "starts_on": "2026-06-28",
+      "registration_deadline": "2026-06-19",
+      "entry_fee_cents": 11000,
+      "payout_text": null,
+      "event_page_url": "https://www.pottstownrumble.com/registration",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "ssova-beach-national-qualifier-treasure-island-2026-06-28",
+      "name": "SSOVA Beach National Qualifier",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "bilmar-beach-resort-treasure-island-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-06-28",
+      "registration_deadline": "2026-06-26",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-5-stars-and-stripes-edition-chicago-2026-07-03",
+      "name": "2026 Players Beach Series #5 - Stars & Stripes Edition",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-07-03",
+      "registration_deadline": "2026-06-03",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/97810/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 6/27",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-open-doubles-loveland-2026-07-04",
+      "name": "Cin-City Volleyball - AVP Open Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-07-04",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "4th of July. AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-6-waupaca-warm-up-chicago-2026-07-05",
+      "name": "2026 Players Grass Series #6 - Waupaca Warm Up",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-07-05",
+      "registration_deadline": "2026-07-02",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96278/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 6/28",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "waupaca-boatride-oshkosh-2026-07-09",
+      "name": "Waupaca Boatride",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "brighton-acres-oshkosh-wi",
+      "organizer_slug": "waupaca-boatride",
+      "starts_on": "2026-07-09",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://www.waupacaboatride.com/index.html",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "waupaca-boatride-oshkosh-2026-07-10",
+      "name": "Waupaca Boatride",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "brighton-acres-oshkosh-wi",
+      "organizer_slug": "waupaca-boatride",
+      "starts_on": "2026-07-10",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://www.waupacaboatride.com/index.html",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "serve-and-defend-byop-quads-loveland-2026-07-11",
+      "name": "Serve & Defend BYOP Quads",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-07-11",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "BYOP = Bring Your Own Partner. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-st-pete-beach-st-pete-beach-2026-07-11",
+      "name": "SSOVA Beach Series - St. Pete Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "bilmar-beach-resort-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-07-11",
+      "registration_deadline": "2026-07-09",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "waupaca-boatride-oshkosh-2026-07-11",
+      "name": "Waupaca Boatride",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "brighton-acres-oshkosh-wi",
+      "organizer_slug": "waupaca-boatride",
+      "starts_on": "2026-07-11",
+      "registration_deadline": null,
+      "entry_fee_cents": 21000,
+      "payout_text": null,
+      "event_page_url": "https://www.waupacaboatride.com/index.html",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-6-chicago-2026-07-12",
+      "name": "2026 Players Beach Series #6",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-07-12",
+      "registration_deadline": "2026-07-09",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96246/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 7/6",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "ssova-beach-series-st-pete-beach-st-pete-beach-2026-07-12",
+      "name": "SSOVA Beach Series - St. Pete Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "bilmar-beach-resort-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-07-12",
+      "registration_deadline": "2026-07-10",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "waupaca-boatride-oshkosh-2026-07-12",
+      "name": "Waupaca Boatride",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "brighton-acres-oshkosh-wi",
+      "organizer_slug": "waupaca-boatride",
+      "starts_on": "2026-07-12",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://www.waupacaboatride.com/index.html",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-doubles",
+        "reverse-coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "spikin-it-st-louis-2026-07-18",
+      "name": "Spikin’ It",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "st-louis-venue-tbd-st-louis-mo",
+      "organizer_slug": null,
+      "starts_on": "2026-07-18",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": null,
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-7-chi-town-throwdown-chicago-2026-07-19",
+      "name": "2026 Players Grass Series #7 - Chi-Town Throwdown",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-07-19",
+      "registration_deadline": "2026-07-16",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96279/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 7/12",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-07-25",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-07-25",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "marshall-madness-bowling-green-2026-07-25",
+      "name": "Marshall Madness",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "ephram-white-park-bowling-green-ky",
+      "organizer_slug": "riley-marshall",
+      "starts_on": "2026-07-25",
+      "registration_deadline": null,
+      "entry_fee_cents": 5000,
+      "payout_text": "Yes",
+      "event_page_url": "https://marshallmadnessvball.com/",
+      "flyer_url": null,
+      "notes": "Coed Sixes (C divison)",
+      "formats": [
+        "mens-triples",
+        "womens-quads",
+        "coed-sixes"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-07-26",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-07-26",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Junior's 2s divisions also available",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "marshall-madness-bowling-green-2026-07-26",
+      "name": "Marshall Madness",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "ephram-white-park-bowling-green-ky",
+      "organizer_slug": "riley-marshall",
+      "starts_on": "2026-07-26",
+      "registration_deadline": null,
+      "entry_fee_cents": 5000,
+      "payout_text": "Yes",
+      "event_page_url": "https://marshallmadnessvball.com/",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "utl-avpa-king-and-queen-of-the-court-spring-hill-2026-08-01",
+      "name": "'UTL' AVPA King and Queen of the Court",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-08-01",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "UTL Series event.",
+      "formats": [
+        "king-queen-of-the-beach"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-7-chicago-2026-08-02",
+      "name": "2026 Players Beach Series #7",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-08-02",
+      "registration_deadline": "2026-07-30",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96247/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 7/27",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "2026-players-grass-series-8-players-summer-classic-chicago-2026-08-08",
+      "name": "2026 Players Grass Series #8 - Players Summer Classic",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-08-08",
+      "registration_deadline": "2026-08-06",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96280/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 8/2",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-a-b-doubles-loveland-2026-08-08",
+      "name": "Cin-City Volleyball - AVP A/B Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-08-08",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-8-air-and-water-show-edition-chicago-2026-08-15",
+      "name": "2026 Players Beach Series #8 - Air & Water Show Edition",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "montrose-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-08-15",
+      "registration_deadline": "2026-08-12",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96248/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 8/9",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "back-to-school-coed-quads-lottery-loveland-2026-08-15",
+      "name": "Back to School Coed Quads Lottery",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-08-15",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "Lottery format registration. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-clearwater-beach-clearwater-beach-2026-08-15",
+      "name": "SSOVA Beach Series - Clearwater Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pier-60-clearwater-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-08-15",
+      "registration_deadline": "2026-08-13",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-clearwater-beach-clearwater-beach-2026-08-16",
+      "name": "SSOVA Beach Series - Clearwater Beach",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pier-60-clearwater-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-08-16",
+      "registration_deadline": "2026-08-14",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "avpa-coed-doubles-spring-hill-2026-08-22",
+      "name": "AVPA COED Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-08-22",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "AVPArmerica membership required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-08-22",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-08-22",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-9-dog-days-tourney-chicago-2026-08-23",
+      "name": "2026 Players Grass Series #9 - Dog Days Tourney",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-08-23",
+      "registration_deadline": "2026-08-20",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96281/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 8/16",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-08-23",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-08-23",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Junior's 2s divisions also available",
+      "formats": [
+        "reverse-coed-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "utl-avpa-adult-king-and-queen-of-the-court-spring-hill-2026-08-29",
+      "name": "'UTL' AVPA ADULT King and Queen of the Court",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-08-29",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "UTL Series event.",
+      "formats": [
+        "king-queen-of-the-beach"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-9-chicago-2026-08-29",
+      "name": "2026 Players Beach Series #9",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "montrose-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-08-29",
+      "registration_deadline": "2026-08-26",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96249/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 8/23",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "battle-of-the-lou-st-louis-2026-09-05",
+      "name": "Battle of the Lou",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "st-louis-venue-tbd-st-louis-mo",
+      "organizer_slug": null,
+      "starts_on": "2026-09-05",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": null,
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "mother-lode-aspen-2026-09-05",
+      "name": "Mother Lode",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach",
+        "grass"
+      ],
+      "venue_key": "wagner-park-aspen-co",
+      "organizer_slug": "let-s-go-volleyball",
+      "starts_on": "2026-09-05",
+      "registration_deadline": "2026-08-01",
+      "entry_fee_cents": 20000,
+      "payout_text": "2000",
+      "event_page_url": "https://letsgovolleyball.com/",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Anonymous"
+    },
+    {
+      "slug": "tom-lee-park-m-w-4v4-grass-volleyball-tournament-memphis-2026-09-05",
+      "name": "Tom Lee Park M/W 4v4 Grass Volleyball Tournament",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "tom-lee-park-memphis-tn",
+      "organizer_slug": "901-volleyball",
+      "starts_on": "2026-09-05",
+      "registration_deadline": "2026-09-02",
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://901volleyball.volleyballlife.com/event/36036?tab=information",
+      "flyer_url": null,
+      "notes": "Cash prizes awarded to Open division. Merchandise and sponsor prizes awarded to A & B divisions. 5 players max per team. Pool play followed by playoffs.",
+      "formats": [
+        "mens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-10-labor-day-edition-chicago-2026-09-07",
+      "name": "2026 Players Beach Series #10 - Labor Day Edition",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-07",
+      "registration_deadline": "2026-09-05",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96251/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 9/1",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "2026-luau-weekend-in-chicago-main-event-grass-coed-4-s-chicago-2026-09-12",
+      "name": "2026 Luau Weekend in Chicago - Main Event Grass Coed 4's",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "sydney-marovitz-golf-course-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-12",
+      "registration_deadline": "2026-09-09",
+      "entry_fee_cents": 24000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/92262/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $60/team if registered after 8/31",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "2026-luau-weekend-in-chicago-main-event-grass-coed-6-s-chicago-2026-09-12",
+      "name": "2026 Luau Weekend in Chicago - Main Event Grass Coed 6's",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "sydney-marovitz-golf-course-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-12",
+      "registration_deadline": "2026-09-09",
+      "entry_fee_cents": 24000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/92263/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $60/team if registered after 8/31",
+      "formats": [
+        "coed-sixes"
+      ],
+      "divisions": [
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "2026-luau-weekend-in-chicago-main-event-grass-men-s-triples-chicago-2026-09-12",
+      "name": "2026 Luau Weekend in Chicago - Main Event Grass Men's Triples",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "sydney-marovitz-golf-course-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-12",
+      "registration_deadline": "2026-09-09",
+      "entry_fee_cents": 16500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/92259/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $30/team if registered after 8/28",
+      "formats": [
+        "mens-triples"
+      ],
+      "divisions": [
+        "open",
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "masters"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "2026-luau-weekend-in-chicago-main-event-grass-women-s-triples-chicago-2026-09-12",
+      "name": "2026 Luau Weekend in Chicago - Main Event Grass Women's Triples",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "sydney-marovitz-golf-course-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-12",
+      "registration_deadline": "2026-09-09",
+      "entry_fee_cents": 16500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/92260/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $30/team if registered after 8/28",
+      "formats": [
+        "womens-triples"
+      ],
+      "divisions": [
+        "open",
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "masters"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-open-doubles-loveland-2026-09-12",
+      "name": "Cin-City Volleyball - AVP Open Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-09-12",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "utl-avpa-king-and-queen-of-the-court-spring-hill-2026-09-13",
+      "name": "'UTL' AVPA King and Queen of the Court",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-09-13",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "Sunday event.",
+      "formats": [
+        "king-queen-of-the-beach"
+      ],
+      "divisions": [
+        "aa",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-beach-series-11-luau-beach-edition-chicago-2026-09-13",
+      "name": "2026 Players Beach Series #11 - Luau Beach Edition",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "montrose-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-13",
+      "registration_deadline": "2026-09-12",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96252/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 9/1",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "2026-players-beach-series-12-players-appreciation-tourney-chicago-2026-09-19",
+      "name": "2026 Players Beach Series #12 - Players Appreciation Tourney",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-19",
+      "registration_deadline": "2026-09-16",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96254/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 9/13",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "avpa-coed-doubles-spring-hill-2026-09-19",
+      "name": "AVPA COED Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "hyden-beach-spring-hill-tn",
+      "organizer_slug": "hyden-beach",
+      "starts_on": "2026-09-19",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": "Prizes for top finishers",
+      "event_page_url": "https://hydenbeach.com/",
+      "flyer_url": null,
+      "notes": "AVPArmerica membership required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "byop-coed-quads-loveland-2026-09-19",
+      "name": "BYOP Coed Quads",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-09-19",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "BYOP = Bring Your Own Partner. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-09-19",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-09-19",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-siesta-key-siesta-key-2026-09-19",
+      "name": "SSOVA Beach Series - Siesta Key",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-beach-siesta-key-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-09-19",
+      "registration_deadline": "2026-09-17",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am, Start 7:30am. AAA-B check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-09-20",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-09-20",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Junior's 2s divisions also available",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-beach-series-siesta-key-siesta-key-2026-09-20",
+      "name": "SSOVA Beach Series - Siesta Key",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-beach-siesta-key-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-09-20",
+      "registration_deadline": "2026-09-18",
+      "entry_fee_cents": 4250,
+      "payout_text": "Prizes & AVP Points",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Coed check-in 7-7:30am, Start 8am. AVP Silver required.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-10-oktoberfest-tourney-chicago-2026-09-26",
+      "name": "2026 Players Grass Series #10 - Oktoberfest Tourney",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-09-26",
+      "registration_deadline": "2026-09-24",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96282/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 9/20",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "2026-players-beach-series-13-season-wrap-chicago-2026-10-03",
+      "name": "2026 Players Beach Series #13 - Season Wrap",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "north-avenue-beach-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-10-03",
+      "registration_deadline": "2026-09-30",
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96255/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $20/team if registered after 9/27",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles",
+        "coed-doubles",
+        "mens-quads",
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "blocktoberfest-st-louis-2026-10-03",
+      "name": "Blocktoberfest",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "st-louis-venue-tbd-st-louis-mo",
+      "organizer_slug": null,
+      "starts_on": "2026-10-03",
+      "registration_deadline": null,
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": null,
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-triples",
+        "womens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "charge-for-connor-quads-lottery-loveland-2026-10-03",
+      "name": "CHARGE for Connor Quads Lottery",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-10-03",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "Charity/benefit event. Lottery format registration. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-siesta-key-beach-series-siesta-key-beach-2026-10-03",
+      "name": "SSOVA Siesta Key Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-key-beach-siesta-key-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-10-03",
+      "registration_deadline": "2026-10-01",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am. AAA-B check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-siesta-key-beach-series-siesta-key-beach-2026-10-04",
+      "name": "SSOVA Siesta Key Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "siesta-key-beach-siesta-key-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-10-04",
+      "registration_deadline": "2026-10-02",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Adult Coed check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-11-players-fall-classic-chicago-2026-10-10",
+      "name": "2026 Players Grass Series #11 -Players Fall Classic",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-cricket-hill-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-10-10",
+      "registration_deadline": "2026-10-08",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96283/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 10/4",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-a-b-doubles-loveland-2026-10-10",
+      "name": "Cin-City Volleyball - AVP A/B Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-10-10",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "grand-sands-halloween-byot-quads-loveland-2026-10-17",
+      "name": "Grand Sands Halloween BYOT Quads",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-10-17",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "Halloween-themed event. BYOT = Bring Your Own Team. 3:30pm start. Hosted at Grand Sands.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-st-pete-beach-series-st-pete-beach-2026-10-17",
+      "name": "SSOVA St. Pete Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "st-pete-beach-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-10-17",
+      "registration_deadline": "2026-10-15",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am. AAA-B check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-st-pete-beach-series-st-pete-beach-2026-10-18",
+      "name": "SSOVA St. Pete Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "st-pete-beach-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-10-18",
+      "registration_deadline": "2026-10-16",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Adult Coed check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-12-block-party-tourney-chicago-2026-10-24",
+      "name": "2026 Players Grass Series #12 -Block Party Tourney",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-cricket-hill-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-10-24",
+      "registration_deadline": "2026-10-22",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96284/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 10/18",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-10-24",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-10-24",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-pompano-beach-series-pompano-beach-2026-10-24",
+      "name": "SSOVA Pompano Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pompano-beach-pompano-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-10-24",
+      "registration_deadline": "2026-10-22",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am. AAA-B check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-10-25",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-10-25",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Junior's 2s divisions also available",
+      "formats": [
+        "reverse-coed-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-pompano-beach-series-pompano-beach-2026-10-25",
+      "name": "SSOVA Pompano Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "pompano-beach-pompano-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-10-25",
+      "registration_deadline": "2026-10-23",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Adult Coed check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "volleyboo-coed-4v4-beach-volleyball-tournament-memphis-2026-10-31",
+      "name": "VolleyBOO! Coed 4v4 Beach Volleyball Tournament",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "tobey-park-sand-volleyball-courts-memphis-tn",
+      "organizer_slug": "901-volleyball",
+      "starts_on": "2026-10-31",
+      "registration_deadline": "2026-10-28",
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://901volleyball.volleyballlife.com/event/36038?tab=information",
+      "flyer_url": null,
+      "notes": "Halloween-themed tournament. $1,500 prize purse: 1st Place Costume Contest $600, Open Champion $400, A Champion $300, B Champion $200. At least 2 women on court at all times. Up to 5 players per roster. Cash prizes subject to number of teams registered.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-gulfport-series-gulfport-2026-11-07",
+      "name": "SSOVA Gulfport Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "gulfport-gulfport-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-11-07",
+      "registration_deadline": "2026-11-05",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am. AAA-B check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-gulfport-series-gulfport-2026-11-08",
+      "name": "SSOVA Gulfport Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "gulfport-gulfport-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-11-08",
+      "registration_deadline": "2026-11-06",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Adult Coed check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-13-hoodie-tourney-chicago-2026-11-14",
+      "name": "2026 Players Grass Series #13 - Hoodie Tourney",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-11-14",
+      "registration_deadline": "2026-11-12",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96285/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 11/8",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-open-doubles-loveland-2026-11-14",
+      "name": "Cin-City Volleyball - AVP Open Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-11-14",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-st-pete-beach-series-st-pete-beach-2026-11-14",
+      "name": "SSOVA St. Pete Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "st-pete-beach-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-11-14",
+      "registration_deadline": "2026-11-12",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am. AAA-B check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "volleygobble-m-w-4v4-grass-volleyball-tournament-benefiting-the-mid-south-food-b",
+      "name": "VolleyGOBBLE M/W 4v4 Grass Volleyball Tournament Benefiting the Mid-South Food Bank",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "tom-lee-park-memphis-tn",
+      "organizer_slug": "901-volleyball",
+      "starts_on": "2026-11-14",
+      "registration_deadline": "2026-11-11",
+      "entry_fee_cents": null,
+      "payout_text": null,
+      "event_page_url": "https://901volleyball.volleyballlife.com/event/36037?tab=information",
+      "flyer_url": null,
+      "notes": "Benefit tournament for Mid-South Food Bank. 8:00am start time to deconflict with Big River Crossing Marathon. Max 5 players per team. Merchandise and sponsor prizes only — no cash prizes. Pool play followed by playoffs.",
+      "formats": [
+        "mens-quads"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-st-pete-beach-series-st-pete-beach-2026-11-15",
+      "name": "SSOVA St. Pete Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "st-pete-beach-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-11-15",
+      "registration_deadline": "2026-11-13",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Adult Coed check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-11-21",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-11-21",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Vets Charity",
+      "formats": [
+        "mens-triples",
+        "womens-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "cornucopia-coed-quads-lottery-loveland-2026-11-21",
+      "name": "Cornucopia Coed Quads Lottery",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-11-21",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "Thanksgiving-themed event. Lottery format registration. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-11-22",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-11-22",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Junior's 3s divisions also available",
+      "formats": [
+        "coed-triples"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "2026-players-grass-series-14-turkey-classic-chicago-2026-11-28",
+      "name": "2026 Players Grass Series #14 - Turkey Classic",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "montrose-grove-chicago-il",
+      "organizer_slug": "chicago-players-sports-and-social-group",
+      "starts_on": "2026-11-28",
+      "registration_deadline": "2026-11-26",
+      "entry_fee_cents": 10500,
+      "payout_text": null,
+      "event_page_url": "https://www.playerssports.net/league/96286/details",
+      "flyer_url": null,
+      "notes": "Rate goes up by $5/person if registered after 11/22",
+      "formats": [
+        "mens-triples",
+        "womens-triples",
+        "coed-quads"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b",
+        "recreational"
+      ],
+      "status": "approved",
+      "created_by": "Dane Schweinzger"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-12-05",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-12-05",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "Junior's 2s divisions also available",
+      "formats": [
+        "reverse-coed-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-st-pete-beach-series-st-pete-beach-2026-12-05",
+      "name": "SSOVA St. Pete Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "st-pete-beach-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-12-05",
+      "registration_deadline": "2026-12-03",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am. AAA-B check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "toys-4-tots-byot-coed-quads-loveland-2026-12-05",
+      "name": "Toys 4 Tots BYOT Coed Quads",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-12-05",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "Charity event benefiting Toys for Tots. BYOT = Bring Your Own Team. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "chucktown-volleyball-summerville-2026-12-06",
+      "name": "Chucktown Volleyball",
+      "sport": "volleyball",
+      "surfaces": [
+        "grass"
+      ],
+      "venue_key": "gahagan-park-summerville-sc",
+      "organizer_slug": "chucktown-volleyball",
+      "starts_on": "2026-12-06",
+      "registration_deadline": null,
+      "entry_fee_cents": 4000,
+      "payout_text": null,
+      "event_page_url": "https://chucktown.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": null,
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "a",
+        "b"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-st-pete-beach-series-st-pete-beach-2026-12-06",
+      "name": "SSOVA St. Pete Beach Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "st-pete-beach-st-pete-beach-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-12-06",
+      "registration_deadline": "2026-12-04",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Adult Coed check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "cin-city-volleyball-avp-a-b-doubles-loveland-2026-12-12",
+      "name": "Cin-City Volleyball - AVP A/B Doubles",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-12-12",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincity.volleyballlife.com/events",
+      "flyer_url": null,
+      "notes": "AVP America Silver Membership or higher required. 8:00am start.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "a",
+        "bb"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-treasure-island-series-treasure-island-2026-12-12",
+      "name": "SSOVA Treasure Island Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "treasure-island-treasure-island-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-12-12",
+      "registration_deadline": "2026-12-10",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Open check-in 7-7:15am. AAA-B check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "mens-doubles",
+        "womens-doubles"
+      ],
+      "divisions": [
+        "open",
+        "aaa",
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "ssova-treasure-island-series-treasure-island-2026-12-13",
+      "name": "SSOVA Treasure Island Series",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "treasure-island-treasure-island-fl",
+      "organizer_slug": "ssova",
+      "starts_on": "2026-12-13",
+      "registration_deadline": "2026-12-11",
+      "entry_fee_cents": 7500,
+      "payout_text": "Cash for Open; Prizes for AAA-B",
+      "event_page_url": "https://www.ssova.com/",
+      "flyer_url": null,
+      "notes": "Adult Coed check-in 7-7:30am. Play at 8:00am.",
+      "formats": [
+        "coed-doubles"
+      ],
+      "divisions": [
+        "aa",
+        "a",
+        "bb",
+        "b"
+      ],
+      "status": "draft",
+      "created_by": "Tommy Heimrich"
+    },
+    {
+      "slug": "santa-s-little-helpers-byot-coed-quads-loveland-2026-12-19",
+      "name": "Santa's Little Helpers BYOT Coed Quads",
+      "sport": "volleyball",
+      "surfaces": [
+        "beach"
+      ],
+      "venue_key": "grand-sands-volleyball-loveland-oh",
+      "organizer_slug": "cin-city-volleyball",
+      "starts_on": "2026-12-19",
+      "registration_deadline": null,
+      "entry_fee_cents": 6000,
+      "payout_text": null,
+      "event_page_url": "https://cincityvolleyball.com/tournament-registration",
+      "flyer_url": null,
+      "notes": "Holiday-themed event. BYOT = Bring Your Own Team. 3:30pm start.",
+      "formats": [
+        "coed-quads"
+      ],
+      "divisions": [
+        "open"
+      ],
+      "status": "approved",
+      "created_by": "Tommy Heimrich"
+    }
+  ]
+}

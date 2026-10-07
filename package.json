@@ -1,0 +1,46 @@
+{
+  "name": "compete-sports",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "db:seed": "tsx scripts/seed.ts",
+    "data:prepare": "tsx scripts/prepare-seed.ts",
+    "data:history": "python3 scripts/merge-history.py && tsx scripts/prepare-history.ts && python3 scripts/build-prospects.py",
+    "db:seed:history": "tsx scripts/seed.ts data/history.seed.json",
+    "test:unit": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "test": "npm run test:unit && npm run test:e2e"
+  },
+  "dependencies": {
+    "@fontsource-variable/fredoka": "^5.3.0",
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource/titan-one": "^5.3.0",
+    "next": "^15.5.25",
+    "postgres": "3.4.7",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/d3-geo": "^3.1.1",
+    "@types/node": "22.15.3",
+    "@types/react": "19.1.9",
+    "@types/react-dom": "19.1.7",
+    "@types/topojson-client": "^3.1.5",
+    "autoprefixer": "10.4.21",
+    "d3-geo": "^3.1.1",
+    "postcss": "8.5.6",
+    "tailwindcss": "3.4.17",
+    "topojson-client": "^3.1.0",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3",
+    "us-atlas": "^3.0.1",
+    "zipcodes": "8.0.0"
+  }
+}

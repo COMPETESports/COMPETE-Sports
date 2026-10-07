@@ -1,0 +1,684 @@
+/* Fonts are SELF-HOSTED via Fontsource rather than pulled from Google at
+   runtime. Three reasons, in order of how much they matter:
+
+   1. It works. Google Fonts is unreachable from the build/preview
+      environment, so an @import silently fell back to system faces —
+      which meant every screenshot reviewed before 2 Oct was showing
+      fallbacks, not the specified type. A self-hosted font cannot fail
+      quietly like that.
+   2. No third-party request on page load: faster first paint, and no
+      visitor IP handed to another company on every page view.
+   3. The font files ship with the deploy, so the site renders the same
+      in 2029 as it does today.
+
+   Imported from layout.tsx, which is where Next wants package CSS. */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================================
+   COMPETE — neon, on black
+   ---------------------------------------------------------------------
+   Direction from Tom, 2 Oct 2026: bubble/rounded lettering throughout,
+   paired with a neon colour scheme, and the four neons mapped to the
+   four playing surfaces.
+
+   THE SITE IS DARK. That is not a stylistic preference, it is what makes
+   neon work: #ff7a1a on cream is just orange. The same colour on
+   near-black is a sign in a window at night. The previous skin tried to
+   keep a light ground and the neons had nowhere to glow.
+
+   COLOUR IS SEMANTIC, which is the strongest idea in this design and
+   worth protecting. Surface is the filter players use most, so each
+   surface owns a hue and keeps it everywhere it appears — chip, filter
+   row, map, event card:
+
+       BEACH   neon orange
+       GRASS   neon green
+       INDOOR  neon blue
+       TURF    neon purple   (also the accent / complementary hue)
+
+   That means a results page can be read without being read. Never
+   reassign these. If a fifth surface arrives it needs a fifth hue, not a
+   borrowed one.
+
+   THE RULE, carried over because it is what keeps a loud palette usable:
+   neon decorates, off-white carries body text. A neon is allowed to be a
+   heading, a number, a chip, a border or a glow. It is never a paragraph.
+
+   Measured, not eyeballed — every pairing cleared on the first pass:
+
+     ink on void ........... 17.9:1     orange on surface ....... 7.2:1
+     ink on surface ........ 16.7:1     green on surface ....... 12.5:1
+     muted on void .......... 9.4:1     blue on surface ......... 9.6:1
+     faint on surface ....... 5.0:1     purple on surface ....... 4.7:1
+     void on orange ......... 7.7:1     void on green .......... 13.3:1
+     void on blue .......... 10.2:1     void on purple .......... 5.0:1
+
+   TYPE IS ROUNDED THROUGHOUT. Titan One is the bubble display face —
+   the logo and the big headings. Fredoka carries headings and kickers;
+   it is rounded but survives small sizes. Nunito is the body face: also
+   rounded, and legible at 14px, which is most of this site. No mono —
+   a mono would be the one square thing on the page, so .t-mono is now
+   Nunito with tabular figures, keeping the class name so components do
+   not churn.
+   ===================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* grounds — near-black with a violet cast, so neon reads as neon */
+  --void: #0b0711; /* page */
+  --surface: #15101f; /* cards, panels */
+  --raised: #1f1830; /* hover, elevated */
+
+  /* Names kept so components don't churn. --sand was the page ground and
+     still is; --deep was the dark band and is now simply darker. */
+  --sand: #0b0711;
+  --deep: #05030a;
+  --aqua: #1f1830;
+
+  /* text */
+  --ink: #f7f2ea;
+  --muted: #b9aec6;
+  --faint: #8a7f99;
+  --line: #2e2640;
+  --line-strong: #473b63;
+
+  /* ---- the four surface hues ----------------------------------------
+     Each has a bright step (decoration, chips, borders, glow) and a soft
+     step (the one safe for longer runs of text on --surface). */
+  --beach: #ff7a1a;
+  --beach-soft: #ffa75c;
+  --grass: #3ef08a;
+  --grass-soft: #86ffbc;
+  --indoor: #22c8ff;
+  --indoor-soft: #86e3ff;
+  --turf: #b14aff;
+  --turf-soft: #d29bff;
+
+  /* ---- legacy aliases ------------------------------------------------
+     The component layer refers to --coral/--sun/--surf/--grape in a few
+     places. Rather than touch twenty files, they point at the new system:
+     orange is the primary action colour, purple the accent. */
+  --coral: var(--beach);
+  --coral-ink: var(--beach);
+  --coral-pale: color-mix(in srgb, var(--beach) 18%, transparent);
+  --sun: var(--beach);
+  --sun-pale: color-mix(in srgb, var(--beach) 18%, transparent);
+  --surf: var(--indoor);
+  --surf-ink: var(--indoor);
+  --surf-pale: color-mix(in srgb, var(--indoor) 18%, transparent);
+  --leaf: var(--grass);
+  --leaf-ink: var(--grass);
+  --sky: var(--indoor);
+  --sky-ink: var(--indoor);
+  --rust: var(--beach);
+  --rust-ink: var(--beach-soft);
+  --grape: var(--turf);
+  --magenta: var(--turf);
+  --pink: var(--turf-soft);
+
+  /* map ramp — one hue (indoor blue) stepping up out of the dark */
+  --ramp-1: #10384d;
+  --ramp-2: #15607f;
+  --ramp-3: #1897c4;
+  --ramp-4: #22c8ff;
+  --dormant: #5a3d12;
+  --dormant-line: #ff7a1a4d;
+  --empty: #171226;
+  --empty-line: #2e2640;
+
+  /* Film grain, kept from the previous skin but far lighter: on black it
+     stops large flat areas from banding on cheap panels. One inline data
+     URI, so nothing here can 404. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--void);
+    color: var(--ink);
+    font-family: 'Nunito Variable', 'Nunito', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    background-image: var(--grain);
+    opacity: 0.06;
+  }
+
+  ::selection {
+    background: var(--beach);
+    color: var(--void);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--beach);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .wrap {
+    @apply mx-auto w-full max-w-[1180px] px-4 sm:px-6;
+  }
+
+  /* --- type ----------------------------------------------------------
+     All three faces are rounded. Titan One is the bubble: fat, bouncy,
+     the lettering on the reference. Fredoka is the same family of shapes
+     with enough restraint to work as a heading at 18px. Nunito has
+     rounded terminals and is genuinely readable at 14px, which is where
+     this site actually lives. */
+  .t-display {
+    font-family: 'Titan One', 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.005em;
+  }
+  .t-head {
+    font-family: 'Fredoka Variable', 'Fredoka', 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+  /* Name kept; a mono would be the one square thing on the page. */
+  .t-mono {
+    font-family: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+  .t-kicker {
+    @apply text-[11px] uppercase tracking-[0.2em];
+    font-family: 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  /* --- the extruded wordmark -----------------------------------------
+     The reference lettering is layered: a white face, a hard outline,
+     then colour planes stepping away behind it. Built from stacked
+     text-shadows so it scales and reflows and costs no image.
+
+     Offsets scale with the breakpoint. Fixed offsets collapsed into
+     mush at phone heading sizes in the previous skin — one line's
+     extrusion crashing into the line below it. */
+  .t-3d {
+    color: var(--ink);
+    /* Three planes at phone width, not four. Titan One has tall caps and
+       a deep extrusion from one line lands on the ascenders of the next,
+       which is what the first two mobile renders showed. */
+    text-shadow:
+      1px 1px 0 var(--void),
+      3px 3px 0 var(--turf),
+      5px 5px 0 var(--beach);
+  }
+  @media (min-width: 640px) {
+    .t-3d {
+      text-shadow:
+        2px 2px 0 var(--void),
+        4px 4px 0 var(--turf),
+        7px 7px 0 var(--beach),
+        10px 10px 0 var(--indoor);
+    }
+  }
+
+  /* The logo lockup — smaller, tighter extrusion than a headline. */
+  .t-logo {
+    color: var(--ink);
+    text-shadow:
+      1px 1px 0 var(--void),
+      2px 2px 0 var(--turf),
+      3px 3px 0 var(--beach);
+  }
+
+  /* Neon glow. Used sparingly — on the hue that owns the thing it is
+     attached to, never as general decoration. */
+  .glow-beach {
+    box-shadow: 0 0 18px -2px color-mix(in srgb, var(--beach) 55%, transparent);
+  }
+  .glow-indoor {
+    box-shadow: 0 0 18px -2px color-mix(in srgb, var(--indoor) 55%, transparent);
+  }
+
+  /* --- patterns ------------------------------------------------------
+     COMPETE has no photography — every flyer in the source data was a
+     dead link — so the loudness is carried by pattern drawn in CSS.
+     Nothing here makes a network request, so nothing here can 404. */
+
+  /* Chevrons receding in perspective, in the surface hues. The skew is
+     what supplies the vanishing point; a flat repeating gradient reads
+     as wallpaper. */
+  .pat-chevron {
+    position: relative;
+    overflow: hidden;
+    background: var(--void);
+  }
+  .pat-chevron::before {
+    content: '';
+    position: absolute;
+    inset: -40% -10% -10%;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--turf) 0 26px,
+      var(--beach) 26px 52px,
+      var(--indoor) 52px 78px,
+      transparent 78px 156px
+    );
+    transform: perspective(420px) rotateX(58deg) scale(1.6);
+    transform-origin: 50% 100%;
+    opacity: 0.4;
+    /* Fade the stripes out before they reach the bottom edge. Without
+       this the gradient is clipped mid-stripe and leaves a hard
+       multi-colour band across the seam — which is the "stark contrast"
+       ribbon Tom asked to be rid of, reappearing by accident. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 97%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 97%);
+  }
+  .pat-chevron > * {
+    position: relative;
+  }
+
+  /* Concentric rings — the sunburst behind the lettering on the first
+     reference, redrawn as neon arcs on black. */
+  .pat-rays {
+    background-image: repeating-conic-gradient(
+      from 0deg at 50% 100%,
+      color-mix(in srgb, var(--beach) 28%, transparent) 0deg 7deg,
+      transparent 7deg 14deg
+    );
+  }
+
+  .pat-dots {
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--turf) 55%, transparent) 1.5px,
+      transparent 1.6px
+    );
+    background-size: 14px 14px;
+  }
+
+  .pat-jams {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--beach) 0 22px,
+      var(--turf) 22px 44px,
+      var(--indoor) 44px 66px,
+      var(--grass) 66px 88px
+    );
+  }
+
+  .edge-scallop {
+    height: 14px;
+    background-repeat: repeat-x;
+    background-size: 28px 14px;
+    background-image: radial-gradient(circle at 14px 0, var(--void) 14px, transparent 14px);
+  }
+
+  /* --- bands ---------------------------------------------------------
+     Tom removed the hard rainbow rule: "the contrast in colors is too
+     stark." So the separation between sections is done with a low glow
+     and a hairline instead of a six-colour ribbon. */
+  .band-sun {
+    background:
+      radial-gradient(ellipse 90% 140% at 85% -30%, color-mix(in srgb, var(--beach) 22%, transparent), transparent 62%),
+      radial-gradient(ellipse 70% 110% at 5% 0%, color-mix(in srgb, var(--turf) 20%, transparent), transparent 60%),
+      var(--void);
+  }
+  .band-aqua {
+    background: var(--surface);
+  }
+  .band-deep {
+    background: var(--deep);
+    color: var(--ink);
+  }
+
+  /* Replaces .rule-rainbow. Same class name so nothing breaks, but it is
+     now a soft neon fade that resolves into the background rather than a
+     hard six-colour band. */
+  .rule-rainbow {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      color-mix(in srgb, var(--turf) 70%, transparent) 25%,
+      color-mix(in srgb, var(--beach) 70%, transparent) 50%,
+      color-mix(in srgb, var(--indoor) 70%, transparent) 75%,
+      transparent 100%
+    );
+  }
+
+  /* --- surfaces ------------------------------------------------------ */
+  .panel {
+    @apply rounded-[18px] border;
+    border-color: var(--line);
+    background: var(--surface);
+  }
+
+  .card {
+    @apply relative flex min-w-0 flex-col overflow-hidden rounded-[18px] border transition-all duration-150;
+    border-color: var(--line);
+    background: var(--surface);
+  }
+  .card:hover {
+    border-color: var(--beach);
+    transform: translateY(-3px);
+    box-shadow: 0 0 24px -4px color-mix(in srgb, var(--beach) 45%, transparent);
+  }
+
+  /* --- controls ------------------------------------------------------ */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-[13px] uppercase tracking-[0.12em] transition-all duration-100;
+    font-family: 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+  }
+  .btn:active {
+    transform: translateY(2px);
+  }
+
+  .btn-primary {
+    @apply btn;
+    background: var(--beach);
+    border-color: var(--beach);
+    color: var(--void);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 20px -2px color-mix(in srgb, var(--beach) 70%, transparent);
+  }
+
+  .btn-sun {
+    @apply btn;
+    background: var(--grass);
+    border-color: var(--grass);
+    color: var(--void);
+  }
+  .btn-sun:hover {
+    box-shadow: 0 0 20px -2px color-mix(in srgb, var(--grass) 70%, transparent);
+  }
+
+  .btn-ghost {
+    @apply btn;
+    background: transparent;
+    border-color: var(--line-strong);
+    color: var(--ink);
+  }
+  .btn-ghost:hover {
+    border-color: var(--indoor);
+    color: var(--indoor);
+  }
+
+  .field {
+    @apply w-full rounded-full border px-4 py-2.5 text-sm;
+    border-color: var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .field::placeholder {
+    color: var(--faint);
+  }
+  .field:focus {
+    border-color: var(--beach);
+    outline: none;
+    box-shadow: 0 0 16px -4px color-mix(in srgb, var(--beach) 60%, transparent);
+  }
+
+  .label {
+    @apply t-kicker mb-1.5 block;
+  }
+
+  /* --- chips ---------------------------------------------------------
+     THE SEMANTIC CORE. Each surface owns its hue everywhere it appears.
+     Do not reassign these. */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] uppercase tracking-[0.1em];
+    font-family: 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+  }
+  .chip-beach {
+    @apply chip;
+    color: var(--beach);
+    background: color-mix(in srgb, var(--beach) 14%, transparent);
+    border-color: color-mix(in srgb, var(--beach) 55%, transparent);
+  }
+  .chip-grass {
+    @apply chip;
+    color: var(--grass);
+    background: color-mix(in srgb, var(--grass) 14%, transparent);
+    border-color: color-mix(in srgb, var(--grass) 55%, transparent);
+  }
+  .chip-indoor {
+    @apply chip;
+    color: var(--indoor);
+    background: color-mix(in srgb, var(--indoor) 14%, transparent);
+    border-color: color-mix(in srgb, var(--indoor) 55%, transparent);
+  }
+  .chip-turf {
+    @apply chip;
+    color: var(--turf-soft);
+    background: color-mix(in srgb, var(--turf) 16%, transparent);
+    border-color: color-mix(in srgb, var(--turf) 60%, transparent);
+  }
+  .chip-muted {
+    @apply chip;
+    color: var(--muted);
+    background: var(--raised);
+    border-color: var(--line-strong);
+  }
+  .chip-accent {
+    @apply chip;
+    color: var(--turf-soft);
+    background: color-mix(in srgb, var(--turf) 16%, transparent);
+    border-color: color-mix(in srgb, var(--turf) 60%, transparent);
+  }
+  .chip-warn {
+    @apply chip;
+    color: var(--beach-soft);
+    background: color-mix(in srgb, var(--beach) 14%, transparent);
+    border-color: color-mix(in srgb, var(--beach) 55%, transparent);
+  }
+
+  /* A featured event wears the brightest thing on the page. */
+  .chip-featured {
+    @apply chip;
+    color: var(--void);
+    background: var(--beach);
+    border-color: var(--beach);
+  }
+
+  /* --- status tones --------------------------------------------------- */
+  .tone-good {
+    color: var(--grass);
+    border-color: color-mix(in srgb, var(--grass) 55%, transparent);
+    background: color-mix(in srgb, var(--grass) 12%, transparent);
+  }
+  .tone-warn {
+    color: var(--beach-soft);
+    border-color: color-mix(in srgb, var(--beach) 55%, transparent);
+    background: color-mix(in srgb, var(--beach) 12%, transparent);
+  }
+  .tone-bad {
+    color: var(--beach);
+    border-color: color-mix(in srgb, var(--beach) 65%, transparent);
+    background: color-mix(in srgb, var(--beach) 14%, transparent);
+  }
+  .tone-mute {
+    color: var(--muted);
+    border-color: var(--line);
+  }
+  .tone-faint {
+    color: var(--faint);
+    border-color: var(--line);
+  }
+
+  /* --- removable filter pill ------------------------------------------ */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.1em];
+    font-family: 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+    color: var(--turf-soft);
+    background: color-mix(in srgb, var(--turf) 16%, transparent);
+    border-color: color-mix(in srgb, var(--turf) 60%, transparent);
+  }
+  .pill:hover {
+    background: color-mix(in srgb, var(--turf) 28%, transparent);
+  }
+
+  /* --- multi-select toggle -------------------------------------------- */
+  .toggle-chip {
+    @apply cursor-pointer rounded-full border px-3 py-1.5 text-[12px] uppercase tracking-[0.08em] transition-colors;
+    font-family: 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+    color: var(--muted);
+    border-color: var(--line-strong);
+    background: var(--surface);
+  }
+  .toggle-chip:hover {
+    color: var(--ink);
+    border-color: var(--indoor);
+  }
+  .toggle-chip:has(input:checked) {
+    color: var(--void);
+    border-color: var(--beach);
+    background: var(--beach);
+  }
+  .toggle-chip:has(input:focus-visible) {
+    outline: 3px solid var(--beach);
+    outline-offset: 2px;
+  }
+
+  /* --- filter checkboxes ---------------------------------------------- */
+  .facet {
+    @apply flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-transparent px-2 py-1.5 text-sm transition-colors;
+  }
+  .facet:hover {
+    background: var(--raised);
+  }
+  .facet input {
+    @apply sr-only;
+  }
+  .facet-box {
+    @apply mr-2 grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border text-[11px] font-bold leading-none;
+    border-color: var(--line-strong);
+    color: transparent;
+  }
+  .facet input:checked ~ .facet-label .facet-box {
+    background: var(--beach);
+    border-color: var(--beach);
+    color: var(--void);
+  }
+  .facet input:focus-visible ~ .facet-label {
+    outline: 2px solid var(--beach);
+    outline-offset: 2px;
+  }
+  .facet-label {
+    @apply flex min-w-0 flex-1 items-center;
+  }
+  .facet-count {
+    @apply shrink-0 text-[11px];
+    font-variant-numeric: tabular-nums;
+    color: var(--faint);
+  }
+
+  /* --- filter rail -----------------------------------------------------
+     The rail follows the page while you read results, and scrolls inside
+     itself when it is taller than the screen. Without the height cap it
+     sticks at a fixed point and the filters below the fold become
+     unreachable — you can see them, but you can never scroll to them. */
+  @media (min-width: 1024px) {
+    .filter-rail {
+      position: sticky;
+      top: 88px;
+      align-self: start;
+      max-height: calc(100vh - 104px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line-strong) transparent;
+      padding-right: 4px;
+    }
+    .filter-rail::-webkit-scrollbar {
+      width: 8px;
+    }
+    .filter-rail::-webkit-scrollbar-thumb {
+      background: var(--line-strong);
+      border-radius: 999px;
+    }
+    .filter-rail::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  }
+
+  /* --- date popover ----------------------------------------------------- */
+  .date-pop {
+    @apply absolute left-0 right-0 z-30 mt-2 rounded-[18px] border p-3;
+    border-color: var(--line-strong);
+    background: var(--raised);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  /* --- account tabs ---------------------------------------------------- */
+  .tab {
+    @apply inline-flex items-center rounded-full border px-3.5 py-1.5 text-[11px] uppercase tracking-[0.1em] transition-colors;
+    font-family: 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+    color: var(--muted);
+    border-color: var(--line-strong);
+    background: var(--surface);
+  }
+  .tab:hover {
+    color: var(--ink);
+    border-color: var(--indoor);
+  }
+  .tab[aria-current='page'] {
+    color: var(--void);
+    border-color: var(--beach);
+    background: var(--beach);
+  }
+
+  /* --- section heading rule -------------------------------------------- */
+  .list-head {
+    @apply t-head flex items-baseline gap-2 border-b pb-2 text-lg;
+    border-color: var(--line);
+  }
+  .list-head span {
+    @apply text-[11px] uppercase tracking-[0.14em];
+    font-family: 'Fredoka Variable', 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+    color: var(--faint);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .card:hover {
+    transform: none;
+  }
+}
+
+/* Glow and grain are decoration a high-contrast user has explicitly asked
+   to be rid of. The semantic hues stay — they carry meaning. */
+@media (prefers-contrast: more) {
+  body::before {
+    display: none;
+  }
+  .pat-chevron::before {
+    opacity: 0.2;
+  }
+  .card:hover,
+  .btn-primary:hover,
+  .btn-sun:hover,
+  .field:focus {
+    box-shadow: none;
+  }
+}
