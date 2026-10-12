@@ -119,7 +119,7 @@ function Masthead() {
         <h1 className="t-display t-3d mt-3 text-[1.85rem] leading-[1.35] sm:text-[3.4rem] sm:leading-[1.14]">
           Discover your
           <br />
-          next competition.
+          next event.
         </h1>
       </div>
     </section>
