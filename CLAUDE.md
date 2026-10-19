@@ -61,7 +61,7 @@ npm run data:history  && npm run db:seed:history # 2022-24 archive
 | Axis | Values |
 |---|---|
 | **Surface** | Beach · Grass · Turf · Indoor |
-| **Format** | Doubles · Triples · Quads · Sixes · Blind Draw |
+| **Format** | Doubles (2v2) · Triples or Trips (3v3) · Quads (4v4) · Sixes (6v6) · Blind Draw |
 | **Gender** | Men's · Women's · Co-ed · Reverse Co-ed |
 | **Division** | Open · AAA · AA · A · BBB · BB · B · Masters (55+) |
 

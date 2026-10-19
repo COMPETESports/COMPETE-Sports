@@ -5,6 +5,7 @@ import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { saveEvent, type ActionState } from '@/lib/admin';
 import { PasteBox } from './PasteBox';
+import { BracketBuilder, type BracketGroup, type FormatOption } from './BracketBuilder';
 import type { ParsedListing } from '@/lib/parse-listing';
 
 export interface RefOption {
@@ -35,17 +36,21 @@ export interface EventFormValues {
   surfaces: string[];
   formats: string[];
   divisions: string[];
+  brackets: BracketGroup[];
   status: string;
 }
 
-type TextKey = Exclude<keyof EventFormValues, 'surfaces' | 'formats' | 'divisions' | 'id'>;
+type TextKey = Exclude<
+  keyof EventFormValues,
+  'surfaces' | 'formats' | 'divisions' | 'brackets' | 'id'
+>;
 
 export function EventForm({
   values,
   options,
 }: {
   values: EventFormValues;
-  options: { surfaces: RefOption[]; formats: RefOption[]; divisions: RefOption[] };
+  options: { surfaces: RefOption[]; formats: FormatOption[]; divisions: RefOption[] };
 }) {
   const [state, action] = useActionState<ActionState | null, FormData>(saveEvent, null);
 
@@ -55,7 +60,7 @@ export function EventForm({
   const [v, setV] = useState<EventFormValues>(values);
   const [autoFilled, setAutoFilled] = useState<Set<string>>(new Set());
 
-  const set = (key: keyof EventFormValues, value: string | string[]) => {
+  const set = (key: keyof EventFormValues, value: string | string[] | BracketGroup[]) => {
     setV((prev) => ({ ...prev, [key]: value }));
     setAutoFilled((prev) => {
       if (!prev.has(key)) return prev;
@@ -94,6 +99,21 @@ export function EventForm({
           (next as Record<string, unknown>)[key] = String(value);
         }
       }
+
+      // A pasted announcement gives flat lists, which by their nature cannot
+      // say which format ran at which division. Turning that into brackets
+      // would be inventing the combinations — the very guess this builder
+      // exists to stop.
+      //
+      // The one safe case is a single format: there is then only one way to
+      // read it. Anything more and the builder stays empty for Tom to fill
+      // in from what the organizer actually published.
+      const parsedFormats = fields.formats ?? [];
+      next.brackets =
+        parsedFormats.length === 1
+          ? [{ format: parsedFormats[0], divisions: fields.divisions ?? [] }]
+          : [];
+
       return next;
     });
     setAutoFilled(new Set(filled));
@@ -179,23 +199,17 @@ export function EventForm({
             error={err('surfaces')}
             auto={isAuto('surfaces')}
           />
-          <CheckGroup
-            legend="Formats"
-            name="formats"
-            options={options.formats}
-            selected={v.formats}
-            onToggle={(slug) => toggle('formats', slug)}
-            error={err('formats')}
-            auto={isAuto('formats')}
-          />
-          <CheckGroup
-            legend="Divisions"
-            name="divisions"
-            options={options.divisions}
-            selected={v.divisions}
-            onToggle={(slug) => toggle('divisions', slug)}
-            error={err('divisions')}
-            auto={isAuto('divisions')}
+          {/* Formats and divisions are no longer separate lists. They are
+              chosen together, one bracket at a time, and saveEvent derives
+              the flat event_formats / event_divisions rows from them — so
+              single-axis filters keep working and two-axis filters start
+              working. */}
+          <BracketBuilder
+            formats={options.formats}
+            divisions={options.divisions}
+            groups={v.brackets}
+            onChange={(next) => set('brackets', next)}
+            error={err('brackets') ?? err('formats') ?? err('divisions')}
           />
           <p className="t-mono sm:col-span-2 text-[11px] uppercase tracking-wider text-[color:var(--faint)]">
             COMPETE lists adult recreational events only.

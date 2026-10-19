@@ -34,8 +34,20 @@ const EventInput = z.object({
   organizer_name: z.string().trim().max(200).optional(),
   organizer_email: z.string().trim().email().or(z.literal('')).optional(),
   surfaces: z.array(z.string()).default([]),
-  formats: z.array(z.string()).min(1, 'Choose at least one format.'),
-  divisions: z.array(z.string()).min(1, 'Choose at least one division.'),
+  // Brackets replace the old flat format/division lists. A group is one
+  // gender+format (gender lives on the format row) and the divisions that
+  // bracket runs. event_formats and event_divisions are derived from these
+  // below, so single-axis filters keep working unchanged.
+  brackets: z
+    .array(
+      z.object({
+        format: z.string().trim().min(1),
+        // Empty is legitimate: it records a bracket whose division the
+        // organizer did not state, rather than inventing one.
+        divisions: z.array(z.string().trim().min(1)).default([]),
+      }),
+    )
+    .min(1, 'Add at least one bracket.'),
   status: z.enum(['draft', 'approved', 'cancelled', 'archived']).default('draft'),
 });
 
@@ -86,8 +98,7 @@ export async function saveEvent(
     organizer_name: formData.get('organizer_name'),
     organizer_email: formData.get('organizer_email'),
     surfaces: formData.getAll('surfaces').map(String),
-    formats: formData.getAll('formats').map(String),
-    divisions: formData.getAll('divisions').map(String),
+    brackets: readBrackets(formData.get('brackets')),
     status: formData.get('status') ?? 'draft',
   };
 
@@ -214,13 +225,90 @@ export async function saveEvent(
     eventId = row.id;
   }
 
+  // The flat lists are derived, never entered. They exist so a one-axis
+  // filter ("show me anything coed") can be answered from the view without
+  // a join, and they can no longer disagree with the brackets.
+  const formatSlugs = [...new Set(input.brackets.map((b) => b.format))];
+  const divisionSlugs = [...new Set(input.brackets.flatMap((b) => b.divisions))];
+
   await replaceLinks(eventId, sport.id, input.surfaces, 'event_surfaces', 'surfaces', 'surface_id');
-  await replaceLinks(eventId, sport.id, input.formats, 'event_formats', 'formats', 'format_id');
-  await replaceLinks(eventId, sport.id, input.divisions, 'event_divisions', 'divisions', 'division_id');
+  await replaceLinks(eventId, sport.id, formatSlugs, 'event_formats', 'formats', 'format_id');
+  await replaceLinks(eventId, sport.id, divisionSlugs, 'event_divisions', 'divisions', 'division_id');
+  await replaceBrackets(eventId, sport.id, input.brackets);
 
   revalidatePath('/');
   revalidatePath('/admin/events');
   return { ok: true, message: input.id ? 'Event updated.' : 'Event created.' };
+}
+
+/**
+ * The hidden `brackets` field is JSON rather than repeated form inputs,
+ * because a group is a shape (one format, many divisions) and repeated
+ * fields cannot express which division belongs to which format — which is
+ * the exact ambiguity this whole change exists to remove.
+ *
+ * Anything unparseable becomes an empty list and fails zod's min(1) with a
+ * message, rather than throwing.
+ */
+function readBrackets(raw: FormDataEntryValue | null): unknown[] {
+  if (typeof raw !== 'string' || !raw.trim()) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Brackets stated by a person, so confirmed = true.
+ *
+ * This is the first path in COMPETE that can produce a confirmed bracket.
+ * Every one of the 2,574 rows written by 004's backfill is confirmed =
+ * false, because it derived them as a cross product of flat lists that
+ * never recorded which combinations actually ran.
+ */
+async function replaceBrackets(
+  eventId: string,
+  sportId: string,
+  groups: { format: string; divisions: string[] }[],
+): Promise<void> {
+  await sql`delete from event_brackets where event_id = ${eventId}`;
+  if (!groups.length) return;
+
+  const formatSlugs = [...new Set(groups.map((g) => g.format))];
+  const divisionSlugs = [...new Set(groups.flatMap((g) => g.divisions))];
+
+  const [formatRows, divisionRows] = await Promise.all([
+    sql<{ id: string; slug: string }[]>`
+      select id, slug from formats
+      where sport_id = ${sportId} and slug = any(${formatSlugs})`,
+    divisionSlugs.length
+      ? sql<{ id: string; slug: string }[]>`
+          select id, slug from divisions
+          where sport_id = ${sportId} and slug = any(${divisionSlugs})`
+      : Promise.resolve([] as { id: string; slug: string }[]),
+  ]);
+
+  const formatId = new Map(formatRows.map((r) => [r.slug, r.id]));
+  const divisionId = new Map(divisionRows.map((r) => [r.slug, r.id]));
+
+  for (const group of groups) {
+    const fid = formatId.get(group.format);
+    if (!fid) continue;
+
+    // No divisions stated is one bracket with a null division, not zero
+    // brackets. Null means "the source does not say" everywhere else in
+    // this schema and it means the same thing here.
+    const divisions: (string | null)[] = group.divisions.length ? group.divisions : [null];
+
+    for (const slug of divisions) {
+      const did = slug === null ? null : (divisionId.get(slug) ?? null);
+      await sql`
+        insert into event_brackets (event_id, format_id, division_id, confirmed)
+        values (${eventId}, ${fid}, ${did}, true)`;
+    }
+  }
 }
 
 async function replaceLinks(

@@ -80,9 +80,10 @@ export default function PrivacyPage() {
           government identification number, or health information.
         </p>
         <p>
-          We do not run advertising trackers, we do not sell personal
-          information, and we do not share your phone number with anyone for
-          their own marketing.
+          We do not sell personal information, and we do not share your phone
+          number with anyone for their own marketing. We do use advertising
+          measurement tools on our public event pages — section 9 explains
+          exactly what they are and how to opt out.
         </p>
       </Clause>
 
@@ -153,9 +154,10 @@ export default function PrivacyPage() {
         <p>
           <strong className="text-[color:var(--ink)]">Service providers</strong>{' '}
           that run parts of the site on our behalf: our hosting and database
-          providers, our mapping and geocoding provider, our email sender, and
-          our text-message provider. They may only use what we send them to
-          provide that service to us.
+          providers, our email sender, our text-message provider, and the
+          advertising platform described in section 9. They may only use what we
+          send them to provide that service to us. Geocoding runs from a postal
+          table built into the site, so no location data leaves us.
         </p>
         <p>
           <strong className="text-[color:var(--ink)]">Event organizers</strong>{' '}
@@ -204,18 +206,30 @@ export default function PrivacyPage() {
           what you want.
         </p>
         <p>
-          We do not sell personal information and we do not share it for
-          cross-context behavioural advertising, so there is nothing to opt out
-          of on that front.
+          We do not sell personal information. We do share limited information
+          about which public event pages a browser has visited with an
+          advertising platform, which several US state privacy laws treat as
+          sharing for cross-context behavioural advertising. Section 9 explains
+          it. To opt out, email {CONTACT_EMAIL} and we will exclude you.
         </p>
       </Clause>
 
       <Clause id="cookies" heading="9. Cookies">
         <p>
-          {SITE_NAME} sets two cookies and no more. One keeps you signed in. The
-          other remembers the ZIP code you last searched, so the site can show
-          local events before you have an account. Neither is used for
-          advertising, and we do not embed third-party tracking scripts.
+          {SITE_NAME} sets four cookies. One keeps you signed in. One remembers
+          the ZIP code you last searched, so the site can show local events
+          before you have an account. The other two are strictly functional: one
+          protects the Google sign-in flow from tampering, and one holds a staff
+          administration session. None of the four is used for advertising.
+        </p>
+        <p>
+          We also load the Meta Pixel on our public event pages. It is a small
+          piece of code from Meta that records that a browser looked at those
+          pages, so we can show {SITE_NAME} on Facebook and Instagram to people
+          who have browsed events here before. It does not run on sign-in,
+          account or profile pages, and we never send Meta your name, email
+          address or phone number. To opt out, email {CONTACT_EMAIL} and we will
+          exclude you.
         </p>
       </Clause>
 

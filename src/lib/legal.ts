@@ -33,7 +33,7 @@ export const SITE_NAME = 'COMPETE';
 export const SITE_DOMAIN = 'joincompete.com';
 
 /** Update both when either document changes materially. */
-export const PRIVACY_EFFECTIVE = 'September 26, 2026';
+export const PRIVACY_EFFECTIVE = 'October 17, 2026';
 export const TERMS_EFFECTIVE = 'September 26, 2026';
 
 /** The age floor. Referenced by both documents and by the sign-up form. */

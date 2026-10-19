@@ -5,6 +5,18 @@ export interface RefOption {
   name: string;
 }
 
+/**
+ * A format carries its gender and team size, because in this schema a
+ * format IS a gender and a headcount — "Men's Doubles" is one row, not two
+ * fields. The bracket builder needs both: gender to group the choices, team
+ * size to label them in Tom's vocabulary (Doubles 2v2, Triples 3v3) rather
+ * than repeating the gender in every button.
+ */
+export interface FormatRefOption extends RefOption {
+  gender: string;
+  team_size: number | null;
+}
+
 /** Surfaces, formats and divisions available for one sport. */
 export async function loadRefOptions(sportSlug: string) {
   const [surfaces, formats, divisions] = await Promise.all([
@@ -12,8 +24,8 @@ export async function loadRefOptions(sportSlug: string) {
       select s.slug, s.name from surfaces s
       join sports sp on sp.id = s.sport_id
       where sp.slug = ${sportSlug} order by s.display_order`,
-    sql<RefOption[]>`
-      select f.slug, f.name from formats f
+    sql<FormatRefOption[]>`
+      select f.slug, f.name, f.gender, f.team_size from formats f
       join sports sp on sp.id = f.sport_id
       where sp.slug = ${sportSlug} order by f.display_order`,
     sql<RefOption[]>`

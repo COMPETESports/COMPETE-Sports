@@ -67,6 +67,31 @@ export default async function EditEventPage({
 
   if (!row) notFound();
 
+  // Existing brackets, grouped back into the shape the builder edits.
+  //
+  // `confirmed` matters here. Migration 006 backfilled a bracket for every
+  // cross-product combination of the old flat lists, all of them
+  // confirmed = false, because the 2022-24 sheets never recorded which
+  // combinations actually ran. Loading those into the builder and saving
+  // would silently promote a guess to a stated fact, so the page warns
+  // first and makes editing an old event a verification step.
+  const bracketRows = await sql<{ format: string; divisions: string[] | null; confirmed: boolean }[]>`
+    select f.slug as format,
+           array_remove(array_agg(d.slug order by d.display_order), null) as divisions,
+           bool_and(b.confirmed) as confirmed
+      from event_brackets b
+      join formats f on f.id = b.format_id
+      left join divisions d on d.id = b.division_id
+     where b.event_id = ${id}
+     group by f.slug, f.display_order
+     order by f.display_order`;
+
+  const brackets = bracketRows.map((b) => ({
+    format: b.format,
+    divisions: b.divisions ?? [],
+  }));
+  const guessedBrackets = bracketRows.some((b) => !b.confirmed);
+
   const options = await loadRefOptions(row.sport_slug);
 
   return (
@@ -86,6 +111,16 @@ export default async function EditEventPage({
           </Link>
         )}
       </div>
+
+      {guessedBrackets && (
+        <p className="panel tone-warn mt-4 p-3 text-sm">
+          The brackets below were <strong>guessed</strong> when this event was
+          imported — every combination of its formats and divisions, because
+          the source never recorded which ones actually ran. Check them against
+          what the organizer published and remove any that did not happen.
+          Saving marks them as confirmed.
+        </p>
+      )}
 
       {row.latitude === null && (
         <p className="panel tone-warn mt-4 p-3 text-sm">
@@ -119,6 +154,7 @@ export default async function EditEventPage({
           surfaces: row.surfaces ?? [],
           formats: row.formats ?? [],
           divisions: row.divisions ?? [],
+          brackets,
           status: row.status,
         }}
       />

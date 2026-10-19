@@ -49,6 +49,7 @@ export default async function NewEventPage() {
           surfaces: [],
           formats: [],
           divisions: [],
+          brackets: [],
           status: 'draft',
         }}
       />
