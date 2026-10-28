@@ -36,7 +36,14 @@ export default async function BrowsePage({
   const typed = filters.q?.trim() ?? '';
   const looksLikePlace = /^\d{5}$/.test(typed) || /,\s*[A-Za-z]{2}$/.test(typed);
 
-  type Resolution = 'none' | 'place' | 'name' | 'name-past' | 'place-fallback' | 'nothing';
+  type Resolution =
+    | 'none'
+    | 'place'
+    | 'name'
+    | 'name-loose'
+    | 'name-past'
+    | 'place-fallback'
+    | 'nothing';
   let how: Resolution = 'none';
   let result;
 
@@ -71,6 +78,24 @@ export default async function BrowsePage({
   }
 
   const { events, total, facets, origin } = result;
+
+  // Subsequence matching is deliberately loose, and loose results are
+  // baffling without a word of explanation. Searching "austn" returns two
+  // events in Tennessee — those letters really are in their names, in
+  // order — and in silence that reads as a broken site rather than a wide
+  // net.
+  //
+  // So: if nothing on the page contains what was typed LITERALLY, say so.
+  // The rows already carry all three names, so this costs no query.
+  if (how === 'name' && events.length > 0) {
+    const needle = typed.toLowerCase();
+    const literal = events.some((e) =>
+      [e.name, e.organizer_name, e.venue_name, e.city].some((v) =>
+        (v ?? '').toLowerCase().includes(needle),
+      ),
+    );
+    if (!literal) how = 'name-loose';
+  }
   const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const filtered = hasAnyFilter(filters);
 
@@ -94,8 +119,17 @@ export default async function BrowsePage({
       {/* What the box decided, said out loud. A search that quietly did
           something other than what you asked is worse than one that found
           nothing. */}
-      {(how === 'name-past' || how === 'place-fallback' || how === 'nothing') && (
+      {(how === 'name-loose' ||
+        how === 'name-past' ||
+        how === 'place-fallback' ||
+        how === 'nothing') && (
         <div className="wrap mt-6">
+          {how === 'name-loose' && (
+            <p role="status" className="panel p-3 text-sm text-[color:var(--muted)]">
+              No exact match for “{typed}” — showing events whose name,
+              organizer or venue contains those letters in order.
+            </p>
+          )}
           {how === 'name-past' && (
             <p role="status" className="panel tone-warn p-3 text-sm">
               Nothing upcoming matches “{typed}”. These have already

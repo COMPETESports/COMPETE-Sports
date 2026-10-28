@@ -54,6 +54,12 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
     // may land in different fields, so "nashville grass" matches an event
     // named for the city at a venue named for the surface.
     //
+    // CITY is in the list, added 27 Oct. Without it "Austin" could not
+    // find an Austin event whose venue happens to be called ATX Beach,
+    // while it DID match "USA Volleyball Adult Grass National
+    // Championship" letter by letter. Exactly backwards, and the kind of
+    // thing only testing with real data shows.
+    //
     // This is deliberately loose and will catch rows a person did not
     // mean; the ordering below puts the ones they did mean on top. Six
     // words is plenty, and the cap stops a pasted paragraph becoming
@@ -65,6 +71,7 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
         name ilike ${loose}
         or coalesce(organizer_name, '') ilike ${loose}
         or coalesce(venue_name, '') ilike ${loose}
+        or coalesce(city, '') ilike ${loose}
       )`);
     }
   }
@@ -171,7 +178,8 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
   const relevance = sql`case
     when name ilike ${phrase} then 1
     when coalesce(organizer_name, '') ilike ${phrase}
-      or coalesce(venue_name, '') ilike ${phrase} then 2
+      or coalesce(venue_name, '') ilike ${phrase}
+      or coalesce(city, '') ilike ${phrase} then 2
     else 3 end`;
 
   const order =
