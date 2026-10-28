@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { EventCard } from '@/components/EventCard';
+import { EventSearchBox } from '@/components/EventSearchBox';
 import { FilterForm } from '@/components/FilterForm';
 import { SaveButton } from '@/components/account/SaveButton';
 import { currentAccount } from '@/lib/accounts';
@@ -18,7 +19,56 @@ export default async function BrowsePage({
 }) {
   const params = await searchParams;
   const filters = parseFilters(params);
-  const result = await searchEvents(filters);
+
+  // ONE search box, resolved here.
+  //
+  // It used to be two — a place box in the header and a name box below —
+  // and Tom hit exactly the failure that predicts: he typed "Adult" into
+  // the place box and got "we couldn't find Adult". A person with one
+  // thing in mind should not have to work out which field it belongs in.
+  //
+  // So the box takes anything and this decides what it was, saying out
+  // loud what it decided. A ZIP or a "City, ST" is unambiguous and goes
+  // straight to a location search. Anything else is tried as a name
+  // first, because someone typing free text is far more often after an
+  // event they have heard of than a bare city — and only if that finds
+  // nothing is it tried as a place. Never a silent guess.
+  const typed = filters.q?.trim() ?? '';
+  const looksLikePlace = /^\d{5}$/.test(typed) || /,\s*[A-Za-z]{2}$/.test(typed);
+
+  type Resolution = 'none' | 'place' | 'name' | 'name-past' | 'place-fallback' | 'nothing';
+  let how: Resolution = 'none';
+  let result;
+
+  if (!typed) {
+    result = await searchEvents(filters);
+  } else if (looksLikePlace) {
+    result = await searchEvents({ ...filters, q: null, near: typed });
+    how = 'place';
+  } else {
+    result = await searchEvents(filters);
+    how = 'name';
+
+    if (result.total === 0) {
+      // Nothing upcoming by that name. Look back before giving up: someone
+      // typing "Anti-Turkey Trot" in January wants to know it exists, and
+      // an empty page reads as "COMPETE does not have it".
+      const past = await searchEvents({ ...filters, includePast: true });
+      if (past.total > 0) {
+        result = past;
+        how = 'name-past';
+      } else {
+        // Not an event we hold. It may well be a place.
+        const place = await searchEvents({ ...filters, q: null, near: typed });
+        if (place.origin) {
+          result = place;
+          how = 'place-fallback';
+        } else {
+          how = 'nothing';
+        }
+      }
+    }
+  }
 
   const { events, total, facets, origin } = result;
   const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -41,7 +91,39 @@ export default async function BrowsePage({
     <>
       <BrowseHeader filters={filters} origin={origin} />
 
-      <div className="wrap mt-10 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
+      {/* What the box decided, said out loud. A search that quietly did
+          something other than what you asked is worse than one that found
+          nothing. */}
+      {(how === 'name-past' || how === 'place-fallback' || how === 'nothing') && (
+        <div className="wrap mt-6">
+          {how === 'name-past' && (
+            <p role="status" className="panel tone-warn p-3 text-sm">
+              Nothing upcoming matches “{typed}”. These have already
+              happened — shown so you know the event is here, not missing.
+            </p>
+          )}
+          {how === 'place-fallback' && (
+            <p role="status" className="panel tone-warn p-3 text-sm">
+              No event, organizer or venue called “{typed}”. Showing events
+              near {origin?.label ?? typed} instead.
+            </p>
+          )}
+          {how === 'nothing' && (
+            <p role="status" className="panel p-3 text-sm text-[color:var(--muted)]">
+              Nothing matches “{typed}” — not an event, organizer or venue we
+              list, and not a place we recognise. Try a ZIP code, or a city
+              with its state like “St. Louis, MO”. If you know an event that
+              belongs here,{' '}
+              <Link href="/organizers" className="underline">
+                tell us about it
+              </Link>
+              .
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="wrap mt-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="filter-rail">
           <FilterForm filters={filters} facets={facets} resultCount={total} />
         </aside>
@@ -98,7 +180,9 @@ export default async function BrowsePage({
             </nav>
           </div>
 
-          {filters.near && !origin && (
+          {/* Only for a place typed into the rail's own Near field. What
+              the big box did is reported above it, before the results. */}
+          {filters.near && !origin && how !== 'place-fallback' && how !== 'nothing' && (
             <p role="status" className="panel tone-warn mb-5 p-3 text-sm">
               We couldn&apos;t find “{filters.near}”. Showing events everywhere
               instead — try a ZIP code, or a city with its state, like “St.
@@ -159,26 +243,7 @@ function BrowseHeader({
           Every <span className="text-[color:var(--coral-ink)]">event</span>
         </h1>
 
-        {/* The search bar is its own form so Enter searches from anywhere. */}
-        <form method="get" action="/events" className="mt-7 flex max-w-xl flex-col gap-2 sm:flex-row">
-          <label htmlFor="hero-near" className="sr-only">
-            Search by ZIP code or city
-          </label>
-          <input
-            id="hero-near"
-            name="near"
-            type="text"
-            defaultValue={filters.near ?? ''}
-            placeholder="ZIP code or city, ST"
-            className="field flex-1 !py-3"
-            autoComplete="postal-code"
-            enterKeyHint="search"
-          />
-          <input type="hidden" name="radius" value={filters.radius} />
-          <button type="submit" className="btn-primary !py-3">
-            Search
-          </button>
-        </form>
+        <EventSearchBox initial={filters.q ?? filters.near ?? ''} />
 
         {origin && (
           <p className="t-mono mt-5 text-[11px] uppercase tracking-[0.15em] text-[color:var(--faint)]">

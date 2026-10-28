@@ -29,6 +29,15 @@ export interface FormatOption {
   name: string;
   gender: string;
   team_size: number | null;
+  is_active: boolean;
+}
+
+export interface SubFormatOption {
+  slug: string;
+  name: string;
+  registers_as: 'individual' | 'partner';
+  requires_surface: string | null;
+  requires_gender: string | null;
 }
 
 export interface DivisionOption {
@@ -36,9 +45,16 @@ export interface DivisionOption {
   name: string;
 }
 
-/** One gender + one format + the divisions that bracket runs. */
+/**
+ * One gender + one format + an optional sub-format + the divisions that
+ * bracket runs. Gender rides on the format row; sub-format is Blind Draw,
+ * KOB or QOB and is null for most brackets.
+ */
 export interface BracketGroup {
+  /** Exactly one surface. Null only on legacy rows whose source never said. */
+  surface?: string | null;
   format: string;
+  subFormat?: string | null;
   divisions: string[];
 }
 
@@ -65,33 +81,58 @@ const sizeLabel = (f: FormatOption): string =>
 
 export function BracketBuilder({
   formats,
+  subFormats,
   divisions,
+  surfaces,
   groups,
   onChange,
   error,
 }: {
   formats: FormatOption[];
+  subFormats: SubFormatOption[];
   divisions: DivisionOption[];
+  /** Every surface this sport has. One is chosen per bracket. */
+  surfaces: DivisionOption[];
   groups: BracketGroup[];
   onChange: (next: BracketGroup[]) => void;
   error?: string;
 }) {
-  // Genders come from the formats actually present, never a hardcoded list,
-  // so a sport without Reverse Co-ed is never offered it.
-  const genders = [...new Set(formats.map((f) => f.gender))];
-
-  const [gender, setGender] = useState<string>(genders[0] ?? '');
+  const [surface, setSurface] = useState<string>('');
+  const [gender, setGender] = useState<string>('');
   const [format, setFormat] = useState<string>('');
+  const [subFormat, setSubFormat] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [editing, setEditing] = useState<number | null>(null);
 
-  const forGender = formats.filter((f) => f.gender === gender);
   const bySlug = (slug: string) => formats.find((f) => f.slug === slug);
   const divName = (slug: string) => divisions.find((d) => d.slug === slug)?.name ?? slug;
+
+  // A retired format (012 retired blind-draw and king-queen-of-the-beach)
+  // stays visible when a bracket already uses it, so an old event remains
+  // editable, but is never offered for something new.
+  const usedSlugs = new Set(groups.map((g) => g.format));
+  const offerable = formats.filter((f) => f.is_active || usedSlugs.has(f.slug));
+
+  // Genders come from the formats actually present, never a hardcoded
+  // list, so a sport without Reverse Co-ed is never offered it.
+  const genders = [...new Set(offerable.map((f) => f.gender))];
+  const activeGender = gender || genders[0] || '';
+
+  const forGender = offerable.filter((f) => f.gender === activeGender);
+
+  // Visibility as data, read from sub_formats.requires_* rather than
+  // hardcoded here: KOB needs sand and Men's, QOB needs sand and Women's,
+  // both blind draws are always available. A new sub-format is a row.
+  const forContext = subFormats.filter(
+    (sf) =>
+      (sf.requires_surface === null || sf.requires_surface === surface) &&
+      (sf.requires_gender === null || sf.requires_gender === activeGender),
+  );
 
   const chooseGender = (g: string) => {
     setGender(g);
     setFormat('');
+    setSubFormat(null);
   };
 
   const toggleDivision = (slug: string) =>
@@ -99,26 +140,52 @@ export function BracketBuilder({
       prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
     );
 
+  // Surface is deliberately NOT cleared between brackets. Most events run
+  // every bracket on one surface, so keeping the last choice makes the
+  // common case one click and the mixed case two.
   const reset = () => {
     setFormat('');
+    setSubFormat(null);
     setPicked([]);
     setEditing(null);
   };
 
   const addGroup = () => {
     if (!format) return;
-    const group: BracketGroup = { format, divisions: picked };
+    // A sub-format no longer offered in this context (gender changed after
+    // it was picked) must not be saved: it would record a Queen of the
+    // Beach men's bracket.
+    const keptSub = forContext.some((sf) => sf.slug === subFormat) ? subFormat : null;
+    const group: BracketGroup = {
+      surface: surface || null,
+      format,
+      subFormat: keptSub,
+      divisions: picked,
+    };
+
     if (editing !== null) {
       onChange(groups.map((g, i) => (i === editing ? group : g)));
     } else {
-      // Same format twice means the organizer is adding divisions to a
-      // bracket already listed, not creating a duplicate. Merge them.
-      const existing = groups.findIndex((g) => g.format === format);
+      // The same format AND the same sub-format means the organizer is
+      // adding divisions to a bracket already listed, not creating a
+      // duplicate — so merge. Men's Doubles and Men's Doubles Blind Draw
+      // are different brackets and stay separate.
+      const existing = groups.findIndex(
+        (g) =>
+          (g.surface ?? null) === (surface || null) &&
+          g.format === format &&
+          (g.subFormat ?? null) === keptSub,
+      );
       if (existing >= 0) {
         onChange(
           groups.map((g, i) =>
             i === existing
-              ? { format, divisions: [...new Set([...g.divisions, ...picked])] }
+              ? {
+                  surface: surface || null,
+                  format,
+                  subFormat: keptSub,
+                  divisions: [...new Set([...g.divisions, ...picked])],
+                }
               : g,
           ),
         );
@@ -132,8 +199,10 @@ export function BracketBuilder({
   const editGroup = (i: number) => {
     const g = groups[i];
     const f = bySlug(g.format);
+    setSurface(g.surface ?? '');
     if (f) setGender(f.gender);
     setFormat(g.format);
+    setSubFormat(g.subFormat ?? null);
     setPicked(g.divisions);
     setEditing(i);
   };
@@ -157,11 +226,27 @@ export function BracketBuilder({
       </p>
 
       <div className="panel p-4">
+        <Row label="Surface">
+          {surfaces.map((s) => (
+            <Chip
+              key={s.slug}
+              on={surface === s.slug}
+              tone="beach"
+              // Single-select on purpose. One bracket is played on one
+              // surface, and the old four-ticks-no-warning case is what
+              // Tom hit on 21 October.
+              onClick={() => setSurface(surface === s.slug ? '' : s.slug)}
+            >
+              {s.name}
+            </Chip>
+          ))}
+        </Row>
+
         <Row label="Gender">
           {genders.map((g) => (
             <Chip
               key={g}
-              on={gender === g}
+              on={activeGender === g}
               tone="grass"
               onClick={() => chooseGender(g)}
             >
@@ -187,6 +272,27 @@ export function BracketBuilder({
             </Chip>
           ))}
         </Row>
+
+        {forContext.length > 0 && (
+          <Row label="Sub-format">
+            {forContext.map((sf) => (
+              <Chip
+                key={sf.slug}
+                on={subFormat === sf.slug}
+                tone="indoor"
+                // Clicking the chosen one clears it. Sub-format is
+                // optional and most brackets have none, so getting back to
+                // none must be as easy as getting to one.
+                onClick={() => setSubFormat(subFormat === sf.slug ? null : sf.slug)}
+              >
+                {sf.name}
+              </Chip>
+            ))}
+            <span className="t-mono self-center pl-1 text-[10px] uppercase tracking-wider text-[color:var(--faint)]">
+              optional
+            </span>
+          </Row>
+        )}
 
         <Row label="Divisions">
           {divisions.map((d) => (
@@ -249,7 +355,19 @@ export function BracketBuilder({
                   }`}
                 >
                   <span className="text-sm">
+                    {g.surface && (
+                      <span className="text-[color:var(--beach)]">
+                        {surfaces.find((s) => s.slug === g.surface)?.name ?? g.surface}
+                        {' · '}
+                      </span>
+                    )}
                     {f ? `${GENDER_NAMES[f.gender] ?? f.gender} · ${sizeLabel(f)}` : g.format}
+                    {g.subFormat && (
+                      <span className="text-[color:var(--indoor)]">
+                        {' · '}
+                        {subFormats.find((sf) => sf.slug === g.subFormat)?.name ?? g.subFormat}
+                      </span>
+                    )}
                     {g.divisions.length > 0 && (
                       <span className="text-[color:var(--muted)]">
                         {' · '}
@@ -316,11 +434,12 @@ function Chip({
   children,
 }: {
   on: boolean;
-  tone: 'grass' | 'beach';
+  tone: 'grass' | 'beach' | 'indoor';
   onClick: () => void;
   children: React.ReactNode;
 }) {
-  const colour = tone === 'grass' ? 'var(--grass)' : 'var(--beach)';
+  const colour =
+    tone === 'grass' ? 'var(--grass)' : tone === 'beach' ? 'var(--beach)' : 'var(--indoor)';
   return (
     <button
       type="button"

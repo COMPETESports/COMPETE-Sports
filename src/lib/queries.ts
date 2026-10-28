@@ -31,8 +31,43 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
 
   const scope: Frag[] = [sql`status = 'approved'`, sql`sport_slug = ${filters.sport}`];
 
-  scope.push(sql`starts_on >= ${filters.from ?? today()}`);
+  // A text search looks back as well as forward when asked to: someone
+  // searching an event by name wants to know it exists, and "that was in
+  // November" beats an empty page. Every other search is upcoming only.
+  if (!filters.includePast) scope.push(sql`starts_on >= ${filters.from ?? today()}`);
   if (filters.to) scope.push(sql`starts_on <= ${filters.to}`);
+
+  // Free text over the three names a person might type. One box, because
+  // nobody knows whether what they remember is the event, the organizer or
+  // the venue — "Volleyball Beach" happens to be two of the three.
+  //
+  // ILIKE with wildcards both ends, so "turkey trot" finds "Anti-Turkey
+  // Trot". No typo tolerance: that needs pg_trgm and is a later decision,
+  // not a silent approximation now.
+  if (filters.q) {
+    // Loose matching, Tom's request on 27 Oct: "nshl vlly" should find
+    // "Nashville Volleyball". People drop vowels when they half-remember
+    // a name, and a strict substring match punishes them for it.
+    //
+    // Each word becomes a subsequence pattern - n%s%h%l - so its letters
+    // must appear in order but need not be adjacent. Words are ANDed and
+    // may land in different fields, so "nashville grass" matches an event
+    // named for the city at a venue named for the surface.
+    //
+    // This is deliberately loose and will catch rows a person did not
+    // mean; the ordering below puts the ones they did mean on top. Six
+    // words is plenty, and the cap stops a pasted paragraph becoming
+    // thirty LIKEs.
+    const esc = (t: string) => t.replace(/[%_\\]/g, (c) => `\\${c}`);
+    for (const token of filters.q.trim().split(/\s+/).filter(Boolean).slice(0, 6)) {
+      const loose = `%${esc(token).split('').join('%')}%`;
+      scope.push(sql`(
+        name ilike ${loose}
+        or coalesce(organizer_name, '') ilike ${loose}
+        or coalesce(venue_name, '') ilike ${loose}
+      )`);
+    }
+  }
 
   // A state chosen on the Communities map narrows the same scope the date
   // and location filters use, so the facet counts beside each checkbox stay
@@ -81,6 +116,19 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
   if (filters.genders.length) bracketTests.push(sql`f.gender = any(${filters.genders})`);
   if (filters.divisions.length) bracketTests.push(sql`d.slug = any(${filters.divisions})`);
 
+  // Surface became a property of the bracket on 21 Oct (013), so it joins
+  // the same precision test: "grass coed doubles" should not match an event
+  // whose coed doubles ran on sand and whose grass was something else.
+  //
+  // `b.surface_id is null` passes deliberately. Brackets imported before
+  // 013, on events that listed more than one surface, genuinely do not
+  // record which surface they ran on. Excluding them would silently drop
+  // real events for want of a fact nobody ever wrote down; the event-level
+  // test above still requires the event to have that surface at all.
+  if (filters.surfaces.length) {
+    bracketTests.push(sql`(b.surface_id is null or su.slug = any(${filters.surfaces}))`);
+  }
+
   if (bracketTests.length > 1) {
     selections.push(sql`
       exists (
@@ -88,6 +136,7 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
         from event_brackets b
         join formats f on f.id = b.format_id
         left join divisions d on d.id = b.division_id
+        left join surfaces su on su.id = b.surface_id
         where b.event_id = event_discovery.id
           and ${andAll(bracketTests)}
       )`);
@@ -114,12 +163,32 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
     ? sql`miles_between(${origin.lat}, ${origin.lng}, latitude, longitude)`
     : sql`null::double precision`;
 
+  // 1 = the typed phrase sits in the event's name, 2 = in the organizer
+  // or venue name, 3 = only the loose per-word match caught it.
+  const phrase = filters.q
+    ? `%${filters.q.trim().replace(/[%_\\]/g, (c) => `\\${c}`)}%`
+    : '';
+  const relevance = sql`case
+    when name ilike ${phrase} then 1
+    when coalesce(organizer_name, '') ilike ${phrase}
+      or coalesce(venue_name, '') ilike ${phrase} then 2
+    else 3 end`;
+
   const order =
     filters.sort === 'distance' && origin
       ? sql`${distance} asc nulls last, starts_on asc`
       : filters.sort === 'price'
         ? sql`entry_fee_cents asc nulls last, starts_on asc`
-        : sql`starts_on asc, name asc`;
+        : filters.includePast
+          ? // Looking back, so the most recent one is the one they mean.
+            sql`starts_on desc, name asc`
+          : filters.q
+            ? // Loose matching casts a wide net, so rank before dating:
+              // the whole phrase inside the event's own name is almost
+              // certainly the one they typed, then the phrase anywhere
+              // else, then everything the subsequence swept up.
+              sql`${relevance} asc, starts_on asc, name asc`
+            : sql`starts_on asc, name asc`;
 
   const offset = (filters.page - 1) * PAGE_SIZE;
 

@@ -33,15 +33,18 @@ const EventInput = z.object({
   postal_code: z.string().trim().regex(/^\d{5}$/).or(z.literal('')).optional(),
   organizer_name: z.string().trim().max(200).optional(),
   organizer_email: z.string().trim().email().or(z.literal('')).optional(),
-  surfaces: z.array(z.string()).default([]),
-  // Brackets replace the old flat format/division lists. A group is one
+  // Brackets replace the old flat surface/format/division lists. A group is one
   // gender+format (gender lives on the format row) and the divisions that
   // bracket runs. event_formats and event_divisions are derived from these
   // below, so single-axis filters keep working unchanged.
   brackets: z
     .array(
       z.object({
+        // One surface per bracket. Null only where the source never said.
+        surface: z.string().trim().min(1).nullish(),
         format: z.string().trim().min(1),
+        // Blind Draw, KOB or QOB. Null for most brackets — see 012.
+        subFormat: z.string().trim().min(1).nullish(),
         // Empty is legitimate: it records a bracket whose division the
         // organizer did not state, rather than inventing one.
         divisions: z.array(z.string().trim().min(1)).default([]),
@@ -97,7 +100,6 @@ export async function saveEvent(
     postal_code: formData.get('postal_code'),
     organizer_name: formData.get('organizer_name'),
     organizer_email: formData.get('organizer_email'),
-    surfaces: formData.getAll('surfaces').map(String),
     brackets: readBrackets(formData.get('brackets')),
     status: formData.get('status') ?? 'draft',
   };
@@ -230,8 +232,11 @@ export async function saveEvent(
   // a join, and they can no longer disagree with the brackets.
   const formatSlugs = [...new Set(input.brackets.map((b) => b.format))];
   const divisionSlugs = [...new Set(input.brackets.flatMap((b) => b.divisions))];
+  const surfaceSlugs = [
+    ...new Set(input.brackets.map((b) => b.surface).filter((s): s is string => !!s)),
+  ];
 
-  await replaceLinks(eventId, sport.id, input.surfaces, 'event_surfaces', 'surfaces', 'surface_id');
+  await replaceLinks(eventId, sport.id, surfaceSlugs, 'event_surfaces', 'surfaces', 'surface_id');
   await replaceLinks(eventId, sport.id, formatSlugs, 'event_formats', 'formats', 'format_id');
   await replaceLinks(eventId, sport.id, divisionSlugs, 'event_divisions', 'divisions', 'division_id');
   await replaceBrackets(eventId, sport.id, input.brackets);
@@ -271,15 +276,26 @@ function readBrackets(raw: FormDataEntryValue | null): unknown[] {
 async function replaceBrackets(
   eventId: string,
   sportId: string,
-  groups: { format: string; divisions: string[] }[],
+  groups: {
+    surface?: string | null;
+    format: string;
+    subFormat?: string | null;
+    divisions: string[];
+  }[],
 ): Promise<void> {
   await sql`delete from event_brackets where event_id = ${eventId}`;
   if (!groups.length) return;
 
   const formatSlugs = [...new Set(groups.map((g) => g.format))];
   const divisionSlugs = [...new Set(groups.flatMap((g) => g.divisions))];
+  const subFormatSlugs = [
+    ...new Set(groups.map((g) => g.subFormat).filter((s): s is string => !!s)),
+  ];
+  const surfaceSlugs = [
+    ...new Set(groups.map((g) => g.surface).filter((s): s is string => !!s)),
+  ];
 
-  const [formatRows, divisionRows] = await Promise.all([
+  const [formatRows, divisionRows, subFormatRows, surfaceRows] = await Promise.all([
     sql<{ id: string; slug: string }[]>`
       select id, slug from formats
       where sport_id = ${sportId} and slug = any(${formatSlugs})`,
@@ -288,10 +304,22 @@ async function replaceBrackets(
           select id, slug from divisions
           where sport_id = ${sportId} and slug = any(${divisionSlugs})`
       : Promise.resolve([] as { id: string; slug: string }[]),
+    subFormatSlugs.length
+      ? sql<{ id: string; slug: string }[]>`
+          select id, slug from sub_formats
+          where sport_id = ${sportId} and slug = any(${subFormatSlugs})`
+      : Promise.resolve([] as { id: string; slug: string }[]),
+    surfaceSlugs.length
+      ? sql<{ id: string; slug: string }[]>`
+          select id, slug from surfaces
+          where sport_id = ${sportId} and slug = any(${surfaceSlugs})`
+      : Promise.resolve([] as { id: string; slug: string }[]),
   ]);
 
   const formatId = new Map(formatRows.map((r) => [r.slug, r.id]));
   const divisionId = new Map(divisionRows.map((r) => [r.slug, r.id]));
+  const subFormatId = new Map(subFormatRows.map((r) => [r.slug, r.id]));
+  const surfaceId = new Map(surfaceRows.map((r) => [r.slug, r.id]));
 
   for (const group of groups) {
     const fid = formatId.get(group.format);
@@ -302,11 +330,15 @@ async function replaceBrackets(
     // this schema and it means the same thing here.
     const divisions: (string | null)[] = group.divisions.length ? group.divisions : [null];
 
+    const sfid = group.subFormat ? (subFormatId.get(group.subFormat) ?? null) : null;
+    const surfid = group.surface ? (surfaceId.get(group.surface) ?? null) : null;
+
     for (const slug of divisions) {
       const did = slug === null ? null : (divisionId.get(slug) ?? null);
       await sql`
-        insert into event_brackets (event_id, format_id, division_id, confirmed)
-        values (${eventId}, ${fid}, ${did}, true)`;
+        insert into event_brackets
+          (event_id, format_id, division_id, sub_format_id, surface_id, confirmed)
+        values (${eventId}, ${fid}, ${did}, ${sfid}, ${surfid}, true)`;
     }
   }
 }

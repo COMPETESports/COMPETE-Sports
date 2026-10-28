@@ -15,19 +15,39 @@ export interface RefOption {
 export interface FormatRefOption extends RefOption {
   gender: string;
   team_size: number | null;
+  // False for formats retired by 012 — blind-draw and
+  // king-queen-of-the-beach, which sub_formats replaces. They are still
+  // returned, because an event that already uses one must stay editable;
+  // the builder hides them unless a bracket already references them.
+  is_active: boolean;
 }
 
-/** Surfaces, formats and divisions available for one sport. */
+/**
+ * Blind Draw, KOB and QOB — a property of the bracket, not a format of
+ * its own. See 012_sub_formats.sql for why that reversed on 18 Oct.
+ */
+export interface SubFormatRefOption extends RefOption {
+  registers_as: 'individual' | 'partner';
+  requires_surface: string | null;
+  requires_gender: string | null;
+}
+
+/** Surfaces, formats, sub-formats and divisions available for one sport. */
 export async function loadRefOptions(sportSlug: string) {
-  const [surfaces, formats, divisions] = await Promise.all([
+  const [surfaces, formats, subFormats, divisions] = await Promise.all([
     sql<RefOption[]>`
       select s.slug, s.name from surfaces s
       join sports sp on sp.id = s.sport_id
       where sp.slug = ${sportSlug} order by s.display_order`,
     sql<FormatRefOption[]>`
-      select f.slug, f.name, f.gender, f.team_size from formats f
+      select f.slug, f.name, f.gender, f.team_size, f.is_active from formats f
       join sports sp on sp.id = f.sport_id
       where sp.slug = ${sportSlug} order by f.display_order`,
+    sql<SubFormatRefOption[]>`
+      select sf.slug, sf.name, sf.registers_as, sf.requires_surface, sf.requires_gender
+      from sub_formats sf
+      join sports sp on sp.id = sf.sport_id
+      where sp.slug = ${sportSlug} order by sf.display_order`,
     sql<RefOption[]>`
       select d.slug, d.name from divisions d
       join sports sp on sp.id = d.sport_id
@@ -37,6 +57,7 @@ export async function loadRefOptions(sportSlug: string) {
   return {
     surfaces: [...surfaces],
     formats: [...formats],
+    subFormats: [...subFormats],
     divisions: [...divisions],
   };
 }

@@ -75,19 +75,35 @@ export default async function EditEventPage({
   // combinations actually ran. Loading those into the builder and saving
   // would silently promote a guess to a stated fact, so the page warns
   // first and makes editing an old event a verification step.
-  const bracketRows = await sql<{ format: string; divisions: string[] | null; confirmed: boolean }[]>`
-    select f.slug as format,
+  // Grouped by format AND sub-format: Men's Doubles and Men's Doubles
+  // Blind Draw are two brackets, not one with a stray flag.
+  const bracketRows = await sql<
+    {
+      surface: string | null;
+      format: string;
+      sub_format: string | null;
+      divisions: string[] | null;
+      confirmed: boolean;
+    }[]
+  >`
+    select su.slug as surface,
+           f.slug  as format,
+           sf.slug as sub_format,
            array_remove(array_agg(d.slug order by d.display_order), null) as divisions,
            bool_and(b.confirmed) as confirmed
       from event_brackets b
       join formats f on f.id = b.format_id
       left join divisions d on d.id = b.division_id
+      left join sub_formats sf on sf.id = b.sub_format_id
+      left join surfaces su on su.id = b.surface_id
      where b.event_id = ${id}
-     group by f.slug, f.display_order
-     order by f.display_order`;
+     group by su.slug, su.display_order, f.slug, f.display_order, sf.slug, sf.display_order
+     order by su.display_order nulls first, f.display_order, sf.display_order nulls first`;
 
   const brackets = bracketRows.map((b) => ({
+    surface: b.surface,
     format: b.format,
+    subFormat: b.sub_format,
     divisions: b.divisions ?? [],
   }));
   const guessedBrackets = bracketRows.some((b) => !b.confirmed);

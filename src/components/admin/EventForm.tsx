@@ -5,7 +5,12 @@ import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { saveEvent, type ActionState } from '@/lib/admin';
 import { PasteBox } from './PasteBox';
-import { BracketBuilder, type BracketGroup, type FormatOption } from './BracketBuilder';
+import {
+  BracketBuilder,
+  type BracketGroup,
+  type FormatOption,
+  type SubFormatOption,
+} from './BracketBuilder';
 import type { ParsedListing } from '@/lib/parse-listing';
 
 export interface RefOption {
@@ -50,7 +55,12 @@ export function EventForm({
   options,
 }: {
   values: EventFormValues;
-  options: { surfaces: RefOption[]; formats: FormatOption[]; divisions: RefOption[] };
+  options: {
+    surfaces: RefOption[];
+    formats: FormatOption[];
+    subFormats: SubFormatOption[];
+    divisions: RefOption[];
+  };
 }) {
   const [state, action] = useActionState<ActionState | null, FormData>(saveEvent, null);
 
@@ -109,9 +119,18 @@ export function EventForm({
       // read it. Anything more and the builder stays empty for Tom to fill
       // in from what the organizer actually published.
       const parsedFormats = fields.formats ?? [];
+      const parsedSurfaces = fields.surfaces ?? [];
       next.brackets =
         parsedFormats.length === 1
-          ? [{ format: parsedFormats[0], divisions: fields.divisions ?? [] }]
+          ? [
+              {
+                // Same rule as format: one is unambiguous, more than one
+                // would mean guessing which bracket ran where.
+                surface: parsedSurfaces.length === 1 ? parsedSurfaces[0] : null,
+                format: parsedFormats[0],
+                divisions: fields.divisions ?? [],
+              },
+            ]
           : [];
 
       return next;
@@ -190,23 +209,19 @@ export function EventForm({
         </Section>
 
         <Section title="Who can play">
-          <CheckGroup
-            legend="Surface"
-            name="surfaces"
-            options={options.surfaces}
-            selected={v.surfaces}
-            onToggle={(slug) => toggle('surfaces', slug)}
-            error={err('surfaces')}
-            auto={isAuto('surfaces')}
-          />
-          {/* Formats and divisions are no longer separate lists. They are
+          {/* Surface used to be a separate checkbox group here, which let
+              one event claim all four with no warning. It is now the first
+              choice inside each bracket, because a bracket is played on
+              one surface. Tom, 21 Oct. Formats and divisions are no longer separate lists. They are
               chosen together, one bracket at a time, and saveEvent derives
               the flat event_formats / event_divisions rows from them — so
               single-axis filters keep working and two-axis filters start
               working. */}
           <BracketBuilder
             formats={options.formats}
+            subFormats={options.subFormats}
             divisions={options.divisions}
+            surfaces={options.surfaces}
             groups={v.brackets}
             onChange={(next) => set('brackets', next)}
             error={err('brackets') ?? err('formats') ?? err('divisions')}

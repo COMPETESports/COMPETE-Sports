@@ -59,12 +59,18 @@ export function parseFilters(params: RawParams): SearchFilters {
 
   return {
     sport: asString(params.sport) ?? 'volleyball',
+    // Capped rather than rejected: a 200-character paste is a mistake, not
+    // an attack, and truncating still returns something useful.
+    q: (asString(params.q) ?? '').slice(0, 120) || null,
+    includePast: false,
     from: isIsoDate(from) ? from : today(),
     to: isIsoDate(to) ? to : null,
     surfaces: asArray(params.surface),
     formats: asArray(params.format),
+    // reverse_coed was missing until 21 Oct 2026, so a real gender on real
+    // events could not be filtered for at all.
     genders: asArray(params.gender).filter((g) =>
-      ['mens', 'womens', 'coed', 'open'].includes(g),
+      ['mens', 'womens', 'coed', 'reverse_coed', 'open'].includes(g),
     ),
     divisions: asArray(params.division),
     near: asString(params.near),
@@ -102,6 +108,7 @@ export function buildQuery(
 
 export function hasAnyFilter(f: SearchFilters): boolean {
   return (
+    !!f.q ||
     f.surfaces.length > 0 ||
     f.formats.length > 0 ||
     f.genders.length > 0 ||

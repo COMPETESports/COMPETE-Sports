@@ -60,6 +60,20 @@ export interface Facets {
 
 export interface SearchFilters {
   sport: string;
+  /**
+   * Free text over event, organizer and venue name.
+   *
+   * Added 21 Oct 2026. Until then discovery had no text field at all, so a
+   * player who heard "Anti-Turkey Trot" from a teammate and searched it
+   * found nothing and concluded COMPETE did not have it.
+   */
+  q: string | null;
+  /**
+   * Set when a text search found nothing upcoming and we are looking back
+   * instead. Drops the start-date floor and orders newest first, so the
+   * answer is "that happened in November" rather than an empty page.
+   */
+  includePast: boolean;
   from: string | null;
   to: string | null;
   surfaces: string[];
