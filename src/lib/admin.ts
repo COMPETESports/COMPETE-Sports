@@ -16,6 +16,8 @@ import { geocode } from './geocode';
 const EventInput = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(3, 'Give the event a name.').max(200),
+  // Widened to three by 014; the column allowed only two before that.
+  event_type: z.enum(['tournament', 'league', 'open_play']).default('tournament'),
   sport: z.string().trim().min(1),
   starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a start date.'),
   ends_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
@@ -54,7 +56,19 @@ const EventInput = z.object({
   status: z.enum(['draft', 'approved', 'cancelled', 'archived']).default('draft'),
 });
 
-export type ActionState = { ok: boolean; message: string; fieldErrors?: Record<string, string> };
+export type ActionState = {
+  ok: boolean;
+  message: string;
+  fieldErrors?: Record<string, string>;
+  /**
+   * Where the event now lives, so the form can offer a way to it.
+   *
+   * Tom, 27 Oct: saving as "Approved - live on the site" used to return a
+   * green line and nothing else, which leaves you wondering whether it
+   * worked. Publishing to a live site should end with somewhere to go.
+   */
+  saved?: { id: string; slug: string; status: string };
+};
 
 function slugify(s: string): string {
   return s
@@ -83,6 +97,7 @@ export async function saveEvent(
   const raw = {
     id: (formData.get('id') as string) || undefined,
     name: formData.get('name'),
+    event_type: formData.get('event_type') ?? 'tournament',
     sport: formData.get('sport') ?? 'volleyball',
     starts_on: formData.get('starts_on'),
     ends_on: formData.get('ends_on'),
@@ -189,7 +204,8 @@ export async function saveEvent(
   if (input.id) {
     const [row] = await sql<{ id: string }[]>`
       update events set
-        name = ${input.name}, sport_id = ${sport.id}, venue_id = ${venueId},
+        name = ${input.name}, event_type = ${input.event_type},
+        sport_id = ${sport.id}, venue_id = ${venueId},
         organizer_id = ${organizerId}, starts_on = ${input.starts_on},
         ends_on = ${input.ends_on || null},
         registration_deadline = ${input.registration_deadline || null},
@@ -212,11 +228,11 @@ export async function saveEvent(
 
     const [row] = await sql<{ id: string }[]>`
       insert into events (
-        slug, name, sport_id, venue_id, organizer_id, starts_on, ends_on,
+        slug, name, event_type, sport_id, venue_id, organizer_id, starts_on, ends_on,
         registration_deadline, entry_fee_cents, fee_basis, payout_text,
         event_page_url, flyer_url, notes, status, source, created_by, published_at
       ) values (
-        ${slug}, ${input.name}, ${sport.id}, ${venueId}, ${organizerId},
+        ${slug}, ${input.name}, ${input.event_type}, ${sport.id}, ${venueId}, ${organizerId},
         ${input.starts_on}, ${input.ends_on || null},
         ${input.registration_deadline || null}, ${feeCents}, ${input.fee_basis},
         ${input.payout_text || null}, ${input.event_page_url || null},
@@ -243,7 +259,20 @@ export async function saveEvent(
 
   revalidatePath('/');
   revalidatePath('/admin/events');
-  return { ok: true, message: input.id ? 'Event updated.' : 'Event created.' };
+  const [saved] = await sql<{ slug: string }[]>`select slug from events where id = ${eventId}`;
+
+  return {
+    ok: true,
+    message:
+      input.status === 'approved'
+        ? input.id
+          ? 'Updated and live on the site.'
+          : 'Created and live on the site.'
+        : input.id
+          ? 'Updated. Still a draft, so not public yet.'
+          : 'Created as a draft, so not public yet.',
+    saved: { id: eventId, slug: saved?.slug ?? '', status: input.status },
+  };
 }
 
 /**

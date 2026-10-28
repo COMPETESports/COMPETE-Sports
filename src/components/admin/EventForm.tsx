@@ -21,6 +21,8 @@ export interface RefOption {
 export interface EventFormValues {
   id?: string;
   name: string;
+  /** tournament | league | open_play. The first question on the form. */
+  event_type: string;
   sport: string;
   starts_on: string;
   ends_on: string;
@@ -49,6 +51,18 @@ type TextKey = Exclude<
   keyof EventFormValues,
   'surfaces' | 'formats' | 'divisions' | 'brackets' | 'id'
 >;
+
+/**
+ * The three kinds of event, and what each one is in Tom's words. The
+ * description matters: "league" and "open play" are not obvious to
+ * someone entering their first event, and a wrong choice here changes
+ * every question after it.
+ */
+const EVENT_TYPES: { slug: string; name: string; blurb: string }[] = [
+  { slug: 'tournament', name: 'Tournament', blurb: 'Single or multi-day event' },
+  { slug: 'league', name: 'League', blurb: 'Weekly season competition' },
+  { slug: 'open_play', name: 'Open Play', blurb: 'Drop in & ball' },
+];
 
 export function EventForm({
   values,
@@ -157,7 +171,7 @@ export function EventForm({
         {values.id && <input type="hidden" name="id" value={values.id} />}
         <input type="hidden" name="sport" value={v.sport} />
 
-        {state && (
+        {state && !state.saved && (
           <p
             role="status"
             className={`panel p-3 text-sm ${state.ok ? 'tone-good' : 'tone-bad'}`}
@@ -166,7 +180,96 @@ export function EventForm({
           </p>
         )}
 
-        <Section title="The event">
+        {/* A save that worked ends with somewhere to go. A green line on
+            its own leaves you wondering whether publishing to a live site
+            actually did anything. Tom, 27 Oct. */}
+        {state?.saved && (
+          <div role="status" className="panel tone-good p-4">
+            <p className="t-head text-base">{state.message}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {state.saved.status === 'approved' && state.saved.slug && (
+                <a
+                  href={`/events/${state.saved.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-primary !py-2 !text-xs"
+                >
+                  View it on the site ↗
+                </a>
+              )}
+              <Link href="/admin/events" className="btn-ghost !py-2 !text-xs">
+                All events
+              </Link>
+              <Link href="/admin/events/new" className="btn-ghost !py-2 !text-xs">
+                Add another
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* First question, because it decides every question after it.
+            Chips rather than a dropdown so all three are visible at once
+            with what each one means - nobody entering their first event
+            knows that "open play" means drop-in. The branching form comes
+            later; this records the answer so the data is right meanwhile. */}
+        <Section title="What kind of event">
+          <fieldset className="sm:col-span-2">
+            <legend className="sr-only">Event type</legend>
+            <div className="flex flex-wrap gap-2">
+              {EVENT_TYPES.map((t) => {
+                const on = v.event_type === t.slug;
+                return (
+                  <button
+                    key={t.slug}
+                    type="button"
+                    onClick={() => set('event_type', t.slug)}
+                    aria-pressed={on}
+                    className="rounded-xl border px-4 py-2.5 text-left transition-colors"
+                    style={
+                      on
+                        ? { borderColor: 'var(--grass)', color: 'var(--grass)' }
+                        : { borderColor: 'var(--line)', color: 'var(--muted)' }
+                    }
+                  >
+                    <span className="t-head block text-sm">{t.name}</span>
+                    <span className="block text-xs opacity-80">{t.blurb}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <input type="hidden" name="event_type" value={v.event_type} />
+            {err('event_type') && (
+              <p className="t-mono mt-2 text-[10px] uppercase tracking-wider text-[color:var(--coral-ink)]">
+                {err('event_type')}
+              </p>
+            )}
+          </fieldset>
+        </Section>
+
+        <Section title="Organizer">
+          <Field label="Organizer name" error={err('organizer_name')} auto={isAuto('organizer_name')}>
+            <input name="organizer_name" {...text('organizer_name')} className="field" />
+          </Field>
+          <Field label="Organizer email" error={err('organizer_email')} auto={isAuto('organizer_email')}>
+            <input type="email" name="organizer_email" {...text('organizer_email')} className="field" />
+          </Field>
+          <Field
+            label="Event / registration page"
+            hint="Full URL including https://"
+            error={err('event_page_url')}
+            auto={isAuto('event_page_url')}
+            className="sm:col-span-2"
+          >
+            <input name="event_page_url" {...text('event_page_url')} className="field" />
+          </Field>
+          <Field label="Flyer image URL" error={err('flyer_url')} auto={isAuto('flyer_url')} className="sm:col-span-2">
+            <input name="flyer_url" {...text('flyer_url')} className="field" />
+          </Field>
+          <Field label="Notes shown to players" error={err('notes')} auto={isAuto('notes')} className="sm:col-span-2">
+            <textarea name="notes" {...text('notes')} rows={4} className="field-area" />
+          </Field>
+        </Section>
+        <Section title="Event">
           <Field label="Event name" error={err('name')} auto={isAuto('name')} className="sm:col-span-2">
             <input name="name" {...text('name')} required className="field" />
           </Field>
@@ -207,7 +310,6 @@ export function EventForm({
             <input name="payout_text" {...text('payout_text')} className="field" />
           </Field>
         </Section>
-
         <Section title="Who can play">
           {/* Surface used to be a separate checkbox group here, which let
               one event claim all four with no warning. It is now the first
@@ -230,8 +332,7 @@ export function EventForm({
             COMPETE lists adult recreational events only.
           </p>
         </Section>
-
-        <Section title="Where">
+        <Section title="Venue">
           <Field label="Venue name" error={err('venue_name')} auto={isAuto('venue_name')} className="sm:col-span-2">
             <input name="venue_name" {...text('venue_name')} required className="field" />
           </Field>
@@ -253,31 +354,6 @@ export function EventForm({
             <input name="postal_code" {...text('postal_code')} inputMode="numeric" className="field" />
           </Field>
         </Section>
-
-        <Section title="Organizer and links">
-          <Field label="Organizer name" error={err('organizer_name')} auto={isAuto('organizer_name')}>
-            <input name="organizer_name" {...text('organizer_name')} className="field" />
-          </Field>
-          <Field label="Organizer email" error={err('organizer_email')} auto={isAuto('organizer_email')}>
-            <input type="email" name="organizer_email" {...text('organizer_email')} className="field" />
-          </Field>
-          <Field
-            label="Event / registration page"
-            hint="Full URL including https://"
-            error={err('event_page_url')}
-            auto={isAuto('event_page_url')}
-            className="sm:col-span-2"
-          >
-            <input name="event_page_url" {...text('event_page_url')} className="field" />
-          </Field>
-          <Field label="Flyer image URL" error={err('flyer_url')} auto={isAuto('flyer_url')} className="sm:col-span-2">
-            <input name="flyer_url" {...text('flyer_url')} className="field" />
-          </Field>
-          <Field label="Notes shown to players" error={err('notes')} auto={isAuto('notes')} className="sm:col-span-2">
-            <textarea name="notes" {...text('notes')} rows={4} className="field-area" />
-          </Field>
-        </Section>
-
         <Section title="Publishing">
           <Field label="Status" hint="Only approved events appear publicly">
             <select name="status" value={v.status} onChange={(e) => set('status', e.target.value)} className="field">

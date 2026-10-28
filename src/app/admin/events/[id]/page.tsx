@@ -12,6 +12,7 @@ interface Row {
   id: string;
   slug: string;
   name: string;
+  event_type: string;
   sport_slug: string;
   starts_on: Date | string;
   ends_on: Date | string | null;
@@ -51,7 +52,7 @@ export default async function EditEventPage({
 
   const [row] = await sql<Row[]>`
     select
-      e.id, e.slug, e.name, sp.slug as sport_slug, e.starts_on, e.ends_on,
+      e.id, e.slug, e.name, e.event_type, sp.slug as sport_slug, e.starts_on, e.ends_on,
       e.registration_deadline, e.entry_fee_cents, e.fee_basis, e.payout_text,
       e.event_page_url, e.flyer_url, e.notes, e.status,
       v.name as venue_name, v.address_line, v.city, v.state, v.postal_code, v.latitude,
@@ -150,6 +151,7 @@ export default async function EditEventPage({
         values={{
           id: row.id,
           name: row.name,
+          event_type: row.event_type ?? 'tournament',
           sport: row.sport_slug,
           starts_on: iso(row.starts_on),
           ends_on: iso(row.ends_on),

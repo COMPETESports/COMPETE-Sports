@@ -29,6 +29,7 @@ export default async function NewEventPage() {
         options={options}
         values={{
           name: '',
+          event_type: 'tournament',
           sport: 'volleyball',
           starts_on: '',
           ends_on: '',
