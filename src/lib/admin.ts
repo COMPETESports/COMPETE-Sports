@@ -116,7 +116,11 @@ export async function saveEvent(
     organizer_name: formData.get('organizer_name'),
     organizer_email: formData.get('organizer_email'),
     brackets: readBrackets(formData.get('brackets')),
-    status: formData.get('status') ?? 'draft',
+    // The "Save as draft" button sends its own name, and a clicked submit
+    // button's value is the one the browser sends - so one click parks the
+    // event without having to also change the dropdown.
+    status:
+      formData.get('intent') === 'draft' ? 'draft' : (formData.get('status') ?? 'draft'),
   };
 
   const parsed = EventInput.safeParse(raw);
@@ -393,6 +397,44 @@ async function replaceLinks(
       values (${eventId}, ${id})
       on conflict do nothing`;
   }
+}
+
+/**
+ * Deleting an event, and why only a draft may be deleted.
+ *
+ * Five tables point at `events` with `on delete cascade`, and one of them
+ * is `account_events` - every player's saved, registered and attended
+ * record. Deleting a published event would take those with it, silently,
+ * out of lists belonging to people who never asked.
+ *
+ * Tom's rule, 28 Oct: drafts are for probable events, so an abandoned one
+ * should go rather than clog the list; archived is for events that
+ * actually happened. A published event therefore moves to cancelled or
+ * archived and is never destroyed.
+ *
+ * The status is re-read here rather than trusted from the form, because a
+ * stale page could otherwise ask to delete something that has since gone
+ * live.
+ */
+export async function deleteDraftEvent(id: string): Promise<ActionState> {
+  if (!(await isSignedIn())) redirect('/admin');
+
+  const [row] = await sql<{ status: string; name: string }[]>`
+    select status, name from events where id = ${id}`;
+
+  if (!row) return { ok: false, message: 'That event no longer exists.' };
+  if (row.status !== 'draft') {
+    return {
+      ok: false,
+      message:
+        'Only drafts can be deleted. This one has been published, so set it to Cancelled or Archived instead — deleting it would also remove it from the saved lists of anyone who kept it.',
+    };
+  }
+
+  await sql`delete from events where id = ${id}`;
+  revalidatePath('/admin/events');
+  revalidatePath('/');
+  return { ok: true, message: `Deleted the draft "${row.name}".` };
 }
 
 export async function setEventStatus(id: string, status: string): Promise<void> {

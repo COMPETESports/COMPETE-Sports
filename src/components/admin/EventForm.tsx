@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { saveEvent, type ActionState } from '@/lib/admin';
+import { DeleteDraft } from './DeleteDraft';
 import { PasteBox } from './PasteBox';
 import {
   BracketBuilder,
@@ -365,11 +366,22 @@ export function EventForm({
           </Field>
         </Section>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Submit isEdit={!!values.id} />
+          {/* One click parks it, whatever the status dropdown says. A
+              clicked submit button is the only one whose name the browser
+              sends, so saveEvent can tell this apart from a normal save. */}
+          <button type="submit" name="intent" value="draft" className="btn-ghost">
+            Save as draft
+          </button>
           <Link href="/admin/events" className="btn-ghost">
             Back to list
           </Link>
+          {values.id && values.status === 'draft' && (
+            <span className="ml-auto">
+              <DeleteDraft id={values.id} name={values.name || 'this draft'} />
+            </span>
+          )}
         </div>
       </form>
     </div>

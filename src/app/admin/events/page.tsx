@@ -32,22 +32,45 @@ export default async function AdminEventsPage({
   const { status = 'all', q = '' } = await searchParams;
   const search = q.trim();
 
+  // "Approved" is not the same as "on the site right now", which is what
+  // Tom actually wanted to see. An approved event from 2023 is approved
+  // and long gone. Live means approved AND still to come - the same two
+  // conditions the public site applies - so the Live count should match
+  // the number of events a player sees. If the two ever disagree,
+  // something is wrong, which makes this a check as well as a filter.
+  const where = (s: string) =>
+    s === 'live'
+      ? sql`e.status = 'approved' and e.starts_on >= current_date`
+      : s === 'past'
+        ? sql`e.status = 'approved' and e.starts_on < current_date`
+        : s === 'all'
+          ? sql`true`
+          : sql`e.status = ${s}`;
+
   const rows = await sql<Row[]>`
     select e.id, e.slug, e.name, e.starts_on, e.status,
            v.city, v.state, (v.latitude is not null) as has_coords, e.featured
     from events e
     left join venues v on v.id = e.venue_id
-    where (${status} = 'all' or e.status = ${status})
+    where ${where(status)}
       and (${search} = '' or e.name ilike ${'%' + search + '%'} or v.city ilike ${'%' + search + '%'})
     order by e.starts_on asc
     limit 300`;
 
-  const counts = await sql<{ status: string; count: number }[]>`
-    select status, count(*)::int as count from events group by status`;
-  const countFor = (s: string) =>
-    s === 'all'
-      ? counts.reduce((a, c) => a + c.count, 0)
-      : (counts.find((c) => c.status === s)?.count ?? 0);
+  const [tally] = await sql<
+    { all: number; live: number; past: number; draft: number;
+      approved: number; cancelled: number; archived: number }[]
+  >`
+    select
+      count(*)::int as all,
+      count(*) filter (where status = 'approved' and starts_on >= current_date)::int as live,
+      count(*) filter (where status = 'approved' and starts_on <  current_date)::int as past,
+      count(*) filter (where status = 'draft')::int     as draft,
+      count(*) filter (where status = 'approved')::int  as approved,
+      count(*) filter (where status = 'cancelled')::int as cancelled,
+      count(*) filter (where status = 'archived')::int  as archived
+    from events`;
+  const countFor = (s: string) => (tally as unknown as Record<string, number>)[s] ?? 0;
 
   const missingCoords = rows.filter((r) => !r.has_coords).length;
 
@@ -101,9 +124,17 @@ export default async function AdminEventsPage({
             Status
           </label>
           <select id="status" name="status" defaultValue={status} className="field">
-            {['all', 'draft', 'approved', 'cancelled', 'archived'].map((s) => (
+            {[
+              ['all', 'All'],
+              ['live', 'Live on the site'],
+              ['draft', 'Draft'],
+              ['past', 'Past'],
+              ['approved', 'Approved (any date)'],
+              ['cancelled', 'Cancelled'],
+              ['archived', 'Archived'],
+            ].map(([s, label]) => (
               <option key={s} value={s}>
-                {s} ({countFor(s)})
+                {label} ({countFor(s)})
               </option>
             ))}
           </select>
