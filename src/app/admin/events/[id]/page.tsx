@@ -122,11 +122,19 @@ export default async function EditEventPage({
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
         <h1 className="t-head text-2xl">{row.name}</h1>
-        {row.status === 'approved' && (
-          <Link href={`/events/${row.slug}`} className="btn-ghost">
-            View public page ↗
+        <div className="flex flex-wrap gap-2">
+          {/* The fastest way to enter the Sunday of a Saturday-and-Sunday
+              pair, which Tom notes is most of what gets called a two-day
+              tournament. */}
+          <Link href={`/admin/events/new?from=${row.id}`} className="btn-ghost">
+            Duplicate
           </Link>
-        )}
+          {row.status === 'approved' && (
+            <Link href={`/events/${row.slug}`} className="btn-ghost">
+              View public page ↗
+            </Link>
+          )}
+        </div>
       </div>
 
       {guessedBrackets && (

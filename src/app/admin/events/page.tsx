@@ -162,14 +162,22 @@ export default async function AdminEventsPage({
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {row.status === 'approved' && (
+                    <span className="flex justify-end gap-3">
                       <Link
-                        href={`/events/${row.slug}`}
+                        href={`/admin/events/new?from=${row.id}`}
                         className="t-mono text-[11px] uppercase tracking-wider text-[color:var(--faint)] hover:text-[color:var(--surf-ink)]"
                       >
-                        View ↗
+                        Duplicate
                       </Link>
-                    )}
+                      {row.status === 'approved' && (
+                        <Link
+                          href={`/events/${row.slug}`}
+                          className="t-mono text-[11px] uppercase tracking-wider text-[color:var(--faint)] hover:text-[color:var(--surf-ink)]"
+                        >
+                          View ↗
+                        </Link>
+                      )}
+                    </span>
                   </td>
                 </tr>
               );
