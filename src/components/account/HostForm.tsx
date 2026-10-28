@@ -139,7 +139,7 @@ export function HostForm({
               rows={4}
               maxLength={500}
               defaultValue={profile?.about ?? ''}
-              className="field resize-y"
+              className="field-area"
               placeholder="Who you are, how long you have been running events, what your events are like."
             />
           </div>

@@ -94,7 +94,7 @@ export function ProspectForm({ row }: { row: Row }) {
         <h2 className="t-head text-lg">Notes</h2>
         <textarea
           name="notes" rows={6} defaultValue={row.notes ?? ''}
-          className="field mt-3 w-full font-[inherit]"
+          className="field-area mt-3 font-[inherit]"
           aria-label="Notes"
         />
       </section>

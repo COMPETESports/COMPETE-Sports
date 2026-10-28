@@ -428,6 +428,30 @@
     box-shadow: 0 0 16px -4px color-mix(in srgb, var(--beach) 60%, transparent);
   }
 
+  /* A textarea is not a pill.
+     `.field` is rounded-full, which is right for a one-line input and
+     wrong for a multi-line one: the curved ends clip the first and last
+     lines. Tom hit it pasting a Facebook post on 27 Oct - "designed in an
+     oval circular shape which cuts off part of the information pasted."
+     Same palette and focus ring, square enough to hold paragraphs, and
+     draggable so a long post can be seen whole. */
+  .field-area {
+    @apply w-full rounded-xl border px-4 py-3 text-sm;
+    border-color: var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+    resize: vertical;
+    min-height: 6rem;
+  }
+  .field-area::placeholder {
+    color: var(--faint);
+  }
+  .field-area:focus {
+    border-color: var(--beach);
+    outline: none;
+    box-shadow: 0 0 16px -4px color-mix(in srgb, var(--beach) 60%, transparent);
+  }
+
   .label {
     @apply t-kicker mb-1.5 block;
   }

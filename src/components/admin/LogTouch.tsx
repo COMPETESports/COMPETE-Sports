@@ -75,7 +75,7 @@ export function LogTouch({ prospectId }: { prospectId: string }) {
         <span className="t-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--faint)]">
           What was said
         </span>
-        <textarea name="body" rows={3} required className="field font-[inherit]" />
+        <textarea name="body" rows={3} required className="field-area font-[inherit]" />
       </label>
 
       <div className="grid gap-3 sm:grid-cols-[1fr_150px]">

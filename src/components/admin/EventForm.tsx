@@ -274,7 +274,7 @@ export function EventForm({
             <input name="flyer_url" {...text('flyer_url')} className="field" />
           </Field>
           <Field label="Notes shown to players" error={err('notes')} auto={isAuto('notes')} className="sm:col-span-2">
-            <textarea name="notes" {...text('notes')} rows={4} className="field" />
+            <textarea name="notes" {...text('notes')} rows={4} className="field-area" />
           </Field>
         </Section>
 

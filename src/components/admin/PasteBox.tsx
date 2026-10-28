@@ -60,7 +60,7 @@ export function PasteBox({
             id="paste"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            rows={8}
+            rows={12}
             placeholder={
               'SAND SLAM SUMMER SERIES #4\n' +
               'Saturday, June 14th\n' +
@@ -69,7 +69,7 @@ export function PasteBox({
               'Divisions: AA / A / BB\n' +
               'Entry: $45 per player'
             }
-            className="field mt-4 font-mono text-[13px] leading-relaxed"
+            className="field-area mt-4 font-mono text-[13px] leading-relaxed"
             spellCheck={false}
           />
 
