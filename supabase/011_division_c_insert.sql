@@ -27,5 +27,4 @@ on conflict (sport_id, slug) do update
 -- Ladder, strongest to most casual:
 --   Open(1) AAA(2) AA(3) A(4) BBB(5) BB(6) B(7) C(8), then Masters(9).
 --
--- The descriptor 'Beginner' was written by Claude, not Tom. Every other
--- descriptor in this table came from him directly. Still needs confirming.
+-- Descriptor: 'Beginner'. Confirmed by Tom on 30 Oct 2026.
