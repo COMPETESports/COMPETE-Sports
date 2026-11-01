@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { saveEvent, type ActionState } from '@/lib/admin';
 import { DeleteDraft } from './DeleteDraft';
@@ -18,6 +18,7 @@ import {
   playingRange,
   type LeagueDate,
 } from './LeagueSchedule';
+import { VenuePicker, type VenueOption } from './VenuePicker';
 import type { ParsedListing } from '@/lib/parse-listing';
 
 export interface RefOption {
@@ -95,9 +96,30 @@ export function EventForm({
     formats: FormatOption[];
     subFormats: SubFormatOption[];
     divisions: RefOption[];
+    venues: VenueOption[];
   };
 }) {
   const [state, action] = useActionState<ActionState | null, FormData>(saveEvent, null);
+
+  /**
+   * Both panels that report the outcome of a save - the confirmation and
+   * the error summary - render at the top of the form, and after a long
+   * event the Save button is a screen or two below them. Without this the
+   * page simply sits there and the save looks like it did nothing.
+   *
+   * Keyed on the id and on the error text so a second save of the same
+   * event scrolls again. Safe as an effect: it reads the action state and
+   * writes none of it, so there is no loop.
+   */
+  const outcome = state?.saved?.id ?? state?.message ?? null;
+  const lastOutcome = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!state || outcome === lastOutcome.current) return;
+    lastOutcome.current = outcome;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: motion ? 'auto' : 'smooth' });
+  }, [state, outcome]);
 
   // Inputs are controlled so the paste box can fill them. `autoFilled`
   // tracks which fields came from a paste, and a field drops out of it the
@@ -347,8 +369,22 @@ export function EventForm({
                 />
               </Field>
 
-              <Field label="Start time" hint="Same every week" error={err('start_time')}>
-                <input type="time" name="start_time" {...text('start_time')} className="field" />
+              <Field
+                label="Start time"
+                hint="Same every week · 5-minute steps"
+                error={err('start_time')}
+              >
+                {/* step is in seconds. 300 gives :00 :05 :10 ... :55 rather
+                    than every one of the 1,440 minutes in a day. Tom,
+                    31 Oct. The server still accepts any HH:MM, so an
+                    existing 7:03 start loaded for editing is not mangled. */}
+                <input
+                  type="time"
+                  name="start_time"
+                  step={300}
+                  {...text('start_time')}
+                  className="field"
+                />
               </Field>
 
               <LeagueSchedule
@@ -435,6 +471,20 @@ export function EventForm({
           </p>
         </Section>
         <Section title="Venue">
+          <VenuePicker
+            venues={options.venues}
+            current={v.venue_name}
+            onPick={(venue) =>
+              setV((prev) => ({
+                ...prev,
+                venue_name: venue.name,
+                address_line: venue.address_line ?? '',
+                city: venue.city,
+                state: venue.state,
+                postal_code: venue.postal_code ?? '',
+              }))
+            }
+          />
           <Field label="Venue name" error={err('venue_name')} auto={isAuto('venue_name')} className="sm:col-span-2">
             <input name="venue_name" {...text('venue_name')} required className="field" />
           </Field>

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { loadRefOptions } from '@/lib/ref-data';
+import { loadRefOptions, loadVenueOptions } from '@/lib/ref-data';
 import {
   hhmm,
   iso,
@@ -54,7 +54,10 @@ export default async function EditEventPage({
   }));
   const guessedBrackets = bracketRows.some((b) => !b.confirmed);
 
-  const options = await loadRefOptions(row.sport_slug);
+  const [options, venues] = await Promise.all([
+    loadRefOptions(row.sport_slug),
+    loadVenueOptions(),
+  ]);
 
   return (
     <div className="wrap max-w-3xl py-10">
@@ -100,7 +103,7 @@ export default async function EditEventPage({
       )}
 
       <EventForm
-        options={options}
+        options={{ ...options, venues }}
         values={{
           id: row.id,
           name: row.name,

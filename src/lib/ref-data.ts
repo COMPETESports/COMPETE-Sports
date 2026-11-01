@@ -62,6 +62,37 @@ export async function loadRefOptions(sportSlug: string) {
   };
 }
 
+export interface VenueRefOption {
+  id: string;
+  name: string;
+  address_line: string | null;
+  city: string;
+  state: string;
+  postal_code: string | null;
+  event_count: number;
+}
+
+/**
+ * Every venue, for the submission form's picker.
+ *
+ * Loaded whole rather than searched over the wire: there are a few
+ * hundred, which is a small payload and makes filtering instant as you
+ * type. If this ever reaches a few thousand it should become a server
+ * lookup - but a round trip per keystroke for 165 rows would be slower
+ * and worse.
+ *
+ * event_count breaks ties: when two venues match equally well, the one
+ * that has actually hosted events is the one being looked for.
+ */
+export async function loadVenueOptions(): Promise<VenueRefOption[]> {
+  const rows = await sql<VenueRefOption[]>`
+    select v.id, v.name, v.address_line, v.city, v.state, v.postal_code,
+           (select count(*)::int from events e where e.venue_id = v.id) as event_count
+      from venues v
+     order by v.name`;
+  return [...rows];
+}
+
 export interface RefRow {
   id: string;
   slug: string;

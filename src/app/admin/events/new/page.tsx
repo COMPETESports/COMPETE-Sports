@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { loadRefOptions } from '@/lib/ref-data';
+import { loadRefOptions, loadVenueOptions } from '@/lib/ref-data';
 import { hhmm, isUuid, loadBrackets, loadEvent } from '@/lib/event-form-data';
 import { EventForm, type EventFormValues } from '@/components/admin/EventForm';
 
@@ -111,7 +111,10 @@ export default async function NewEventPage({
     };
   }
 
-  const options = await loadRefOptions(values.sport);
+  const [options, venues] = await Promise.all([
+    loadRefOptions(values.sport),
+    loadVenueOptions(),
+  ]);
 
   return (
     <div className="wrap max-w-3xl py-10">
@@ -143,7 +146,7 @@ export default async function NewEventPage({
         </p>
       )}
 
-      <EventForm options={options} values={values} />
+      <EventForm options={{ ...options, venues }} values={values} />
     </div>
   );
 }
