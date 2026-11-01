@@ -12,6 +12,12 @@ import {
   type FormatOption,
   type SubFormatOption,
 } from './BracketBuilder';
+import {
+  LeagueSchedule,
+  generateLeagueDates,
+  playingRange,
+  type LeagueDate,
+} from './LeagueSchedule';
 import type { ParsedListing } from '@/lib/parse-listing';
 
 export interface RefOption {
@@ -27,7 +33,14 @@ export interface EventFormValues {
   sport: string;
   starts_on: string;
   ends_on: string;
+  /** Weekly tip-off time. A league needs it; a tournament has per-bracket times. */
+  start_time: string;
   registration_deadline: string;
+  /** League only. 0 = Sunday. See 015_league_schedule.sql. */
+  league_days: number[];
+  league_weeks: string;
+  league_dates: LeagueDate[];
+  playoffs: boolean;
   entry_fee: string;
   fee_basis: string;
   payout_text: string;
@@ -50,7 +63,14 @@ export interface EventFormValues {
 
 type TextKey = Exclude<
   keyof EventFormValues,
-  'surfaces' | 'formats' | 'divisions' | 'brackets' | 'id'
+  | 'surfaces'
+  | 'formats'
+  | 'divisions'
+  | 'brackets'
+  | 'id'
+  | 'league_days'
+  | 'league_dates'
+  | 'playoffs'
 >;
 
 /**
@@ -85,7 +105,10 @@ export function EventForm({
   const [v, setV] = useState<EventFormValues>(values);
   const [autoFilled, setAutoFilled] = useState<Set<string>>(new Set());
 
-  const set = (key: keyof EventFormValues, value: string | string[] | BracketGroup[]) => {
+  const set = (
+    key: keyof EventFormValues,
+    value: string | string[] | number[] | boolean | BracketGroup[] | LeagueDate[],
+  ) => {
     setV((prev) => ({ ...prev, [key]: value }));
     setAutoFilled((prev) => {
       if (!prev.has(key)) return prev;
@@ -155,6 +178,33 @@ export function EventForm({
 
   const err = (field: string) => state?.fieldErrors?.[field];
   const isAuto = (field: string) => autoFilled.has(field);
+
+  const isLeague = v.event_type === 'league';
+
+  /**
+   * Moving the first night has to move the whole schedule with it.
+   * Done here, in the change handler, rather than in an effect watching
+   * starts_on -- an effect that writes the state it depends on is what
+   * made the search box lag, and the same trap is open here.
+   */
+  const setFirstNight = (value: string) => {
+    setV((prev) => ({
+      ...prev,
+      starts_on: value,
+      league_dates: generateLeagueDates(
+        value,
+        prev.league_days,
+        Number(prev.league_weeks),
+        prev.league_dates,
+      ),
+    }));
+  };
+
+  // ends_on for a league is the last night actually played, so every
+  // existing query -- the live/past filter, the date sort -- keeps working
+  // without knowing what a league is. The server derives this too; this
+  // copy only keeps the hidden field honest while the form is open.
+  const seasonEnd = playingRange(v.league_dates)?.last ?? '';
 
   const text = (key: TextKey) => ({
     value: v[key] ?? '',
@@ -270,21 +320,67 @@ export function EventForm({
             <textarea name="notes" {...text('notes')} rows={4} className="field-area" />
           </Field>
         </Section>
-        <Section title="Event">
-          <Field label="Event name" error={err('name')} auto={isAuto('name')} className="sm:col-span-2">
+        <Section title={isLeague ? 'Season' : 'Event'}>
+          <Field
+            label={isLeague ? 'League name' : 'Event name'}
+            error={err('name')}
+            auto={isAuto('name')}
+            className="sm:col-span-2"
+          >
             <input name="name" {...text('name')} required className="field" />
           </Field>
 
-          <Field label="Start date" error={err('starts_on')} auto={isAuto('starts_on')}>
-            <input type="date" name="starts_on" {...text('starts_on')} required className="field" />
-          </Field>
+          {/* A league's dates are a schedule, not a span. Asking it for a
+              start and an end date produced a season that looked like a
+              very long tournament and told a player nothing about which
+              night to turn up on. Tom, 31 Oct. */}
+          {isLeague ? (
+            <>
+              <Field label="First night" error={err('starts_on')} auto={isAuto('starts_on')}>
+                <input
+                  type="date"
+                  name="starts_on"
+                  value={v.starts_on}
+                  onChange={(e) => setFirstNight(e.target.value)}
+                  required
+                  className="field"
+                />
+              </Field>
 
-          <Field label="End date (if multi-day)" error={err('ends_on')} auto={isAuto('ends_on')}>
-            <input type="date" name="ends_on" {...text('ends_on')} className="field" />
-          </Field>
+              <Field label="Start time" hint="Same every week" error={err('start_time')}>
+                <input type="time" name="start_time" {...text('start_time')} className="field" />
+              </Field>
+
+              <LeagueSchedule
+                firstNight={v.starts_on}
+                days={v.league_days}
+                weeks={v.league_weeks}
+                dates={v.league_dates}
+                playoffs={v.playoffs}
+                onDaysChange={(d) => set('league_days', d)}
+                onWeeksChange={(w) => set('league_weeks', w)}
+                onDatesChange={(d) => set('league_dates', d)}
+                onPlayoffsChange={(on) => set('playoffs', on)}
+                error={err('league_dates') ?? err('league_days')}
+              />
+
+              {/* Derived, never typed: the last night actually played. */}
+              <input type="hidden" name="ends_on" value={seasonEnd} />
+            </>
+          ) : (
+            <>
+              <Field label="Start date" error={err('starts_on')} auto={isAuto('starts_on')}>
+                <input type="date" name="starts_on" {...text('starts_on')} required className="field" />
+              </Field>
+
+              <Field label="End date (if multi-day)" error={err('ends_on')} auto={isAuto('ends_on')}>
+                <input type="date" name="ends_on" {...text('ends_on')} className="field" />
+              </Field>
+            </>
+          )}
 
           <Field
-            label="Register by"
+            label={isLeague ? 'Register by' : 'Register by'}
             error={err('registration_deadline')}
             auto={isAuto('registration_deadline')}
           >
@@ -296,7 +392,12 @@ export function EventForm({
             />
           </Field>
 
-          <Field label="Entry fee" hint="e.g. 75 or 42.50" error={err('entry_fee')} auto={isAuto('entry_fee')}>
+          <Field
+            label={isLeague ? 'Fee for the season' : 'Entry fee'}
+            hint="e.g. 75 or 42.50"
+            error={err('entry_fee')}
+            auto={isAuto('entry_fee')}
+          >
             <input name="entry_fee" {...text('entry_fee')} inputMode="decimal" className="field" />
           </Field>
 

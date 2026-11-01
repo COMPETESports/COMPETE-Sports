@@ -1,44 +1,19 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { sql } from '@/lib/db';
 import { loadRefOptions } from '@/lib/ref-data';
+import {
+  hhmm,
+  iso,
+  isUuid,
+  loadBrackets,
+  loadEvent,
+  loadLeagueDates,
+} from '@/lib/event-form-data';
 import { EventForm } from '@/components/admin/EventForm';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Edit event', robots: { index: false, follow: false } };
-
-interface Row {
-  id: string;
-  slug: string;
-  name: string;
-  event_type: string;
-  sport_slug: string;
-  starts_on: Date | string;
-  ends_on: Date | string | null;
-  registration_deadline: Date | string | null;
-  entry_fee_cents: number | null;
-  fee_basis: string;
-  payout_text: string | null;
-  event_page_url: string | null;
-  flyer_url: string | null;
-  notes: string | null;
-  status: string;
-  venue_name: string | null;
-  address_line: string | null;
-  city: string | null;
-  state: string | null;
-  postal_code: string | null;
-  latitude: number | null;
-  organizer_name: string | null;
-  organizer_email: string | null;
-  surfaces: string[] | null;
-  formats: string[] | null;
-  divisions: string[] | null;
-}
-
-const iso = (v: Date | string | null): string =>
-  v === null ? '' : v instanceof Date ? v.toISOString().slice(0, 10) : String(v).slice(0, 10);
 
 export default async function EditEventPage({
   params,
@@ -48,25 +23,16 @@ export default async function EditEventPage({
   if (!(await isSignedIn())) redirect('/admin');
   const { id } = await params;
 
-  if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  if (!isUuid(id)) notFound();
 
-  const [row] = await sql<Row[]>`
-    select
-      e.id, e.slug, e.name, e.event_type, sp.slug as sport_slug, e.starts_on, e.ends_on,
-      e.registration_deadline, e.entry_fee_cents, e.fee_basis, e.payout_text,
-      e.event_page_url, e.flyer_url, e.notes, e.status,
-      v.name as venue_name, v.address_line, v.city, v.state, v.postal_code, v.latitude,
-      o.name as organizer_name, o.contact_email as organizer_email,
-      (select array_agg(s.slug) from event_surfaces es join surfaces s on s.id = es.surface_id where es.event_id = e.id) as surfaces,
-      (select array_agg(f.slug) from event_formats ef join formats f on f.id = ef.format_id where ef.event_id = e.id) as formats,
-      (select array_agg(d.slug) from event_divisions ed join divisions d on d.id = ed.division_id where ed.event_id = e.id) as divisions
-    from events e
-    join sports sp on sp.id = e.sport_id
-    left join venues v on v.id = e.venue_id
-    left join organizers o on o.id = e.organizer_id
-    where e.id = ${id}`;
-
+  // One loader, shared with duplicate. Written 28 Oct for exactly this
+  // reason: this page used to carry its own copy of the query, and adding
+  // the league columns on 31 Oct meant adding them twice - which is the
+  // silent-blank-field bug the shared module exists to prevent.
+  const row = await loadEvent(id);
   if (!row) notFound();
+
+  const leagueDates = row.event_type === 'league' ? await loadLeagueDates(id) : [];
 
   // Existing brackets, grouped back into the shape the builder edits.
   //
@@ -78,28 +44,7 @@ export default async function EditEventPage({
   // first and makes editing an old event a verification step.
   // Grouped by format AND sub-format: Men's Doubles and Men's Doubles
   // Blind Draw are two brackets, not one with a stray flag.
-  const bracketRows = await sql<
-    {
-      surface: string | null;
-      format: string;
-      sub_format: string | null;
-      divisions: string[] | null;
-      confirmed: boolean;
-    }[]
-  >`
-    select su.slug as surface,
-           f.slug  as format,
-           sf.slug as sub_format,
-           array_remove(array_agg(d.slug order by d.display_order), null) as divisions,
-           bool_and(b.confirmed) as confirmed
-      from event_brackets b
-      join formats f on f.id = b.format_id
-      left join divisions d on d.id = b.division_id
-      left join sub_formats sf on sf.id = b.sub_format_id
-      left join surfaces su on su.id = b.surface_id
-     where b.event_id = ${id}
-     group by su.slug, su.display_order, f.slug, f.display_order, sf.slug, sf.display_order
-     order by su.display_order nulls first, f.display_order, sf.display_order nulls first`;
+  const bracketRows = await loadBrackets(id);
 
   const brackets = bracketRows.map((b) => ({
     surface: b.surface,
@@ -163,7 +108,12 @@ export default async function EditEventPage({
           sport: row.sport_slug,
           starts_on: iso(row.starts_on),
           ends_on: iso(row.ends_on),
+          start_time: hhmm(row.start_time),
           registration_deadline: iso(row.registration_deadline),
+          league_days: row.league_days ?? [],
+          league_weeks: row.league_weeks === null ? '' : String(row.league_weeks),
+          league_dates: leagueDates,
+          playoffs: row.playoffs ?? false,
           entry_fee: row.entry_fee_cents === null ? '' : (row.entry_fee_cents / 100).toFixed(2),
           fee_basis: row.fee_basis,
           payout_text: row.payout_text ?? '',

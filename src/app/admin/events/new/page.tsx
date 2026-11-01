@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { loadRefOptions } from '@/lib/ref-data';
-import { isUuid, loadBrackets, loadEvent } from '@/lib/event-form-data';
+import { hhmm, isUuid, loadBrackets, loadEvent } from '@/lib/event-form-data';
 import { EventForm, type EventFormValues } from '@/components/admin/EventForm';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +14,12 @@ const EMPTY: EventFormValues = {
   sport: 'volleyball',
   starts_on: '',
   ends_on: '',
+  start_time: '',
   registration_deadline: '',
+  league_days: [],
+  league_weeks: '',
+  league_dates: [],
+  playoffs: false,
   entry_fee: '',
   fee_basis: 'per_player',
   payout_text: '',
@@ -80,6 +85,14 @@ export default async function NewEventPage({
       postal_code: source.postal_code ?? '',
       organizer_name: source.organizer_name ?? '',
       organizer_email: source.organizer_email ?? '',
+      // A league's night, length, tip-off time and playoff plan describe
+      // how this organizer runs the season, so they copy. The dates do
+      // not - same reasoning as a tournament's dates below. Setting the
+      // new first night regenerates the whole schedule from these.
+      start_time: hhmm(source.start_time),
+      league_days: source.league_days ?? [],
+      league_weeks: source.league_weeks === null ? '' : String(source.league_weeks),
+      playoffs: source.playoffs ?? false,
       brackets: brackets.map((b) => ({
         surface: b.surface,
         format: b.format,
@@ -93,6 +106,7 @@ export default async function NewEventPage({
       starts_on: '',
       ends_on: '',
       registration_deadline: '',
+      league_dates: [],
       status: 'draft',
     };
   }

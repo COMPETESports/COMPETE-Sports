@@ -18,7 +18,11 @@ export interface EventFormRow {
   sport_slug: string;
   starts_on: Date | string;
   ends_on: Date | string | null;
+  start_time: string | null;
   registration_deadline: Date | string | null;
+  league_days: number[] | null;
+  league_weeks: number | null;
+  playoffs: boolean | null;
   entry_fee_cents: number | null;
   fee_basis: string;
   payout_text: string | null;
@@ -53,10 +57,39 @@ export const isUuid = (s: string) => /^[0-9a-f-]{36}$/i.test(s);
 export const iso = (v: Date | string | null): string =>
   v === null ? '' : v instanceof Date ? v.toISOString().slice(0, 10) : String(v).slice(0, 10);
 
+/** A time column as the `type="time"` input wants it ("19:00"), or ''. */
+export const hhmm = (v: string | null): string => (v ? String(v).slice(0, 5) : '');
+
+export interface LeagueDateRow {
+  plays_on: Date | string;
+  skipped: boolean;
+  note: string | null;
+}
+
+/**
+ * The nights a league plays, skipped ones included.
+ *
+ * A skipped night is kept rather than deleted: "no play 27 Nov" answers
+ * the question that a gap in the list only raises. See 015.
+ */
+export async function loadLeagueDates(eventId: string) {
+  const rows = await sql<LeagueDateRow[]>`
+    select plays_on, skipped, note
+      from league_dates
+     where event_id = ${eventId}
+     order by plays_on`;
+  return rows.map((r) => ({
+    plays_on: iso(r.plays_on),
+    skipped: r.skipped,
+    note: r.note,
+  }));
+}
+
 export async function loadEvent(id: string): Promise<EventFormRow | null> {
   const [row] = await sql<EventFormRow[]>`
     select
       e.id, e.slug, e.name, e.event_type, sp.slug as sport_slug, e.starts_on, e.ends_on,
+      e.start_time, e.league_days, e.league_weeks, e.playoffs,
       e.registration_deadline, e.entry_fee_cents, e.fee_basis, e.payout_text,
       e.event_page_url, e.flyer_url, e.notes, e.status,
       v.name as venue_name, v.address_line, v.city, v.state, v.postal_code, v.latitude,

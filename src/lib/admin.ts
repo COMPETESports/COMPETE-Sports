@@ -21,6 +21,21 @@ const EventInput = z.object({
   sport: z.string().trim().min(1),
   starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a start date.'),
   ends_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
+  // Weekly tip-off time. A league plays at the same time every week.
+  start_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).optional(),
+  // League shape - see 015_league_schedule.sql. 0 = Sunday.
+  league_days: z.array(z.number().int().min(0).max(6)).max(7).default([]),
+  league_weeks: z.string().trim().optional(),
+  playoffs: z.boolean().default(false),
+  league_dates: z
+    .array(
+      z.object({
+        plays_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        skipped: z.boolean().default(false),
+        note: z.string().trim().max(200).nullish(),
+      }),
+    )
+    .default([]),
   registration_deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
   entry_fee: z.string().trim().optional(),
   fee_basis: z.enum(['per_player', 'per_team']).default('per_player'),
@@ -54,7 +69,32 @@ const EventInput = z.object({
     )
     .min(1, 'Add at least one bracket.'),
   status: z.enum(['draft', 'approved', 'cancelled', 'archived']).default('draft'),
-});
+})
+  /**
+   * A league needs a night and at least one night that plays. Checked
+   * here rather than per-field because both only matter when the event
+   * type is 'league' - a tournament must not be asked for either.
+   */
+  .superRefine((val, ctx) => {
+    if (val.event_type !== 'league') return;
+
+    if (val.league_days.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['league_days'],
+        message: 'Pick which night of the week the league plays.',
+      });
+    }
+
+    if (!val.league_dates.some((d) => !d.skipped)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['league_dates'],
+        message:
+          'This season has no nights that play. Set the number of weeks, and restore any night you skipped.',
+      });
+    }
+  });
 
 export type ActionState = {
   ok: boolean;
@@ -101,6 +141,11 @@ export async function saveEvent(
     sport: formData.get('sport') ?? 'volleyball',
     starts_on: formData.get('starts_on'),
     ends_on: formData.get('ends_on'),
+    start_time: formData.get('start_time'),
+    league_days: readJsonArray(formData.get('league_days')),
+    league_weeks: formData.get('league_weeks'),
+    playoffs: formData.get('playoffs') === 'on',
+    league_dates: readJsonArray(formData.get('league_dates')),
     registration_deadline: formData.get('registration_deadline'),
     entry_fee: formData.get('entry_fee'),
     fee_basis: formData.get('fee_basis') ?? 'per_player',
@@ -205,13 +250,43 @@ export async function saveEvent(
   const feeCents = parseFee(input.entry_fee);
   let eventId: string;
 
+  /**
+   * starts_on and ends_on stay the season's real first and last PLAYING
+   * night, derived here rather than trusted from the form.
+   *
+   * That is what keeps every existing query working without teaching it
+   * what a league is: the live/past filter, the date sort and the search
+   * all read starts_on. Skip the first night for a holiday and the season
+   * genuinely starts a week later, so the column has to agree.
+   */
+  const isLeague = input.event_type === 'league';
+  const playingNights = input.league_dates
+    .filter((d) => !d.skipped)
+    .map((d) => d.plays_on)
+    .sort();
+
+  const startsOn = isLeague && playingNights.length ? playingNights[0] : input.starts_on;
+  const lastNight = playingNights[playingNights.length - 1];
+  const endsOn = isLeague
+    ? lastNight && lastNight !== startsOn
+      ? lastNight
+      : null
+    : input.ends_on || null;
+
+  const leagueWeeks = isLeague && input.league_weeks ? Number(input.league_weeks) : null;
+  const leagueDays = isLeague && input.league_days.length ? input.league_days : null;
+
   if (input.id) {
     const [row] = await sql<{ id: string }[]>`
       update events set
         name = ${input.name}, event_type = ${input.event_type},
         sport_id = ${sport.id}, venue_id = ${venueId},
-        organizer_id = ${organizerId}, starts_on = ${input.starts_on},
-        ends_on = ${input.ends_on || null},
+        organizer_id = ${organizerId}, starts_on = ${startsOn},
+        ends_on = ${endsOn},
+        start_time = ${input.start_time || null},
+        league_days = ${leagueDays},
+        league_weeks = ${leagueWeeks},
+        playoffs = ${isLeague ? input.playoffs : false},
         registration_deadline = ${input.registration_deadline || null},
         entry_fee_cents = ${feeCents}, fee_basis = ${input.fee_basis},
         payout_text = ${input.payout_text || null},
@@ -226,18 +301,21 @@ export async function saveEvent(
     if (!row) return { ok: false, message: 'That event no longer exists.' };
     eventId = row.id;
   } else {
-    let slug = slugify(`${input.name}-${input.city}-${input.starts_on}`);
+    let slug = slugify(`${input.name}-${input.city}-${startsOn}`);
     const [clash] = await sql<{ id: string }[]>`select id from events where slug = ${slug}`;
     if (clash) slug = `${slug}-${Date.now().toString(36).slice(-4)}`;
 
     const [row] = await sql<{ id: string }[]>`
       insert into events (
         slug, name, event_type, sport_id, venue_id, organizer_id, starts_on, ends_on,
+        start_time, league_days, league_weeks, playoffs,
         registration_deadline, entry_fee_cents, fee_basis, payout_text,
         event_page_url, flyer_url, notes, status, source, created_by, published_at
       ) values (
         ${slug}, ${input.name}, ${input.event_type}, ${sport.id}, ${venueId}, ${organizerId},
-        ${input.starts_on}, ${input.ends_on || null},
+        ${startsOn}, ${endsOn},
+        ${input.start_time || null}, ${leagueDays}, ${leagueWeeks},
+        ${isLeague ? input.playoffs : false},
         ${input.registration_deadline || null}, ${feeCents}, ${input.fee_basis},
         ${input.payout_text || null}, ${input.event_page_url || null},
         ${input.flyer_url || null}, ${input.notes || null}, ${input.status},
@@ -260,6 +338,7 @@ export async function saveEvent(
   await replaceLinks(eventId, sport.id, formatSlugs, 'event_formats', 'formats', 'format_id');
   await replaceLinks(eventId, sport.id, divisionSlugs, 'event_divisions', 'divisions', 'division_id');
   await replaceBrackets(eventId, sport.id, input.brackets);
+  await replaceLeagueDates(eventId, isLeague ? input.league_dates : []);
 
   revalidatePath('/');
   revalidatePath('/admin/events');
@@ -288,7 +367,12 @@ export async function saveEvent(
  * Anything unparseable becomes an empty list and fails zod's min(1) with a
  * message, rather than throwing.
  */
-function readBrackets(raw: FormDataEntryValue | null): unknown[] {
+/**
+ * A hidden field carrying JSON. Malformed input becomes an empty array
+ * rather than an exception, and Zod then reports it as a field error -
+ * the form has to come back with a message, not a stack trace.
+ */
+function readJsonArray(raw: FormDataEntryValue | null): unknown[] {
   if (typeof raw !== 'string' || !raw.trim()) return [];
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -296,6 +380,44 @@ function readBrackets(raw: FormDataEntryValue | null): unknown[] {
   } catch {
     return [];
   }
+}
+
+const readBrackets = readJsonArray;
+
+/**
+ * The nights a league plays.
+ *
+ * Replaced wholesale rather than diffed, same as brackets: the form
+ * always sends the complete schedule, so a night the director removed is
+ * one that is absent from the list, not one marked for deletion.
+ *
+ * Called with an empty list for anything that is not a league, which is
+ * what clears the schedule if an event's type is changed from league to
+ * tournament - otherwise a stale set of Tuesdays would outlive the
+ * season it belonged to.
+ */
+async function replaceLeagueDates(
+  eventId: string,
+  dates: { plays_on: string; skipped: boolean; note?: string | null }[],
+): Promise<void> {
+  await sql`delete from league_dates where event_id = ${eventId}`;
+  if (!dates.length) return;
+
+  await sql`
+    insert into league_dates ${sql(
+      dates.map((d) => ({
+        event_id: eventId,
+        plays_on: d.plays_on,
+        skipped: d.skipped,
+        note: d.note ?? null,
+      })),
+      'event_id',
+      'plays_on',
+      'skipped',
+      'note',
+    )}
+    on conflict (event_id, plays_on) do update
+      set skipped = excluded.skipped, note = excluded.note`;
 }
 
 /**
