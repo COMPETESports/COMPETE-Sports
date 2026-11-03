@@ -112,6 +112,7 @@ export default async function EditEventPage({
           starts_on: iso(row.starts_on),
           ends_on: iso(row.ends_on),
           start_time: hhmm(row.start_time),
+          check_in_time: hhmm(row.check_in_time),
           registration_deadline: iso(row.registration_deadline),
           league_days: row.league_days ?? [],
           league_weeks: row.league_weeks === null ? '' : String(row.league_weeks),

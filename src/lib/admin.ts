@@ -23,6 +23,8 @@ const EventInput = z.object({
   ends_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
   // Weekly tip-off time. A league plays at the same time every week.
   start_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).nullish(),
+  // Tournament only. "8am check-in, 9am first serve" is how a flyer reads.
+  check_in_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).nullish(),
   // League shape - see 015_league_schedule.sql. 0 = Sunday.
   league_days: z.array(z.number().int().min(0).max(6)).max(7).default([]),
   league_weeks: z.string().trim().nullish(),
@@ -153,6 +155,7 @@ export async function saveEvent(
     // .optional() accepts undefined, not null - so a tournament failed
     // validation on two league fields that were never on screen. Tom, 3 Nov.
     start_time: formData.get('start_time') ?? undefined,
+    check_in_time: formData.get('check_in_time') ?? undefined,
     league_days: readJsonArray(formData.get('league_days')),
     league_weeks: formData.get('league_weeks') ?? undefined,
     playoffs: formData.get('playoffs') === 'on',
@@ -295,6 +298,7 @@ export async function saveEvent(
         organizer_id = ${organizerId}, starts_on = ${startsOn},
         ends_on = ${endsOn},
         start_time = ${input.start_time || null},
+        check_in_time = ${input.check_in_time || null},
         league_days = ${leagueDays},
         league_weeks = ${leagueWeeks},
         playoffs = ${isLeague ? input.playoffs : false},
@@ -319,13 +323,14 @@ export async function saveEvent(
     const [row] = await sql<{ id: string }[]>`
       insert into events (
         slug, name, event_type, sport_id, venue_id, organizer_id, starts_on, ends_on,
-        start_time, league_days, league_weeks, playoffs,
+        start_time, check_in_time, league_days, league_weeks, playoffs,
         registration_deadline, entry_fee_cents, fee_basis, payout_text,
         event_page_url, flyer_url, notes, status, source, created_by, published_at
       ) values (
         ${slug}, ${input.name}, ${input.event_type}, ${sport.id}, ${venueId}, ${organizerId},
         ${startsOn}, ${endsOn},
-        ${input.start_time || null}, ${leagueDays}, ${leagueWeeks},
+        ${input.start_time || null}, ${input.check_in_time || null},
+        ${leagueDays}, ${leagueWeeks},
         ${isLeague ? input.playoffs : false},
         ${input.registration_deadline || null}, ${feeCents}, ${input.fee_basis},
         ${input.payout_text || null}, ${input.event_page_url || null},

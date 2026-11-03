@@ -35,8 +35,14 @@ export interface EventFormValues {
   sport: string;
   starts_on: string;
   ends_on: string;
-  /** Weekly tip-off time. A league needs it; a tournament has per-bracket times. */
+  /**
+   * When play actually starts. Every event type has one: first serve at a
+   * tournament, tip-off each week at a league, the hour the nets go up at
+   * open play.
+   */
   start_time: string;
+  /** Tournament only: check-in or players meeting, usually an hour before. */
+  check_in_time: string;
   registration_deadline: string;
   /** League only. 0 = Sunday. See 015_league_schedule.sql. */
   league_days: number[];
@@ -405,24 +411,6 @@ export function EventForm({
                 />
               </Field>
 
-              <Field
-                label="Start time"
-                hint="Same every week · 5-minute steps"
-                error={err('start_time')}
-              >
-                {/* step is in seconds. 300 gives :00 :05 :10 ... :55 rather
-                    than every one of the 1,440 minutes in a day. Tom,
-                    31 Oct. The server still accepts any HH:MM, so an
-                    existing 7:03 start loaded for editing is not mangled. */}
-                <input
-                  type="time"
-                  name="start_time"
-                  step={300}
-                  {...text('start_time')}
-                  className="field"
-                />
-              </Field>
-
               <LeagueSchedule
                 firstNight={v.starts_on}
                 days={v.league_days}
@@ -450,6 +438,56 @@ export function EventForm({
               </Field>
             </>
           )}
+
+          {/* Every event type has a start time; only a tournament has a
+              check-in. Tom, 3 Nov: "8am check-in, 9am first serve" is how
+              a flyer reads, so both belong on the form. step={300} gives
+              5-minute increments rather than all 1,440 minutes in a day;
+              the server still accepts any HH:MM so an existing 7:03 start
+              loaded for editing is not mangled. */}
+          {v.event_type === 'tournament' && (
+            <Field
+              label="Check-in / players meeting"
+              hint="Usually an hour before first serve"
+              error={err('check_in_time')}
+              auto={isAuto('check_in_time')}
+            >
+              <input
+                type="time"
+                name="check_in_time"
+                step={300}
+                {...text('check_in_time')}
+                className="field"
+              />
+            </Field>
+          )}
+
+          <Field
+            label={
+              v.event_type === 'tournament'
+                ? 'First serve'
+                : isLeague
+                  ? 'Start time'
+                  : 'Start time'
+            }
+            hint={
+              v.event_type === 'tournament'
+                ? 'When play actually begins'
+                : isLeague
+                  ? 'Same every week'
+                  : 'When the nets go up'
+            }
+            error={err('start_time')}
+            auto={isAuto('start_time')}
+          >
+            <input
+              type="time"
+              name="start_time"
+              step={300}
+              {...text('start_time')}
+              className="field"
+            />
+          </Field>
 
           <Field
             label={isLeague ? 'Register by' : 'Register by'}

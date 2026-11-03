@@ -19,6 +19,7 @@ export interface EventFormRow {
   starts_on: Date | string;
   ends_on: Date | string | null;
   start_time: string | null;
+  check_in_time: string | null;
   registration_deadline: Date | string | null;
   league_days: number[] | null;
   league_weeks: number | null;
@@ -89,7 +90,7 @@ export async function loadEvent(id: string): Promise<EventFormRow | null> {
   const [row] = await sql<EventFormRow[]>`
     select
       e.id, e.slug, e.name, e.event_type, sp.slug as sport_slug, e.starts_on, e.ends_on,
-      e.start_time, e.league_days, e.league_weeks, e.playoffs,
+      e.start_time, e.check_in_time, e.league_days, e.league_weeks, e.playoffs,
       e.registration_deadline, e.entry_fee_cents, e.fee_basis, e.payout_text,
       e.event_page_url, e.flyer_url, e.notes, e.status,
       v.name as venue_name, v.address_line, v.city, v.state, v.postal_code, v.latitude,

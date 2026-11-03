@@ -58,6 +58,8 @@ const ModelReply = z
     starts_on: Quoted.optional(),
     ends_on: Quoted.optional(),
     registration_deadline: Quoted.optional(),
+    start_time: Quoted.optional(),
+    check_in_time: Quoted.optional(),
     entry_fee: Quoted.optional(),
     fee_basis: Quoted.optional(),
     payout_text: Quoted.optional(),
@@ -90,6 +92,7 @@ export interface FlyerReadResult {
 }
 
 const DATE_FIELDS = ['starts_on', 'ends_on', 'registration_deadline'] as const;
+const TIME_FIELDS = ['start_time', 'check_in_time'] as const;
 
 
 /** Loose comparison for checking a quote really came from the pasted text. */
@@ -132,6 +135,8 @@ Fields, all optional:
   starts_on         YYYY-MM-DD
   ends_on           YYYY-MM-DD, only if it genuinely runs across several days
   registration_deadline  YYYY-MM-DD
+  start_time        24-hour HH:MM. When play begins - "first serve", "games start".
+  check_in_time     24-hour HH:MM. Check-in or players meeting, if stated separately.
   entry_fee         a plain number, e.g. "75" or "42.50". No currency symbol.
   fee_basis         exactly "per_player" or "per_team"
   payout_text       prizes or payout, as written
@@ -309,6 +314,24 @@ export async function readFlyer(input: {
       missing.push(`${LABELS[keyName] ?? keyName} — dropped, the date was not a real date`);
       continue;
     }
+    if ((TIME_FIELDS as readonly string[]).includes(keyName)) {
+      // Accept 9:00, 09:00 or 9:00 AM and normalise to the HH:MM the form wants.
+      const m = /^(\d{1,2}):(\d{2})\s*([ap]\.?m\.?)?$/i.exec(value);
+      if (!m) {
+        missing.push(`${LABELS[keyName] ?? keyName} — dropped, could not be read as a time`);
+        continue;
+      }
+      let hour = Number(m[1]);
+      const mer = m[3]?.toLowerCase().replace(/\./g, '');
+      if (mer === 'pm' && hour < 12) hour += 12;
+      if (mer === 'am' && hour === 12) hour = 0;
+      if (hour > 23) {
+        missing.push(`${LABELS[keyName] ?? keyName} — dropped, not a real time`);
+        continue;
+      }
+      value = `${String(hour).padStart(2, '0')}:${m[2]}`;
+    }
+
     if (keyName === 'fee_basis' && value !== 'per_player' && value !== 'per_team') continue;
 
     if (keyName === 'state') {
