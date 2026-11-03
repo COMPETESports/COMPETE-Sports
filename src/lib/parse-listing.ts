@@ -39,6 +39,8 @@ export interface ParsedListing {
   city?: string;
   state?: string;
   postal_code?: string;
+  /** Added 3 Nov: a flyer names its organizer, and the form has the field. */
+  organizer_name?: string;
   organizer_email?: string;
   surfaces: string[];
   formats: string[];

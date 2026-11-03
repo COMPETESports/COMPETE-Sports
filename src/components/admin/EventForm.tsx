@@ -238,7 +238,7 @@ export function EventForm({
     <div className="mt-6 space-y-6">
       {/* Paste-and-parse is for entering something new; editing an existing
           record starts from what is already saved. */}
-      {!values.id && <PasteBox onParsed={applyParsed} />}
+      {!values.id && <PasteBox onParsed={applyParsed} sport={v.sport} />}
 
       <form action={action} className="space-y-6">
         {values.id && <input type="hidden" name="id" value={values.id} />}
