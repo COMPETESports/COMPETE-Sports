@@ -6,7 +6,7 @@ import { ProspectForm } from '@/components/admin/ProspectForm';
 import { LogTouch } from '@/components/admin/LogTouch';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Partner', robots: { index: false, follow: false } };
+export const metadata = { title: 'Organizer', robots: { index: false, follow: false } };
 
 const KIND_LABEL: Record<string, string> = {
   call: 'Call', email: 'Email', text: 'Text', meeting: 'Meeting', note: 'Note',
@@ -28,7 +28,7 @@ export default async function ProspectPage({
   return (
     <div className="wrap py-8">
       <Link href="/admin/crm" className="t-kicker text-[color:var(--muted)] hover:text-[color:var(--surf-ink)]">
-        ← All partners
+        ← All organizers
       </Link>
 
       <div className="mt-3 flex flex-wrap items-end justify-between gap-4">

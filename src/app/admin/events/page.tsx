@@ -86,7 +86,7 @@ export default async function AdminEventsPage({
             + New event
           </Link>
           <Link href="/admin/crm" className="btn-ghost">
-            Partners
+            Organizers
           </Link>
           <Link href="/admin/compliance" className="btn-ghost">
             Age gate

@@ -93,6 +93,46 @@ export async function loadVenueOptions(): Promise<VenueRefOption[]> {
   return [...rows];
 }
 
+export interface OrganizerRefOption {
+  id: string;
+  name: string;
+  contact_email: string | null;
+  event_count: number;
+  last_event: string | null;
+  /** Where they most recently ran something, to tell two similar names apart. */
+  last_city: string | null;
+  last_state: string | null;
+}
+
+/**
+ * Every organizer, for the submission form's picker.
+ *
+ * The cure for the disease the merge tools treat. saveEvent matches an
+ * organizer by slug, so typing "Angry Dragons" where "Angry Dragon
+ * Volleyball" already exists mints a new record and splits the history
+ * in two. Offering the existing one is how that stops happening - by
+ * Tom, and by an organizer submitting their own event later.
+ *
+ * event_count and the most recent city are both here to tell near
+ * duplicates apart: between two similar names, the one with 36 events in
+ * Jonesboro is obviously the real one.
+ */
+export async function loadOrganizerOptions(): Promise<OrganizerRefOption[]> {
+  const rows = await sql<OrganizerRefOption[]>`
+    select o.id, o.name, o.contact_email,
+           count(e.id)::int       as event_count,
+           max(e.starts_on)::text as last_event,
+           (select v.city  from events e2 join venues v on v.id = e2.venue_id
+             where e2.organizer_id = o.id order by e2.starts_on desc limit 1) as last_city,
+           (select v.state from events e2 join venues v on v.id = e2.venue_id
+             where e2.organizer_id = o.id order by e2.starts_on desc limit 1) as last_state
+      from organizers o
+      left join events e on e.organizer_id = o.id
+     group by o.id, o.name, o.contact_email
+     order by o.name`;
+  return [...rows];
+}
+
 export interface RefRow {
   id: string;
   slug: string;

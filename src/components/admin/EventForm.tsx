@@ -18,6 +18,7 @@ import {
   playingRange,
   type LeagueDate,
 } from './LeagueSchedule';
+import { OrganizerPicker, type OrganizerOption } from './OrganizerPicker';
 import { VenuePicker, type VenueOption } from './VenuePicker';
 import { labelFor } from '@/lib/field-labels';
 import type { ParsedListing } from '@/lib/parse-listing';
@@ -111,6 +112,7 @@ export function EventForm({
     subFormats: SubFormatOption[];
     divisions: RefOption[];
     venues: VenueOption[];
+    organizers: OrganizerOption[];
   };
 }) {
   const [state, action] = useActionState<ActionState | null, FormData>(saveEvent, null);
@@ -369,6 +371,21 @@ export function EventForm({
         </Section>
 
         <Section title="Organizer">
+          {/* Pick, don't type. saveEvent matches an organizer by a slug
+              made from whatever was entered, so "Angry Dragons" where
+              "Angry Dragon Volleyball" exists mints a second record and
+              splits 36 events across two pages. Tom, 3 Nov. */}
+          <OrganizerPicker
+            organizers={options.organizers}
+            current={v.organizer_name}
+            onPick={(o) =>
+              setV((prev) => ({
+                ...prev,
+                organizer_name: o.name,
+                organizer_email: o.contact_email ?? prev.organizer_email,
+              }))
+            }
+          />
           <Field label="Organizer name" error={err('organizer_name')} auto={isAuto('organizer_name')}>
             <input name="organizer_name" {...text('organizer_name')} className="field" />
           </Field>

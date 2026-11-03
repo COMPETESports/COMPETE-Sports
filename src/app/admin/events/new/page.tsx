@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { loadRefOptions, loadVenueOptions } from '@/lib/ref-data';
+import { loadOrganizerOptions, loadRefOptions, loadVenueOptions } from '@/lib/ref-data';
 import { hhmm, isUuid, loadBrackets, loadEvent } from '@/lib/event-form-data';
 import { EventForm, type EventFormValues } from '@/components/admin/EventForm';
 
@@ -115,9 +115,10 @@ export default async function NewEventPage({
     };
   }
 
-  const [options, venues] = await Promise.all([
+  const [options, venues, organizers] = await Promise.all([
     loadRefOptions(values.sport),
     loadVenueOptions(),
+    loadOrganizerOptions(),
   ]);
 
   return (
@@ -150,7 +151,7 @@ export default async function NewEventPage({
         </p>
       )}
 
-      <EventForm options={{ ...options, venues }} values={values} />
+      <EventForm options={{ ...options, venues, organizers }} values={values} />
     </div>
   );
 }

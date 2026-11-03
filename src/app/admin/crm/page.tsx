@@ -6,7 +6,7 @@ import { PAGE_SIZE, STATUSES, STATUS_LABEL, type Filters } from '@/lib/crm-field
 import { NewProspect } from '@/components/admin/NewProspect';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Partners', robots: { index: false, follow: false } };
+export const metadata = { title: 'Organizers', robots: { index: false, follow: false } };
 
 const STATUS_TONE: Record<string, string> = {
   prospect: 'text-[color:var(--faint)]',
@@ -58,7 +58,7 @@ export default async function CrmPage({
     <div className="wrap py-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="t-kicker text-[color:var(--grass)]">Partners</p>
+          <p className="t-kicker text-[color:var(--grass)]">Organizers</p>
           <h1 className="t-display mt-1 text-2xl sm:text-3xl">Who to call</h1>
         </div>
         <NewProspect />
