@@ -22,10 +22,10 @@ const EventInput = z.object({
   starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a start date.'),
   ends_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal('')).optional(),
   // Weekly tip-off time. A league plays at the same time every week.
-  start_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).optional(),
+  start_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).nullish(),
   // League shape - see 015_league_schedule.sql. 0 = Sunday.
   league_days: z.array(z.number().int().min(0).max(6)).max(7).default([]),
-  league_weeks: z.string().trim().optional(),
+  league_weeks: z.string().trim().nullish(),
   playoffs: z.boolean().default(false),
   league_dates: z
     .array(
@@ -148,9 +148,13 @@ export async function saveEvent(
     sport: formData.get('sport') ?? 'volleyball',
     starts_on: formData.get('starts_on'),
     ends_on: formData.get('ends_on'),
-    start_time: formData.get('start_time'),
+    // formData.get() returns NULL for a field the browser never sent, and a
+    // field only rendered for one event type is exactly that. Zod's
+    // .optional() accepts undefined, not null - so a tournament failed
+    // validation on two league fields that were never on screen. Tom, 3 Nov.
+    start_time: formData.get('start_time') ?? undefined,
     league_days: readJsonArray(formData.get('league_days')),
-    league_weeks: formData.get('league_weeks'),
+    league_weeks: formData.get('league_weeks') ?? undefined,
     playoffs: formData.get('playoffs') === 'on',
     league_dates: readJsonArray(formData.get('league_dates')),
     registration_deadline: formData.get('registration_deadline'),
