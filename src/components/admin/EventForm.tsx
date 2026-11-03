@@ -19,6 +19,7 @@ import {
   type LeagueDate,
 } from './LeagueSchedule';
 import { VenuePicker, type VenueOption } from './VenuePicker';
+import { labelFor } from '@/lib/field-labels';
 import type { ParsedListing } from '@/lib/parse-listing';
 
 export interface RefOption {
@@ -244,14 +245,49 @@ export function EventForm({
         {values.id && <input type="hidden" name="id" value={values.id} />}
         <input type="hidden" name="sport" value={v.sport} />
 
-        {state && !state.saved && (
-          <p
-            role="status"
-            className={`panel p-3 text-sm ${state.ok ? 'tone-good' : 'tone-bad'}`}
-          >
-            {state.message}
-          </p>
-        )}
+        {/* "Some fields need fixing" on its own sends you hunting, because
+            the field that failed may not even be on screen - a bracket
+            rule, or a league field on a tournament. Every error is listed
+            here by name, so nothing can hide. Tom, 3 Nov. */}
+        {state && !state.saved && state.fieldErrors &&
+          Object.keys(state.fieldErrors).length > 0 && (
+            <div role="alert" className="panel tone-bad p-4">
+              <p className="t-head text-base">
+                {Object.keys(state.fieldErrors).length === 1
+                  ? '1 field needs fixing'
+                  : `${Object.keys(state.fieldErrors).length} fields need fixing`}
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {Object.entries(state.fieldErrors).map(([key, msg]) => (
+                  <li key={key} className="text-sm leading-relaxed">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = document.querySelector<HTMLElement>(`[name="${key}"]`);
+                        el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        el?.focus();
+                      }}
+                      className="underline underline-offset-2"
+                    >
+                      <strong>{labelFor(key)}</strong>
+                    </button>
+                    {' — '}
+                    {msg}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+        {state && !state.saved &&
+          !(state.fieldErrors && Object.keys(state.fieldErrors).length > 0) && (
+            <p
+              role="status"
+              className={`panel p-3 text-sm ${state.ok ? 'tone-good' : 'tone-bad'}`}
+            >
+              {state.message}
+            </p>
+          )}
 
         {/* A save that worked ends with somewhere to go. A green line on
             its own leaves you wondering whether publishing to a live site

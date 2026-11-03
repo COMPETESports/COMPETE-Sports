@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { parseListing, type ParsedListing } from '@/lib/parse-listing';
 import { readFlyer } from '@/lib/read-flyer';
+import { FIELD_LABELS as LABELS } from '@/lib/field-labels';
 
 /**
  * Paste-and-parse, two ways.
@@ -55,27 +56,6 @@ interface Outcome {
   error?: string;
 }
 
-const LABELS: Record<string, string> = {
-  name: 'Event name',
-  starts_on: 'Start date',
-  ends_on: 'End date',
-  registration_deadline: 'Registration deadline',
-  entry_fee: 'Entry fee',
-  fee_basis: 'Fee basis',
-  payout_text: 'Payout',
-  event_page_url: 'Registration link',
-  venue_name: 'Venue',
-  address_line: 'Street address',
-  city: 'City',
-  state: 'State',
-  postal_code: 'ZIP code',
-  organizer_name: 'Organizer',
-  organizer_email: 'Organizer email',
-  surfaces: 'Surface',
-  formats: 'Format',
-  divisions: 'Divisions',
-  notes: 'Notes',
-};
 
 export function PasteBox({
   onParsed,

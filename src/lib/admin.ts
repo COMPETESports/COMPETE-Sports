@@ -47,7 +47,14 @@ const EventInput = z.object({
   address_line: z.string().trim().max(300).optional(),
   city: z.string().trim().min(2, 'City is required.').max(120),
   state: z.string().trim().length(2, 'Use the two-letter state code.'),
-  postal_code: z.string().trim().regex(/^\d{5}$/).or(z.literal('')).optional(),
+  // ZIP+4 is what a flyer prints; keep the five that radius search uses.
+  postal_code: z
+    .string()
+    .trim()
+    .regex(/^\d{5}(-\d{4})?$/, 'Use a 5-digit ZIP code.')
+    .or(z.literal(''))
+    .optional()
+    .transform((v) => (v ? v.slice(0, 5) : v)),
   organizer_name: z.string().trim().max(200).optional(),
   organizer_email: z.string().trim().email().or(z.literal('')).optional(),
   // Brackets replace the old flat surface/format/division lists. A group is one

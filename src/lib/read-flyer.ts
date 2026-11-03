@@ -3,7 +3,8 @@
 import { z } from 'zod';
 import { sql } from './db';
 import { isSignedIn } from './auth';
-import type { ParsedListing } from './parse-listing';
+import { FIELD_LABELS as LABELS } from './field-labels';
+import { STATES, type ParsedListing } from './parse-listing';
 
 /**
  * Read a flyer with a vision model and pre-fill the submission form.
@@ -90,27 +91,6 @@ export interface FlyerReadResult {
 
 const DATE_FIELDS = ['starts_on', 'ends_on', 'registration_deadline'] as const;
 
-const LABELS: Record<string, string> = {
-  name: 'Event name',
-  starts_on: 'Start date',
-  ends_on: 'End date',
-  registration_deadline: 'Registration deadline',
-  entry_fee: 'Entry fee',
-  fee_basis: 'Fee basis',
-  payout_text: 'Payout',
-  event_page_url: 'Registration link',
-  venue_name: 'Venue',
-  address_line: 'Street address',
-  city: 'City',
-  state: 'State',
-  postal_code: 'ZIP code',
-  organizer_name: 'Organizer',
-  organizer_email: 'Organizer email',
-  surfaces: 'Surface',
-  formats: 'Format',
-  divisions: 'Divisions',
-  notes: 'Notes',
-};
 
 /** Loose comparison for checking a quote really came from the pasted text. */
 const flatten = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -330,7 +310,43 @@ export async function readFlyer(input: {
       continue;
     }
     if (keyName === 'fee_basis' && value !== 'per_player' && value !== 'per_team') continue;
-    if (keyName === 'state') value = value.toUpperCase().slice(0, 2);
+
+    if (keyName === 'state') {
+      // Truncating was wrong: "Texas" became "TE", which passes a length
+      // check and is not a state. Map the name, or drop the field.
+      const mapped =
+        value.length === 2 ? value.toUpperCase() : STATES[value.toLowerCase()];
+      if (!mapped) {
+        missing.push(`${LABELS.state} — dropped, "${value}" is not a state we recognise`);
+        continue;
+      }
+      value = mapped;
+    }
+
+    if (keyName === 'postal_code') {
+      // Flyers print ZIP+4. The form wants the five.
+      const five = value.match(/\d{5}/)?.[0];
+      if (!five) continue;
+      value = five;
+    }
+
+    if (keyName === 'event_page_url') {
+      // A flyer prints "sandslam.com", not "https://sandslam.com", and the
+      // form requires a full URL - this was a silent save failure.
+      if (!/^https?:\/\//i.test(value)) value = `https://${value}`;
+      try {
+        new URL(value);
+      } catch {
+        missing.push(`${LABELS.event_page_url} — dropped, could not be read as a web address`);
+        continue;
+      }
+    }
+
+    if (keyName === 'organizer_email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) {
+      missing.push(`${LABELS.organizer_email} — dropped, not a usable email address`);
+      continue;
+    }
+
     if (keyName === 'entry_fee') value = value.replace(/[^0-9.]/g, '');
 
     (fields as unknown as Record<string, unknown>)[keyName] = value;
