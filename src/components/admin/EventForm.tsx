@@ -41,8 +41,15 @@ export interface EventFormValues {
    * open play.
    */
   start_time: string;
-  /** Tournament only: check-in or players meeting, usually an hour before. */
+  /** Tournament only: when the doors open and players sign in. */
   check_in_time: string;
+  /**
+   * Tournament only: the captain's meeting. Separate from check-in by
+   * decision - Tom, 3 Nov - because organizers run them as two things.
+   * Never required here; it matters most on the organizer-facing form,
+   * where a captain needs to know whether to be there early.
+   */
+  meeting_time: string;
   registration_deadline: string;
   /** League only. 0 = Sunday. See 015_league_schedule.sql. */
   league_days: number[];
@@ -446,20 +453,36 @@ export function EventForm({
               the server still accepts any HH:MM so an existing 7:03 start
               loaded for editing is not mangled. */}
           {v.event_type === 'tournament' && (
-            <Field
-              label="Check-in / players meeting"
-              hint="Usually an hour before first serve"
-              error={err('check_in_time')}
-              auto={isAuto('check_in_time')}
-            >
-              <input
-                type="time"
-                name="check_in_time"
-                step={300}
-                {...text('check_in_time')}
-                className="field"
-              />
-            </Field>
+            <>
+              <Field
+                label="Check-in"
+                hint="When the doors open"
+                error={err('check_in_time')}
+                auto={isAuto('check_in_time')}
+              >
+                <input
+                  type="time"
+                  name="check_in_time"
+                  step={300}
+                  {...text('check_in_time')}
+                  className="field"
+                />
+              </Field>
+              <Field
+                label="Captain's meeting"
+                hint="Optional — leave blank if there isn't one"
+                error={err('meeting_time')}
+                auto={isAuto('meeting_time')}
+              >
+                <input
+                  type="time"
+                  name="meeting_time"
+                  step={300}
+                  {...text('meeting_time')}
+                  className="field"
+                />
+              </Field>
+            </>
           )}
 
           <Field

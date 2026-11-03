@@ -16,6 +16,7 @@ const EMPTY: EventFormValues = {
   ends_on: '',
   start_time: '',
   check_in_time: '',
+  meeting_time: '',
   registration_deadline: '',
   league_days: [],
   league_weeks: '',
@@ -92,6 +93,7 @@ export default async function NewEventPage({
       // new first night regenerates the whole schedule from these.
       start_time: hhmm(source.start_time),
       check_in_time: hhmm(source.check_in_time),
+      meeting_time: hhmm(source.meeting_time),
       league_days: source.league_days ?? [],
       league_weeks: source.league_weeks === null ? '' : String(source.league_weeks),
       playoffs: source.playoffs ?? false,

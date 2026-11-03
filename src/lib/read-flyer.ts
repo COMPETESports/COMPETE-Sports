@@ -60,6 +60,7 @@ const ModelReply = z
     registration_deadline: Quoted.optional(),
     start_time: Quoted.optional(),
     check_in_time: Quoted.optional(),
+    meeting_time: Quoted.optional(),
     entry_fee: Quoted.optional(),
     fee_basis: Quoted.optional(),
     payout_text: Quoted.optional(),
@@ -92,7 +93,7 @@ export interface FlyerReadResult {
 }
 
 const DATE_FIELDS = ['starts_on', 'ends_on', 'registration_deadline'] as const;
-const TIME_FIELDS = ['start_time', 'check_in_time'] as const;
+const TIME_FIELDS = ['start_time', 'check_in_time', 'meeting_time'] as const;
 
 
 /** Loose comparison for checking a quote really came from the pasted text. */
@@ -136,7 +137,9 @@ Fields, all optional:
   ends_on           YYYY-MM-DD, only if it genuinely runs across several days
   registration_deadline  YYYY-MM-DD
   start_time        24-hour HH:MM. When play begins - "first serve", "games start".
-  check_in_time     24-hour HH:MM. Check-in or players meeting, if stated separately.
+  check_in_time     24-hour HH:MM. When check-in or doors open.
+  meeting_time      24-hour HH:MM. The captain's or players meeting, only if
+                    the source names it separately from check-in.
   entry_fee         a plain number, e.g. "75" or "42.50". No currency symbol.
   fee_basis         exactly "per_player" or "per_team"
   payout_text       prizes or payout, as written

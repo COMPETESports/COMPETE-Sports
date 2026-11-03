@@ -32,6 +32,7 @@ export interface ParsedListing {
   /** Added 3 Nov: a flyer states "8am check-in, 9am first serve". */
   start_time?: string;
   check_in_time?: string;
+  meeting_time?: string;
   entry_fee?: string;
   fee_basis?: 'per_player' | 'per_team';
   payout_text?: string;
