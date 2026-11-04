@@ -48,6 +48,10 @@ const EventInput = z.object({
   flyer_url: z.string().trim().url().or(z.literal('')).optional(),
   notes: z.string().trim().max(4000).optional(),
   venue_name: z.string().trim().min(2, 'Give the venue a name.').max(200),
+  // Set only by a Google lookup. Blank means fall back to geocoding the
+  // ZIP, which is how all 165 existing venues were placed.
+  venue_latitude: z.coerce.number().min(-90).max(90).nullish(),
+  venue_longitude: z.coerce.number().min(-180).max(180).nullish(),
   address_line: z.string().trim().max(300).optional(),
   city: z.string().trim().min(2, 'City is required.').max(120),
   state: z.string().trim().length(2, 'Use the two-letter state code.'),
@@ -171,6 +175,8 @@ export async function saveEvent(
     flyer_url: formData.get('flyer_url'),
     notes: formData.get('notes'),
     venue_name: formData.get('venue_name'),
+    venue_latitude: formData.get('venue_latitude') || undefined,
+    venue_longitude: formData.get('venue_longitude') || undefined,
     address_line: formData.get('address_line'),
     city: formData.get('city'),
     state: String(formData.get('state') ?? '').toUpperCase(),
@@ -230,9 +236,29 @@ export async function saveEvent(
     venueId = row.id;
   }
 
+  /**
+   * An exact pin from Google beats anything we can derive.
+   *
+   * Written whenever the lookup produced one, including over an existing
+   * venue's approximate pin - upgrading 'postal' to 'exact' is the whole
+   * point, and every venue in the database started out approximate. The
+   * reverse never happens: the geocode fallback below only runs when
+   * there are no coordinates at all.
+   */
+  const hasExact =
+    typeof input.venue_latitude === 'number' && typeof input.venue_longitude === 'number';
+
+  if (hasExact) {
+    await sql`
+      update venues set
+        latitude = ${input.venue_latitude!}, longitude = ${input.venue_longitude!},
+        geo_precision = 'exact', geocoded_at = now()
+      where id = ${venueId}`;
+  }
+
   // Geocode whenever coordinates are missing, so a new venue is findable by
   // radius search the moment it is published.
-  const needsGeocode = !existingVenue || existingVenue.latitude === null;
+  const needsGeocode = !hasExact && (!existingVenue || existingVenue.latitude === null);
   if (needsGeocode) {
     const query =
       input.postal_code ||

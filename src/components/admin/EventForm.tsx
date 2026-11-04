@@ -19,6 +19,7 @@ import {
   type LeagueDate,
 } from './LeagueSchedule';
 import { OrganizerPicker, type OrganizerOption } from './OrganizerPicker';
+import { PlacesAutocomplete } from './PlacesAutocomplete';
 import { VenuePicker, type VenueOption } from './VenuePicker';
 import { labelFor } from '@/lib/field-labels';
 import type { ParsedListing } from '@/lib/parse-listing';
@@ -64,6 +65,9 @@ export interface EventFormValues {
   flyer_url: string;
   notes: string;
   venue_name: string;
+  /** Set only by a Google lookup. Blank means "geocode it the old way". */
+  venue_latitude: string;
+  venue_longitude: string;
   address_line: string;
   city: string;
   state: string;
@@ -596,9 +600,48 @@ export function EventForm({
                 city: venue.city,
                 state: venue.state,
                 postal_code: venue.postal_code ?? '',
+                // An existing venue already has whatever pin it has; do not
+                // let a stale Google lookup overwrite it.
+                venue_latitude: '',
+                venue_longitude: '',
               }))
             }
           />
+          {/* Looking it up on Google is what finally gets an exact pin.
+              Every venue in the database is currently placed from a ZIP
+              code or a city name, so radius search answers "5 miles from
+              me" from the middle of a postal district. Tom, 3 Nov. */}
+          <PlacesAutocomplete
+            onPick={(place) =>
+              setV((prev) => ({
+                ...prev,
+                venue_name: place.name || prev.venue_name,
+                address_line: place.address_line || prev.address_line,
+                city: place.city || prev.city,
+                state: place.state || prev.state,
+                postal_code: place.postal_code || prev.postal_code,
+                venue_latitude: place.latitude === null ? '' : String(place.latitude),
+                venue_longitude: place.longitude === null ? '' : String(place.longitude),
+              }))
+            }
+          />
+
+          <input type="hidden" name="venue_latitude" value={v.venue_latitude} />
+          <input type="hidden" name="venue_longitude" value={v.venue_longitude} />
+
+          {v.venue_latitude && (
+            <p
+              className="sm:col-span-2 rounded-xl border px-3 py-2 text-xs"
+              style={{
+                borderColor: 'color-mix(in srgb, var(--grass) 45%, transparent)',
+                color: 'var(--grass)',
+              }}
+            >
+              Exact coordinates captured from Google — this venue will sit on the
+              building, not in the middle of its ZIP code.
+            </p>
+          )}
+
           <Field label="Venue name" error={err('venue_name')} auto={isAuto('venue_name')} className="sm:col-span-2">
             <input name="venue_name" {...text('venue_name')} required className="field" />
           </Field>

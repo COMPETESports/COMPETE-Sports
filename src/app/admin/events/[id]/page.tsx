@@ -127,6 +127,8 @@ export default async function EditEventPage({
           flyer_url: row.flyer_url ?? '',
           notes: row.notes ?? '',
           venue_name: row.venue_name ?? '',
+          venue_latitude: '',
+          venue_longitude: '',
           address_line: row.address_line ?? '',
           city: row.city ?? '',
           state: row.state ?? '',

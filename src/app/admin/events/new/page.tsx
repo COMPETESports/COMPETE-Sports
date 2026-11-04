@@ -29,6 +29,8 @@ const EMPTY: EventFormValues = {
   flyer_url: '',
   notes: '',
   venue_name: '',
+  venue_latitude: '',
+  venue_longitude: '',
   address_line: '',
   city: '',
   state: '',
