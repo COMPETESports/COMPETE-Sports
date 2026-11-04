@@ -27,6 +27,9 @@ const EventInput = z.object({
   check_in_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).nullish(),
   // The captain's meeting, kept separate from check-in. Never required.
   meeting_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).nullish(),
+  // Open play is advertised as "6 to 9"; a tournament ends when it ends.
+  end_time: z.string().regex(/^\d{2}:\d{2}$/).or(z.literal('')).nullish(),
+  is_ongoing: z.boolean().default(false),
   // League shape - see 015_league_schedule.sql. 0 = Sunday.
   league_days: z.array(z.number().int().min(0).max(6)).max(7).default([]),
   league_weeks: z.string().trim().nullish(),
@@ -93,6 +96,25 @@ const EventInput = z.object({
    * type is 'league' - a tournament must not be asked for either.
    */
   .superRefine((val, ctx) => {
+    if (val.event_type === 'open_play') {
+      if (val.league_days.length === 0) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['league_days'],
+          message: 'Pick which nights open play runs.',
+        });
+      }
+      if (!val.is_ongoing && !val.ends_on) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['ends_on'],
+          message:
+            'Give a last date, or tick “runs until further notice” — otherwise this disappears from the site tomorrow.',
+        });
+      }
+      return;
+    }
+
     if (val.event_type !== 'league') return;
 
     if (val.league_days.length === 0) {
@@ -165,6 +187,8 @@ export async function saveEvent(
     start_time: formData.get('start_time') ?? undefined,
     check_in_time: formData.get('check_in_time') ?? undefined,
     meeting_time: formData.get('meeting_time') ?? undefined,
+    end_time: formData.get('end_time') ?? undefined,
+    is_ongoing: formData.get('is_ongoing') === 'on',
     league_days: readJsonArray(formData.get('league_days')),
     league_weeks: formData.get('league_weeks') ?? undefined,
     playoffs: formData.get('playoffs') === 'on',
@@ -325,6 +349,31 @@ export async function saveEvent(
   const leagueWeeks = isLeague && input.league_weeks ? Number(input.league_weeks) : null;
   const leagueDays = isLeague && input.league_days.length ? input.league_days : null;
 
+  /**
+   * A registration deadline after the event has already started.
+   *
+   * Two of these came in with the 2022-24 import - ADV Outdoor Opener
+   * starts 13 Apr and closed registration on the 14th - so it is a
+   * mistake that genuinely gets made, not a hypothetical. Refused on
+   * save rather than cleaned up afterwards. Tom, 4 Nov.
+   *
+   * Checked against the DERIVED start, so a league whose first night was
+   * skipped for a holiday is measured against the night it really
+   * begins, not the one originally typed.
+   */
+  if (input.registration_deadline && input.registration_deadline > startsOn) {
+    return {
+      ok: false,
+      message: 'Registration closes after the event starts.',
+      fieldErrors: {
+        registration_deadline: `This is after the ${
+          isLeague ? 'first night' : 'start date'
+        } (${startsOn}). Registration cannot close after play begins.`,
+      },
+    };
+  }
+
+
   if (input.id) {
     const [row] = await sql<{ id: string }[]>`
       update events set
@@ -335,6 +384,8 @@ export async function saveEvent(
         start_time = ${input.start_time || null},
         check_in_time = ${input.check_in_time || null},
         meeting_time = ${input.meeting_time || null},
+        end_time = ${input.end_time || null},
+        is_ongoing = ${input.event_type === 'open_play' ? input.is_ongoing : false},
         league_days = ${leagueDays},
         league_weeks = ${leagueWeeks},
         playoffs = ${isLeague ? input.playoffs : false},
@@ -359,13 +410,15 @@ export async function saveEvent(
     const [row] = await sql<{ id: string }[]>`
       insert into events (
         slug, name, event_type, sport_id, venue_id, organizer_id, starts_on, ends_on,
-        start_time, check_in_time, meeting_time, league_days, league_weeks, playoffs,
+        start_time, check_in_time, meeting_time, end_time, is_ongoing,
+        league_days, league_weeks, playoffs,
         registration_deadline, entry_fee_cents, fee_basis, payout_text,
         event_page_url, flyer_url, notes, status, source, created_by, published_at
       ) values (
         ${slug}, ${input.name}, ${input.event_type}, ${sport.id}, ${venueId}, ${organizerId},
         ${startsOn}, ${endsOn},
         ${input.start_time || null}, ${input.check_in_time || null}, ${input.meeting_time || null},
+        ${input.end_time || null}, ${input.event_type === 'open_play' ? input.is_ongoing : false},
         ${leagueDays}, ${leagueWeeks},
         ${isLeague ? input.playoffs : false},
         ${input.registration_deadline || null}, ${feeCents}, ${input.fee_basis},

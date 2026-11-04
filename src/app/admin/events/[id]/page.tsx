@@ -120,6 +120,8 @@ export default async function EditEventPage({
           league_weeks: row.league_weeks === null ? '' : String(row.league_weeks),
           league_dates: leagueDates,
           playoffs: row.playoffs ?? false,
+          end_time: hhmm(row.end_time),
+          is_ongoing: row.is_ongoing ?? false,
           entry_fee: row.entry_fee_cents === null ? '' : (row.entry_fee_cents / 100).toFixed(2),
           fee_basis: row.fee_basis,
           payout_text: row.payout_text ?? '',

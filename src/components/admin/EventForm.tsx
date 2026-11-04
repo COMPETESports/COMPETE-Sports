@@ -24,6 +24,62 @@ import { VenuePicker, type VenueOption } from './VenuePicker';
 import { labelFor } from '@/lib/field-labels';
 import type { ParsedListing } from '@/lib/parse-listing';
 
+const WEEK = [
+  { n: 0, short: 'Sun' }, { n: 1, short: 'Mon' }, { n: 2, short: 'Tue' },
+  { n: 3, short: 'Wed' }, { n: 4, short: 'Thu' }, { n: 5, short: 'Fri' },
+  { n: 6, short: 'Sat' },
+];
+
+/** Which nights open play runs. Same shape as the league night picker,
+ *  without a season to generate - open play repeats, it does not have a
+ *  fixed run of dates with a champion at the end. */
+function OpenPlayNights({
+  days,
+  onChange,
+  error,
+}: {
+  days: number[];
+  onChange: (d: number[]) => void;
+  error?: string | null;
+}) {
+  return (
+    <fieldset className="sm:col-span-2">
+      <legend className="t-head mb-2 block text-sm text-[color:var(--muted)]">
+        Which nights does it run?
+      </legend>
+      <div className="flex flex-wrap gap-2">
+        {WEEK.map((d) => {
+          const on = days.includes(d.n);
+          return (
+            <button
+              key={d.n}
+              type="button"
+              onClick={() =>
+                onChange(on ? days.filter((x) => x !== d.n) : [...days, d.n].sort())
+              }
+              aria-pressed={on}
+              className="t-head rounded-xl border px-4 py-2 text-sm transition-colors"
+              style={
+                on
+                  ? { borderColor: 'var(--grass)', color: 'var(--grass)' }
+                  : { borderColor: 'var(--line)', color: 'var(--muted)' }
+              }
+            >
+              {d.short}
+            </button>
+          );
+        })}
+      </div>
+      <input type="hidden" name="league_days" value={JSON.stringify(days)} />
+      {error && (
+        <p className="t-mono mt-2 text-[10px] uppercase tracking-wider text-[color:var(--coral-ink)]">
+          {error}
+        </p>
+      )}
+    </fieldset>
+  );
+}
+
 export interface RefOption {
   slug: string;
   name: string;
@@ -58,6 +114,9 @@ export interface EventFormValues {
   league_weeks: string;
   league_dates: LeagueDate[];
   playoffs: boolean;
+  /** Open play only: when the session ends, and whether it just keeps going. */
+  end_time: string;
+  is_ongoing: boolean;
   entry_fee: string;
   fee_basis: string;
   payout_text: string;
@@ -93,6 +152,7 @@ type TextKey = Exclude<
   | 'league_days'
   | 'league_dates'
   | 'playoffs'
+  | 'is_ongoing'
 >;
 
 /**
@@ -224,6 +284,7 @@ export function EventForm({
   const isAuto = (field: string) => autoFilled.has(field);
 
   const isLeague = v.event_type === 'league';
+  const isOpenPlay = v.event_type === 'open_play';
 
   /**
    * Moving the first night has to move the whole schedule with it.
@@ -428,7 +489,66 @@ export function EventForm({
               start and an end date produced a season that looked like a
               very long tournament and told a player nothing about which
               night to turn up on. Tom, 31 Oct. */}
-          {isLeague ? (
+          {isOpenPlay ? (
+            <>
+              {/* Drop in & ball. Not a tournament with one date, not a
+                  league with a fixed season and a champion. It runs on
+                  certain nights, between certain hours, until further
+                  notice. Tom, 4 Nov. */}
+              <Field label="First session" error={err('starts_on')} auto={isAuto('starts_on')}>
+                <input type="date" name="starts_on" {...text('starts_on')} required className="field" />
+              </Field>
+
+              <Field
+                label="Last session"
+                hint="Leave blank if it runs on"
+                error={err('ends_on')}
+                auto={isAuto('ends_on')}
+              >
+                <input
+                  type="date"
+                  name="ends_on"
+                  {...text('ends_on')}
+                  disabled={v.is_ongoing}
+                  className="field disabled:opacity-40"
+                />
+              </Field>
+
+              <div className="sm:col-span-2">
+                <button
+                  type="button"
+                  onClick={() => set('is_ongoing', !v.is_ongoing)}
+                  aria-pressed={v.is_ongoing}
+                  className="t-head rounded-xl border px-4 py-2.5 text-sm transition-colors"
+                  style={
+                    v.is_ongoing
+                      ? { borderColor: 'var(--grass)', color: 'var(--grass)' }
+                      : { borderColor: 'var(--line)', color: 'var(--muted)' }
+                  }
+                >
+                  {v.is_ongoing ? 'Runs until further notice' : 'Has a last session'}
+                </button>
+                <input type="hidden" name="is_ongoing" value={v.is_ongoing ? 'on' : ''} />
+                <p className="mt-1.5 text-xs text-[color:var(--muted)]">
+                  An ongoing session has no end date on purpose — without this
+                  it would drop off the site the day after it started.
+                </p>
+              </div>
+
+              <OpenPlayNights
+                days={v.league_days}
+                onChange={(d) => set('league_days', d)}
+                error={err('league_days')}
+              />
+
+              <Field label="Starts at" error={err('start_time')}>
+                <input type="time" name="start_time" step={300} {...text('start_time')} className="field" />
+              </Field>
+              <Field label="Ends at" error={err('end_time')}>
+                <input type="time" name="end_time" step={300} {...text('end_time')} className="field" />
+              </Field>
+            </>
+          ) : isLeague ? (
             <>
               <Field label="First night" error={err('starts_on')} auto={isAuto('starts_on')}>
                 <input
@@ -508,21 +628,10 @@ export function EventForm({
             </>
           )}
 
+          {!isOpenPlay && (
           <Field
-            label={
-              v.event_type === 'tournament'
-                ? 'First serve'
-                : isLeague
-                  ? 'Start time'
-                  : 'Start time'
-            }
-            hint={
-              v.event_type === 'tournament'
-                ? 'When play actually begins'
-                : isLeague
-                  ? 'Same every week'
-                  : 'When the nets go up'
-            }
+            label={v.event_type === 'tournament' ? 'First serve' : 'Start time'}
+            hint={v.event_type === 'tournament' ? 'When play actually begins' : 'Same every week'}
             error={err('start_time')}
             auto={isAuto('start_time')}
           >
@@ -534,9 +643,10 @@ export function EventForm({
               className="field"
             />
           </Field>
+          )}
 
           <Field
-            label={isLeague ? 'Register by' : 'Register by'}
+            label={isOpenPlay ? 'Register by (if required)' : 'Register by'}
             error={err('registration_deadline')}
             auto={isAuto('registration_deadline')}
           >

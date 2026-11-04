@@ -22,6 +22,8 @@ const EMPTY: EventFormValues = {
   league_weeks: '',
   league_dates: [],
   playoffs: false,
+  end_time: '',
+  is_ongoing: false,
   entry_fee: '',
   fee_basis: 'per_player',
   payout_text: '',

@@ -17,6 +17,8 @@ const SECTIONS = [
   { href: '/admin/venues', label: 'Venues', note: 'Where they happen' },
   { href: '/admin/crm', label: 'Outreach', note: 'Pipeline and calls' },
   { href: '/admin/compliance', label: 'Compliance', note: 'Age and consent' },
+  // Temporary. Delete this line and the page once the sections are empty.
+  { href: '/admin/cleanup', label: 'Cleanup', note: 'Events with gaps' },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
