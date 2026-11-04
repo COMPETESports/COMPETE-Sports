@@ -166,6 +166,8 @@ export default async function AdminEventsPage({
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/events/${row.id}`}
+                    target="_blank"
+                    rel="noopener"
                       className="font-medium hover:text-[color:var(--surf-ink)]"
                     >
                       {row.name}

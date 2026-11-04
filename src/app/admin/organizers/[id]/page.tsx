@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { organizerProfile } from '@/lib/organizers-admin';
+import { organizerProfile, organizerVenues } from '@/lib/organizers-admin';
+import { loadVenueOptions } from '@/lib/ref-data';
 import { MergeOrganizer } from '@/components/admin/MergeOrganizer';
+import { OrganizerVenues } from '@/components/admin/OrganizerVenues';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Organizer', robots: { index: false, follow: false } };
@@ -27,6 +29,11 @@ export default async function OrganizerPage({
 
   const found = await organizerProfile(id);
   if (!found) notFound();
+
+  const [linkedVenues, allVenues] = await Promise.all([
+    organizerVenues(id),
+    loadVenueOptions(),
+  ]);
 
   const { organizer: o, venues, total, siblings } = found;
   const placed = venues.filter((v) => v.venue_id);
@@ -54,6 +61,8 @@ export default async function OrganizerPage({
       )}
 
       <MergeOrganizer winnerId={o.id} winnerName={o.name} siblings={siblings} />
+
+      <OrganizerVenues organizerId={o.id} linked={linkedVenues} allVenues={allVenues} />
 
       {vague.length > 0 && (
         <p className="panel tone-warn mt-6 p-4 text-sm">
@@ -104,6 +113,8 @@ export default async function OrganizerPage({
                 <li key={e.id}>
                   <Link
                     href={`/admin/events/${e.id}`}
+                    target="_blank"
+                    rel="noopener"
                     className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 rounded-lg px-2 py-1.5 hover:bg-[color:var(--raised)]"
                   >
                     <span className="min-w-0 text-sm">{e.name}</span>

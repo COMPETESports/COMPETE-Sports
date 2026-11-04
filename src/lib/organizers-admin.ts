@@ -160,6 +160,84 @@ export async function organizerProfile(id: string) {
   };
 }
 
+export interface LinkedVenue {
+  venue_id: string;
+  name: string;
+  address_line: string | null;
+  city: string;
+  state: string;
+  postal_code: string | null;
+  geo_precision: string;
+  is_home: boolean;
+  source: string;
+  events: number;
+}
+
+/**
+ * The venues an organizer uses, as a stated fact rather than an
+ * inference from their events. See 018 for why both exist.
+ */
+export async function organizerVenues(organizerId: string): Promise<LinkedVenue[]> {
+  if (!(await isSignedIn())) return [];
+  const rows = await sql<LinkedVenue[]>`
+    select v.id as venue_id, v.name, v.address_line, v.city, v.state,
+           v.postal_code, v.geo_precision, ov.is_home, ov.source,
+           (select count(*)::int from events e
+             where e.venue_id = v.id and e.organizer_id = ${organizerId}) as events
+      from organizer_venues ov
+      join venues v on v.id = ov.venue_id
+     where ov.organizer_id = ${organizerId}
+     order by ov.is_home desc, v.name`;
+  return [...rows];
+}
+
+/** Record that an organizer uses a venue, because somebody said so. */
+export async function linkVenue(
+  organizerId: string,
+  venueId: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  const [venue] = await sql<{ name: string }[]>`select name from venues where id = ${venueId}`;
+  if (!venue) return { ok: false, message: 'That venue no longer exists.' };
+
+  // A stated link outranks one inferred from events, so saying it out
+  // loud upgrades the record rather than colliding with it.
+  await sql`
+    insert into organizer_venues (organizer_id, venue_id, source)
+    values (${organizerId}, ${venueId}, 'stated')
+    on conflict (organizer_id, venue_id) do update set source = 'stated'`;
+
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  return { ok: true, message: `${venue.name} linked.` };
+}
+
+export async function unlinkVenue(
+  organizerId: string,
+  venueId: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  // Events are untouched. Removing a link says "they do not use this
+  // place", not "that event never happened".
+  await sql`
+    delete from organizer_venues
+     where organizer_id = ${organizerId} and venue_id = ${venueId}`;
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  return { ok: true, message: 'Venue unlinked. Events are unchanged.' };
+}
+
+/** Mark one venue as this organizer's main room. */
+export async function setHomeVenue(
+  organizerId: string,
+  venueId: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  await sql`
+    update organizer_venues set is_home = (venue_id = ${venueId})
+     where organizer_id = ${organizerId}`;
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  return { ok: true, message: 'Home venue set.' };
+}
+
 /**
  * Fold one organizer into another: every event repointed, the loser gone.
  *
@@ -190,6 +268,15 @@ export async function mergeOrganizers(
       website_url   = coalesce(w.website_url,   l.website_url)
     from organizers l
     where w.id = ${winnerId} and l.id = ${loserId}`;
+
+  // Venue links follow as well, or merging would lose the knowledge of
+  // where the absorbed record used to play.
+  await sql`
+    insert into organizer_venues (organizer_id, venue_id, is_home, source, note)
+    select ${winnerId}, venue_id, false, source, note
+      from organizer_venues where organizer_id = ${loserId}
+    on conflict (organizer_id, venue_id) do nothing`;
+  await sql`delete from organizer_venues where organizer_id = ${loserId}`;
 
   // Anything in the CRM pointing at the loser follows the events.
   await sql`
