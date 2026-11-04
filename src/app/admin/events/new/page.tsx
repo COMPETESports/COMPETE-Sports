@@ -31,6 +31,8 @@ const EMPTY: EventFormValues = {
   venue_name: '',
   venue_latitude: '',
   venue_longitude: '',
+  venue_place_id: '',
+  venue_business_status: '',
   address_line: '',
   city: '',
   state: '',

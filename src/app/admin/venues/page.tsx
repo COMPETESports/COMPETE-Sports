@@ -55,10 +55,15 @@ export default async function VenuesPage() {
       )}
 
       {vague > 0 && (
-        <p className="panel mt-3 p-4 text-sm text-[color:var(--muted)]">
-          {vague} of {rows.length} venues sit on an approximate pin — placed from a
-          ZIP code or a city rather than a street address.
-        </p>
+        <div className="panel mt-3 p-4 text-sm">
+          <p className="text-[color:var(--muted)]">
+            {vague} of {rows.length} venues sit on an approximate pin — placed from a
+            ZIP code or a city rather than a street address.
+          </p>
+          <Link href="/admin/venues/pins" className="btn-primary mt-3 !py-2 !text-xs">
+            Fix them with Google →
+          </Link>
+        </div>
       )}
 
       <ul className="mt-6 grid gap-2">

@@ -23,6 +23,11 @@ import { useEffect, useRef, useState } from 'react';
 
 export interface PlaceResult {
   name: string;
+  /** Google's permanent id for this place. Two venues sharing one are
+   *  certainly the same place, which a name match can never be. */
+  place_id: string;
+  business_status: string;
+  place_types: string[];
   address_line: string;
   city: string;
   state: string;
@@ -124,9 +129,12 @@ export function PlacesAutocomplete({ onPick }: { onPick: (p: PlaceResult) => voi
             placePrediction: {
               toPlace: () => {
                 fetchFields: (o: { fields: string[] }) => Promise<unknown>;
+                id?: string;
                 displayName?: string;
                 formattedAddress?: string;
                 addressComponents?: AddressComponent[];
+                businessStatus?: string;
+                types?: string[];
                 location?: { lat: () => number; lng: () => number };
               };
             };
@@ -135,10 +143,23 @@ export function PlacesAutocomplete({ onPick }: { onPick: (p: PlaceResult) => voi
           try {
             const place = placePrediction.toPlace();
             // A prediction carries only enough to draw its row; the real
-            // fields have to be asked for explicitly, and each one asked
-            // for is billable, so this list stays minimal.
+            // fields have to be asked for explicitly, and each one is
+            // billed by tier. `id`, `addressComponents`, `location` and
+            // `types` are the cheapest tier; `displayName` and
+            // `businessStatus` the next one up. Asking for displayName
+            // already puts this call in that tier, so businessStatus and
+            // the rest are free alongside it. Website and phone are a
+            // tier above again and deliberately left out.
             await place.fetchFields({
-              fields: ['displayName', 'formattedAddress', 'addressComponents', 'location'],
+              fields: [
+                'id',
+                'displayName',
+                'formattedAddress',
+                'addressComponents',
+                'businessStatus',
+                'types',
+                'location',
+              ],
             });
 
             const parts = readComponents(place.addressComponents);
@@ -146,6 +167,9 @@ export function PlacesAutocomplete({ onPick }: { onPick: (p: PlaceResult) => voi
 
             onPick({
               name: place.displayName ?? '',
+              place_id: place.id ?? '',
+              business_status: place.businessStatus ?? '',
+              place_types: place.types ?? [],
               // Fall back to the first line of the formatted address when
               // Google gives no street components - common for a park.
               address_line: street || (place.formattedAddress ?? '').split(',')[0] || '',

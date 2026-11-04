@@ -68,6 +68,8 @@ export interface EventFormValues {
   /** Set only by a Google lookup. Blank means "geocode it the old way". */
   venue_latitude: string;
   venue_longitude: string;
+  venue_place_id: string;
+  venue_business_status: string;
   address_line: string;
   city: string;
   state: string;
@@ -604,6 +606,8 @@ export function EventForm({
                 // let a stale Google lookup overwrite it.
                 venue_latitude: '',
                 venue_longitude: '',
+                venue_place_id: '',
+                venue_business_status: '',
               }))
             }
           />
@@ -622,12 +626,29 @@ export function EventForm({
                 postal_code: place.postal_code || prev.postal_code,
                 venue_latitude: place.latitude === null ? '' : String(place.latitude),
                 venue_longitude: place.longitude === null ? '' : String(place.longitude),
+                venue_place_id: place.place_id,
+                venue_business_status: place.business_status,
               }))
             }
           />
 
           <input type="hidden" name="venue_latitude" value={v.venue_latitude} />
           <input type="hidden" name="venue_longitude" value={v.venue_longitude} />
+          <input type="hidden" name="venue_place_id" value={v.venue_place_id} />
+          <input type="hidden" name="venue_business_status" value={v.venue_business_status} />
+
+          {v.venue_business_status.startsWith('CLOSED') && (
+            <p
+              className="sm:col-span-2 rounded-xl border px-3 py-2 text-xs"
+              style={{
+                borderColor: 'color-mix(in srgb, var(--beach) 60%, transparent)',
+                color: 'var(--beach)',
+              }}
+            >
+              <strong>Google reports this place as {v.venue_business_status.toLowerCase().replace(/_/g, ' ')}.</strong>{' '}
+              Worth checking with the organizer before publishing an event there.
+            </p>
+          )}
 
           {v.venue_latitude && (
             <p

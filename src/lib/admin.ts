@@ -52,6 +52,8 @@ const EventInput = z.object({
   // ZIP, which is how all 165 existing venues were placed.
   venue_latitude: z.coerce.number().min(-90).max(90).nullish(),
   venue_longitude: z.coerce.number().min(-180).max(180).nullish(),
+  venue_place_id: z.string().trim().max(400).nullish(),
+  venue_business_status: z.string().trim().max(60).nullish(),
   address_line: z.string().trim().max(300).optional(),
   city: z.string().trim().min(2, 'City is required.').max(120),
   state: z.string().trim().length(2, 'Use the two-letter state code.'),
@@ -177,6 +179,8 @@ export async function saveEvent(
     venue_name: formData.get('venue_name'),
     venue_latitude: formData.get('venue_latitude') || undefined,
     venue_longitude: formData.get('venue_longitude') || undefined,
+    venue_place_id: formData.get('venue_place_id') || undefined,
+    venue_business_status: formData.get('venue_business_status') || undefined,
     address_line: formData.get('address_line'),
     city: formData.get('city'),
     state: String(formData.get('state') ?? '').toUpperCase(),
@@ -252,7 +256,9 @@ export async function saveEvent(
     await sql`
       update venues set
         latitude = ${input.venue_latitude!}, longitude = ${input.venue_longitude!},
-        geo_precision = 'exact', geocoded_at = now()
+        geo_precision = 'exact', geocoded_at = now(),
+        google_place_id = coalesce(${input.venue_place_id || null}, google_place_id),
+        business_status = coalesce(${input.venue_business_status || null}, business_status)
       where id = ${venueId}`;
   }
 

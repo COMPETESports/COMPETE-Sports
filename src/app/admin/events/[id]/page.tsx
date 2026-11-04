@@ -129,6 +129,8 @@ export default async function EditEventPage({
           venue_name: row.venue_name ?? '',
           venue_latitude: '',
           venue_longitude: '',
+          venue_place_id: '',
+          venue_business_status: '',
           address_line: row.address_line ?? '',
           city: row.city ?? '',
           state: row.state ?? '',
