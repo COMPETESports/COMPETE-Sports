@@ -73,6 +73,58 @@ export async function venueSiblings(id: string) {
 }
 
 /**
+ * One venue, and who runs events there.
+ *
+ * The other half of the organizer page. An organizer's page answers
+ * "where do they play"; this answers "who plays here" - which is the
+ * question worth asking when a venue is the prospect, as it is for every
+ * parks department and bar court in the directory.
+ */
+export async function venueProfile(id: string) {
+  if (!(await isSignedIn())) return null;
+
+  const [venue] = await sql<
+    {
+      id: string; name: string; address_line: string | null; city: string;
+      state: string; postal_code: string | null; geo_precision: string;
+      latitude: number | null; longitude: number | null;
+      google_place_id: string | null; business_status: string | null;
+    }[]
+  >`select id, name, address_line, city, state, postal_code, geo_precision,
+           latitude, longitude, google_place_id, business_status
+      from venues where id = ${id}`;
+  if (!venue) return null;
+
+  const organizers = await sql<
+    {
+      id: string | null; name: string | null; events: number;
+      earliest: string | null; latest: string | null; upcoming: number;
+    }[]
+  >`
+    select o.id, o.name,
+           count(e.id)::int                                             as events,
+           min(e.starts_on)::text                                       as earliest,
+           max(e.starts_on)::text                                       as latest,
+           count(e.id) filter (where e.starts_on >= current_date)::int   as upcoming
+      from events e
+      left join organizers o on o.id = e.organizer_id
+     where e.venue_id = ${id}
+     group by o.id, o.name
+     order by count(e.id) desc`;
+
+  const events = await sql<
+    { id: string; name: string; starts_on: string; status: string; organizer: string | null }[]
+  >`
+    select e.id, e.name, e.starts_on::text, e.status, o.name as organizer
+      from events e
+      left join organizers o on o.id = e.organizer_id
+     where e.venue_id = ${id}
+     order by e.starts_on desc`;
+
+  return { venue, organizers: [...organizers], events: [...events] };
+}
+
+/**
  * Fold one venue into another.
  *
  * Events move first, for the same reason as organizers: venue_id is

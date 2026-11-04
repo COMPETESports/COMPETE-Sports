@@ -76,7 +76,11 @@ export default async function VenuesPage() {
               style={isDupe ? { borderColor: 'color-mix(in srgb, var(--beach) 40%, transparent)' } : undefined}
             >
               {group.map((v) => (
-                <div key={v.id} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1 py-1.5">
+                <Link
+                  key={v.id}
+                  href={`/admin/venues/${v.id}`}
+                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-lg px-2 py-1.5 hover:bg-[color:var(--raised)]"
+                >
                   <span className="t-head min-w-0 text-sm">{v.name}</span>
                   <span className="t-mono text-[11px] text-[color:var(--muted)]">
                     {[v.address_line, `${v.city}, ${v.state}`, v.postal_code].filter(Boolean).join(' · ')}
@@ -85,7 +89,7 @@ export default async function VenuesPage() {
                       <span style={{ color: 'var(--beach)' }}> · {v.geo_precision} pin</span>
                     )}
                   </span>
-                </div>
+                </Link>
               ))}
               {isDupe && (
                 <MergeVenue
