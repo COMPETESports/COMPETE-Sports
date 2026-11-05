@@ -238,6 +238,101 @@ export async function setHomeVenue(
   return { ok: true, message: 'Home venue set.' };
 }
 
+/** The CRM record for this organizer, if anyone has said which one it is. */
+export async function organizerProspect(organizerId: string) {
+  if (!(await isSignedIn())) return null;
+  const [row] = await sql<
+    {
+      id: string; name: string; category: string | null; city: string | null;
+      state: string | null; address: string | null; phone: string | null;
+      email: string | null; website: string | null; status: string;
+    }[]
+  >`select id, name, category, city, state, address, phone, email, website, status
+      from partner_prospects where organizer_id = ${organizerId} limit 1`;
+  return row ?? null;
+}
+
+/** CRM records not yet claimed by an organizer, for the linking picker. */
+export async function unlinkedProspects(query: string) {
+  if (!(await isSignedIn())) return [];
+  const q = query.trim();
+  if (q.length < 2) return [];
+  const rows = await sql<
+    { id: string; name: string; city: string | null; state: string | null; status: string }[]
+  >`select id, name, city, state, status
+      from partner_prospects
+     where organizer_id is null
+       and name ilike ${'%' + q + '%'}
+     order by name limit 8`;
+  return [...rows];
+}
+
+/**
+ * Say that this organizer and this CRM record are the same organization.
+ *
+ * The join nobody has made: 0 of 1,310 prospects point at an organizer.
+ * Until they do, an organizer page cannot show a phone number and a CRM
+ * page cannot show an event history, which is the disconnect Tom hit on
+ * 4 Nov. Done one at a time, during the call, because a bulk name match
+ * across 1,310 rows would be wrong often enough to poison the data it
+ * was meant to connect.
+ */
+export async function linkProspect(
+  organizerId: string,
+  prospectId: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  const [p] = await sql<{ name: string }[]>`
+    select name from partner_prospects where id = ${prospectId}`;
+  if (!p) return { ok: false, message: 'That record no longer exists.' };
+
+  await sql`
+    update partner_prospects set organizer_id = ${organizerId} where id = ${prospectId}`;
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  return { ok: true, message: `Linked to ${p.name}.` };
+}
+
+export async function unlinkProspect(
+  organizerId: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  await sql`
+    update partner_prospects set organizer_id = null where organizer_id = ${organizerId}`;
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  return { ok: true, message: 'Unlinked. Neither record was deleted.' };
+}
+
+/** Edit the organizer's own details — the ones the public page shows. */
+export async function updateOrganizer(
+  id: string,
+  fields: { name: string; contact_email: string; website_url: string },
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+
+  const name = fields.name.trim();
+  if (name.length < 2) return { ok: false, message: 'Give the organizer a name.' };
+
+  const email = fields.contact_email.trim();
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return { ok: false, message: 'That email address is not usable.' };
+  }
+
+  let website = fields.website_url.trim();
+  if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
+
+  await sql`
+    update organizers set
+      name = ${name},
+      contact_email = ${email || null},
+      website_url = ${website || null},
+      updated_at = now()
+    where id = ${id}`;
+
+  revalidatePath(`/admin/organizers/${id}`);
+  revalidatePath('/admin/organizers');
+  return { ok: true, message: 'Saved.' };
+}
+
 /**
  * Delete an organizer outright.
  *

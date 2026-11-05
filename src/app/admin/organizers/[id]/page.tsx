@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { organizerProfile, organizerVenues } from '@/lib/organizers-admin';
+import { organizerProfile, organizerProspect, organizerVenues } from '@/lib/organizers-admin';
 import { loadVenueOptions } from '@/lib/ref-data';
 import { MergeOrganizer } from '@/components/admin/MergeOrganizer';
 import { OrganizerVenues } from '@/components/admin/OrganizerVenues';
+import { OrganizerDetails } from '@/components/admin/OrganizerDetails';
 import { DeleteOrganizer } from '@/components/admin/DeleteOrganizer';
 
 export const dynamic = 'force-dynamic';
@@ -31,9 +32,10 @@ export default async function OrganizerPage({
   const found = await organizerProfile(id);
   if (!found) notFound();
 
-  const [linkedVenues, allVenues] = await Promise.all([
+  const [linkedVenues, allVenues, prospect] = await Promise.all([
     organizerVenues(id),
     loadVenueOptions(),
+    organizerProspect(id),
   ]);
 
   const { organizer: o, venues, total, siblings } = found;
@@ -53,15 +55,15 @@ export default async function OrganizerPage({
         {o.contact_email && <> · {o.contact_email}</>}
       </p>
 
-      {o.website_url && (
-        <p className="mt-2 text-sm">
-          <a href={o.website_url} target="_blank" rel="noopener noreferrer" className="underline">
-            {o.website_url} ↗
-          </a>
-        </p>
-      )}
-
       <MergeOrganizer winnerId={o.id} winnerName={o.name} siblings={siblings} />
+
+      <OrganizerDetails
+        id={o.id}
+        name={o.name}
+        contactEmail={o.contact_email}
+        websiteUrl={o.website_url}
+        prospect={prospect}
+      />
 
       <OrganizerVenues organizerId={o.id} linked={linkedVenues} allVenues={allVenues} />
 
