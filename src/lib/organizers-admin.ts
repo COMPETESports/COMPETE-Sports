@@ -239,6 +239,53 @@ export async function setHomeVenue(
 }
 
 /**
+ * Delete an organizer outright.
+ *
+ * Refused while they hold events. events.organizer_id is `on delete set
+ * null`, so deleting one that has history would not fail - it would
+ * quietly strip the organizer off every event they ever ran and leave
+ * them attributed to nobody. Silent data loss dressed as a success
+ * message.
+ *
+ * The honest options for a record with events are merge (it was a
+ * duplicate) or edit (the name was wrong). Deleting is for the records
+ * that hold nothing: the 2Legit Volleyballs and 692 NEXTs sitting at
+ * zero events because an import created a row that was never used.
+ */
+export async function deleteOrganizer(
+  id: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+
+  // Counted here rather than trusted from the page, which may have been
+  // open while an event was attached in another tab.
+  const [row] = await sql<{ name: string; events: number }[]>`
+    select o.name,
+           (select count(*)::int from events e where e.organizer_id = o.id) as events
+      from organizers o where o.id = ${id}`;
+
+  if (!row) return { ok: false, message: 'That organizer no longer exists.' };
+
+  if (row.events > 0) {
+    return {
+      ok: false,
+      message: `"${row.name}" has ${row.events} ${
+        row.events === 1 ? 'event' : 'events'
+      }. Deleting would leave ${
+        row.events === 1 ? 'it' : 'them'
+      } attributed to nobody. Merge into the right record instead, or rename this one.`,
+    };
+  }
+
+  // organizer_venues cascades; a CRM row pointing here is set to null by
+  // its own foreign key, so the prospect survives without the link.
+  await sql`delete from organizers where id = ${id}`;
+
+  revalidatePath('/admin/organizers');
+  return { ok: true, message: `"${row.name}" deleted. It held no events.` };
+}
+
+/**
  * Fold one organizer into another: every event repointed, the loser gone.
  *
  * Repointing before deleting matters. events.organizer_id is `on delete

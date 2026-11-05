@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { listOrganizers } from '@/lib/organizers-admin';
+import { OrganizerList } from '@/components/admin/OrganizerList';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Organizers', robots: { index: false, follow: false } };
@@ -55,33 +56,7 @@ export default async function OrganizersPage() {
         </p>
       )}
 
-      <ul className="mt-6 grid gap-2">
-        {[...clusters.entries()].map(([key, group]) => (
-          <li key={key}>
-            <div
-              className={group.length > 1 ? 'rounded-2xl border p-2' : ''}
-              style={group.length > 1
-                ? { borderColor: 'color-mix(in srgb, var(--beach) 40%, transparent)' }
-                : undefined}
-            >
-              {group.map((o) => (
-                <Link
-                  key={o.id}
-                  href={`/admin/organizers/${o.id}`}
-                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-xl px-3 py-2.5 hover:bg-[color:var(--raised)]"
-                >
-                  <span className="t-head min-w-0 text-sm">{o.name}</span>
-                  <span className="t-mono text-[11px] text-[color:var(--muted)]">
-                    {o.events} {o.events === 1 ? 'event' : 'events'}
-                    {o.venues > 0 && ` · ${o.venues} ${o.venues === 1 ? 'venue' : 'venues'}`}
-                    {o.earliest && ` · ${o.earliest.slice(0, 4)}–${o.latest?.slice(0, 4)}`}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </li>
-        ))}
-      </ul>
+      <OrganizerList rows={rows} />
     </div>
   );
 }

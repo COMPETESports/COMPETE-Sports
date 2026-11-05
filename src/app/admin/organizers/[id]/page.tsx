@@ -5,6 +5,7 @@ import { organizerProfile, organizerVenues } from '@/lib/organizers-admin';
 import { loadVenueOptions } from '@/lib/ref-data';
 import { MergeOrganizer } from '@/components/admin/MergeOrganizer';
 import { OrganizerVenues } from '@/components/admin/OrganizerVenues';
+import { DeleteOrganizer } from '@/components/admin/DeleteOrganizer';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Organizer', robots: { index: false, follow: false } };
@@ -134,6 +135,8 @@ export default async function OrganizerPage({
           </section>
         ))}
       </div>
+
+      <DeleteOrganizer id={o.id} name={o.name} events={total} />
     </div>
   );
 }
