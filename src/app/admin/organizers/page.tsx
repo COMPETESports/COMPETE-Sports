@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { listOrganizersPaged, organizerCounts, organizerStates } from '@/lib/organizers-admin';
+import { loadSportSurfaceOptions } from '@/lib/ref-data';
 import {
   PAGE_SIZE, ORGANIZER_STATUSES, ORGANIZER_STATUS_LABEL,
   CONFIDENCE, CONFIDENCE_LABEL, CONFIDENCE_TONE,
@@ -54,8 +55,9 @@ export default async function OrganizersPage({
     page: sp.page ? Number(sp.page) : 1,
   };
 
-  const [{ rows, total, page, lastPage }, counts, states] = await Promise.all([
+  const [{ rows, total, page, lastPage }, counts, states, taxonomy] = await Promise.all([
     listOrganizersPaged(filters), organizerCounts(), organizerStates(),
+    loadSportSurfaceOptions(),
   ]);
 
   const qs = (over: Record<string, string | number | undefined>) => {
@@ -108,7 +110,7 @@ export default async function OrganizersPage({
         <Select name="status" value={sp.status} label="Any status"
           options={ORGANIZER_STATUSES.map((s) => [s, ORGANIZER_STATUS_LABEL[s]])} />
         <Select name="sports" value={sp.sports} label="Any sport"
-          options={[['volleyball', 'Volleyball'], ['pickleball', 'Pickleball'], ['both', 'Both']]} />
+          options={taxonomy.sports.map((x) => [x.slug, x.name])} />
         <Select name="contactable" value={sp.contactable} label="Reachable?"
           options={[['yes', 'Has contact'], ['no', 'No contact yet']]} />
         <Select name="events" value={sp.events} label="Events?"
@@ -164,9 +166,15 @@ export default async function OrganizersPage({
                       </div>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className={SPORT_CHIP[r.sports] ?? 'chip-muted'}>
-                        {r.sports === 'volleyball?' ? 'volleyball*' : r.sports}
-                      </span>
+                      {r.sport_slugs && r.sport_slugs.length > 0 ? (
+                        <span className="flex flex-wrap gap-1">
+                          {r.sport_slugs.map((sl) => (
+                            <span key={sl} className={SPORT_CHIP[sl] ?? 'chip-muted'}>{sl}</span>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="text-[color:var(--faint)]">—</span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 text-[13px] text-[color:var(--muted)]">
                       {r.phone || r.email ? (
@@ -251,9 +259,6 @@ export default async function OrganizersPage({
         </nav>
       )}
 
-      <p className="t-mono mt-8 text-[11px] uppercase tracking-[0.15em] text-[color:var(--faint)]">
-        volleyball* = volleyball confirmed, pickleball never checked
-      </p>
     </div>
   );
 }

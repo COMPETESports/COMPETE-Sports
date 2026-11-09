@@ -174,3 +174,22 @@ export async function loadPreferenceOptions() {
     divisions: [...divisions],
   };
 }
+
+/**
+ * Just the sports and their surfaces, for the organizer profile.
+ *
+ * loadPreferenceOptions returns formats and divisions too, which the
+ * organizer screen has no use for. Same tables, same ordering, so the
+ * pickers can never drift from the vocabulary the events use.
+ */
+export async function loadSportSurfaceOptions() {
+  const [sports, surfaces] = await Promise.all([
+    sql<{ slug: string; name: string }[]>`
+      select slug, name from sports where is_active order by display_order, name`,
+    sql<{ slug: string; name: string; sport_slug: string }[]>`
+      select s.slug, s.name, sp.slug as sport_slug
+        from surfaces s join sports sp on sp.id = s.sport_id
+       order by sp.display_order, s.display_order`,
+  ]);
+  return { sports: [...sports], surfaces: [...surfaces] };
+}

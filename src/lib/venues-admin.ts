@@ -181,3 +181,62 @@ export async function mergeVenues(
     message: `Merged "${loser.name}" into "${winner.name}" — ${n} ${n === 1 ? 'event' : 'events'} moved.`,
   };
 }
+
+/**
+ * Delete a venue, but only one that holds nothing.
+ *
+ * Tom, 9 Nov: the import produced venues that do not really exist --
+ * records assembled from a spreadsheet row with half an address and no
+ * events ever attached. Those need a way out, or the venue list stays
+ * permanently padded with places nobody can visit.
+ *
+ * A venue with events is refused. `events.venue_id` has no ON DELETE
+ * clause, so Postgres would refuse it anyway, but as a foreign-key error
+ * rather than a sentence -- and an event whose venue vanished cannot
+ * appear in any location search, which is the whole product.
+ */
+export async function deleteVenue(
+  id: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+
+  // Counted here rather than trusted from the page, which may have been
+  // open while an event was attached in another tab.
+  const [row] = await sql<{ name: string; events: number; links: number }[]>`
+    select v.name,
+           (select count(*)::int from events e where e.venue_id = v.id)            as events,
+           (select count(*)::int from organizer_venues ov where ov.venue_id = v.id) as links
+      from venues v where v.id = ${id}`;
+
+  if (!row) return { ok: false, message: 'That venue no longer exists.' };
+
+  if (row.events > 0) {
+    return {
+      ok: false,
+      message: `"${row.name}" has ${row.events} ${
+        row.events === 1 ? 'event' : 'events'
+      } at it. Deleting would leave ${
+        row.events === 1 ? 'it' : 'them'
+      } with nowhere to be, and out of every location search. Merge it into the right venue instead.`,
+    };
+  }
+
+  // Organizer links are removed explicitly rather than left to a cascade,
+  // so the count can be reported back -- "deleted" should say what else
+  // went with it.
+  await sql`delete from organizer_venues where venue_id = ${id}`;
+  await sql`delete from venues where id = ${id}`;
+
+  revalidatePath('/admin/venues');
+  revalidatePath('/admin/organizers');
+  revalidatePath('/');
+
+  return {
+    ok: true,
+    message: row.links > 0
+      ? `"${row.name}" deleted, along with ${row.links} organizer ${
+          row.links === 1 ? 'link' : 'links'
+        }. It held no events.`
+      : `"${row.name}" deleted. It held no events.`,
+  };
+}

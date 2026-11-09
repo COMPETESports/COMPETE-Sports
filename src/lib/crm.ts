@@ -169,10 +169,33 @@ const ProfileInput = z.object({
  * right one: a blank field prompts someone to find the answer, while an
  * empty string reads as "checked, nothing there".
  */
+/**
+ * The CRM screens are retired as of 9 Nov 2026.
+ *
+ * Migration 020 moved every one of these 1,310 records into `organizers`
+ * and `organizer_private`. This table is a frozen copy, kept only so
+ * nothing is deleted before the replacement has been used in anger.
+ *
+ * Reads still work, so the old pages can be looked at. Writes must not:
+ * anything saved here would land in a table nothing else reads, look
+ * like it worked, and be silently lost. Tom nearly hit exactly that on
+ * 9 Nov, which is why this guard exists rather than a banner alone.
+ */
+// Declared void rather than never on purpose: a never-returning call
+// makes everything after it unreachable, and TypeScript then discards
+// the narrowing the rest of these functions rely on. It still throws.
+function retired(): void {
+  throw new Error(
+    'The Outreach screens are retired. This record now lives under ' +
+    'Organizers, where editing it actually saves. Nothing was changed.',
+  );
+}
+
 export async function saveProspect(
   _prev: { error?: string; saved?: boolean } | null,
   formData: FormData,
 ): Promise<{ error?: string; saved?: boolean }> {
+  retired();
   await requireStaff();
 
   const parsed = ProfileInput.safeParse(Object.fromEntries(formData));
@@ -229,6 +252,7 @@ export async function logInteraction(
   _prev: { error?: string; saved?: boolean } | null,
   formData: FormData,
 ): Promise<{ error?: string; saved?: boolean }> {
+  retired();
   await requireStaff();
 
   const parsed = InteractionInput.safeParse(Object.fromEntries(formData));
@@ -261,6 +285,7 @@ export async function logInteraction(
 
 /** Quick status change from the list, without opening the profile. */
 export async function setProspectStatus(id: string, status: string): Promise<void> {
+  retired();
   await requireStaff();
   if (!(STATUSES as readonly string[]).includes(status)) return;
   await sql`update partner_prospects set status = ${status} where id = ${id}`;
@@ -276,6 +301,7 @@ export async function createProspect(
   _prev: { error?: string; id?: string } | null,
   formData: FormData,
 ): Promise<{ error?: string; id?: string }> {
+  retired();
   await requireStaff();
   const name = String(formData.get('name') ?? '').trim();
   const state = String(formData.get('state') ?? '').trim().toUpperCase();
@@ -310,6 +336,7 @@ export async function createProspect(
  * measures whether outreach works.
  */
 export async function inviteLink(prospectId: string): Promise<string> {
+  retired();
   await requireStaff();
 
   const [row] = await sql<{ invite_token: string }[]>`

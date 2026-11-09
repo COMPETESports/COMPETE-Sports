@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { sql } from './db';
 import { isSignedIn } from './auth';
 import { PAGE_SIZE, ORGANIZER_STATUSES } from './organizer-fields';
+import { STATES } from './parse-listing';
 import type {
   OrganizerListRow, OrganizerFilters, OrganizerContact, OrganizerProfileForm,
 } from './organizer-fields';
@@ -455,6 +456,12 @@ export async function mergeOrganizers(
       courts       = coalesce(w.courts,       l.courts),
       offerings    = coalesce(w.offerings,    l.offerings),
       sports_basis = coalesce(w.sports_basis, l.sports_basis),
+      -- A sport or surface recorded on either record is true of the
+      -- merged organization, so these are unioned rather than picked.
+      sport_slugs = (select array(select distinct unnest(
+        coalesce(w.sport_slugs, '{}') || coalesce(l.sport_slugs, '{}')))),
+      surface_slugs = (select array(select distinct unnest(
+        coalesce(w.surface_slugs, '{}') || coalesce(l.surface_slugs, '{}')))),
       booking_platform = coalesce(w.booking_platform, l.booking_platform),
       source_url   = coalesce(w.source_url,   l.source_url),
       source_file  = coalesce(w.source_file,  l.source_file),
@@ -552,14 +559,10 @@ export async function listOrganizersPaged(f: OrganizerFilters) {
   if (f.state) where.push(sql`o.state = ${f.state}`);
   if (f.status) where.push(sql`coalesce(x.status, 'prospect') = ${f.status}`);
 
-  if (f.sports === 'volleyball') {
-    // "Volleyball" means anything that touches it, including rows where
-    // pickleball was simply never asked about. Excluding `volleyball?`
-    // here would hide hundreds of real volleyball venues behind a
-    // research artefact. Same rule as the CRM list.
-    where.push(sql`coalesce(x.sports, 'unknown') in ('volleyball','both','volleyball?')`);
-  } else if (f.sports) {
-    where.push(sql`coalesce(x.sports, 'unknown') = ${f.sports}`);
+  // Containment, not equality: an organization can run several sports,
+  // so asking for volleyball must also return the ones that run both.
+  if (f.sports) {
+    where.push(sql`${f.sports} = any(x.sport_slugs)`);
   }
 
   if (f.contactable === 'yes') {
@@ -611,7 +614,7 @@ export async function listOrganizersPaged(f: OrganizerFilters) {
     select o.id, o.slug, o.name, o.city, o.state, o.website_url,
            coalesce(x.status, 'prospect')   as status,
            x.category,
-           coalesce(x.sports, 'unknown')    as sports,
+           x.sport_slugs,
            x.phone,
            coalesce(x.email, o.contact_email) as email,
            x.verified_at::text,
@@ -707,6 +710,7 @@ export async function organizerFull(id: string) {
     select o.id, o.slug, o.name, o.city, o.state, o.website_url, o.contact_email,
            coalesce(x.status, 'prospect')  as status,
            coalesce(x.sports, 'unknown')   as sports,
+           x.sport_slugs, x.surface_slugs,
            x.category, x.address, x.postal_code, x.courts, x.offerings,
            x.booking_platform, x.phone, x.email,
            x.instagram, x.facebook, x.tiktok, x.social,
@@ -778,23 +782,29 @@ export async function saveOrganizerProfile(
       updated_at    = now()
     where id = ${id}`;
 
+  // Empty array means "checked, runs none", which is not a real state.
+  // Null means nobody has looked, which is where 1,310 rows start.
+  const sports = f.sport_slugs.length ? f.sport_slugs : null;
+  const surfaces = f.surface_slugs.length ? f.surface_slugs : null;
+
   await sql`
     insert into organizer_private (
-      organizer_id, category, sports, address, postal_code, courts, offerings,
+      organizer_id, category, sport_slugs, surface_slugs, address, postal_code, courts,
       booking_platform, phone, email, instagram, facebook, tiktok,
       status, status_note, next_action, next_action_on, notes, confidence_score, origin
     ) values (
-      ${id}, ${orNull(f.category)}, ${f.sports || 'unknown'}, ${orNull(f.address)},
-      ${orNull(f.postal_code)}, ${orNull(f.courts)}, ${orNull(f.offerings)},
+      ${id}, ${orNull(f.category)}, ${sports}, ${surfaces}, ${orNull(f.address)},
+      ${orNull(f.postal_code)}, ${orNull(f.courts)},
       ${orNull(f.booking_platform)}, ${orNull(f.phone)}, ${orNull(f.email)},
       ${orNull(f.instagram)}, ${orNull(f.facebook)}, ${orNull(f.tiktok)},
       ${f.status}, ${orNull(f.status_note)}, ${orNull(f.next_action)},
       ${due}, ${orNull(f.notes)}, ${score}, 'manual'
     )
     on conflict (organizer_id) do update set
-      category = excluded.category, sports = excluded.sports,
+      category = excluded.category,
+      sport_slugs = excluded.sport_slugs, surface_slugs = excluded.surface_slugs,
       address = excluded.address, postal_code = excluded.postal_code,
-      courts = excluded.courts, offerings = excluded.offerings,
+      courts = excluded.courts,
       booking_platform = excluded.booking_platform,
       phone = excluded.phone, email = excluded.email,
       instagram = excluded.instagram, facebook = excluded.facebook,
@@ -915,4 +925,101 @@ export async function makeContactPrimary(
 
   revalidatePath(`/admin/organizers/${organizerId}`);
   return { ok: true, message: 'Primary contact changed.' };
+}
+
+
+/**
+ * Create a venue from a Google place and link it to this organizer.
+ *
+ * Tom, 9 Nov: Stratman Sports has no venue at all, so the picker above
+ * has nothing to offer -- it can only link venues that already exist.
+ * The venue has to be creatable at the moment you learn about it, which
+ * is on the call, not later through the event form.
+ *
+ * Created from Google rather than typed, so it starts life on an exact
+ * pin. Every one of the 172 venues already in this database sits on an
+ * approximate one because they were hand-entered, and nothing about a
+ * wrong pin is visible until a player follows a map.
+ */
+export async function createVenueFromPlace(
+  organizerId: string,
+  place: {
+    name: string; place_id: string; business_status: string; place_types: string[];
+    address_line: string; city: string; state: string; postal_code: string;
+    latitude: number | null; longitude: number | null;
+  },
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+
+  const name = place.name?.trim();
+  const city = place.city?.trim();
+  if (!name) return { ok: false, message: 'That place has no name to save.' };
+  if (!city) return { ok: false, message: 'That place has no city, so it cannot be saved.' };
+
+  // venues.state is a two-letter code. A full name quietly truncated to
+  // two letters passes a length check and is not a state -- "Texas"
+  // became "TE" once already.
+  const raw = (place.state ?? '').trim();
+  const state = /^[A-Za-z]{2}$/.test(raw)
+    ? raw.toUpperCase()
+    : STATES[raw.toLowerCase()] ?? null;
+  if (!state) {
+    return { ok: false, message: `Could not read a state from “${raw || 'nothing'}”.` };
+  }
+
+  // A shared place id is proof two records are the same place, which a
+  // name match can never be. Reuse beats creating a second Stratman.
+  if (place.place_id) {
+    const [existing] = await sql<{ id: string; name: string }[]>`
+      select id, name from venues where google_place_id = ${place.place_id} limit 1`;
+    if (existing) {
+      const res = await linkVenue(organizerId, existing.id);
+      return res.ok
+        ? { ok: true, message: `${existing.name} was already in the database — linked, not duplicated.` }
+        : res;
+    }
+  }
+
+  const hasPin = typeof place.latitude === 'number' && typeof place.longitude === 'number';
+
+  const [venue] = await sql<{ id: string }[]>`
+    insert into venues (
+      name, address_line, city, state, postal_code,
+      latitude, longitude, geo_precision, geocoded_at,
+      google_place_id, business_status, place_types
+    ) values (
+      ${name}, ${place.address_line?.trim() || null}, ${city}, ${state},
+      ${place.postal_code?.trim() || null},
+      ${hasPin ? place.latitude : null}, ${hasPin ? place.longitude : null},
+      ${hasPin ? 'exact' : 'unknown'}, ${hasPin ? new Date() : null},
+      ${place.place_id || null}, ${place.business_status || null},
+      ${place.place_types?.length ? place.place_types : null}
+    )
+    returning id`;
+
+  await sql`
+    insert into organizer_venues (organizer_id, venue_id, source)
+    values (${organizerId}, ${venue.id}, 'stated')
+    on conflict (organizer_id, venue_id) do update set source = 'stated'`;
+
+  // Their first venue is their home venue until told otherwise -- an
+  // organizer with exactly one venue and no home marked is a gap you
+  // would only notice later.
+  await sql`
+    update organizer_venues set is_home = true
+     where organizer_id = ${organizerId} and venue_id = ${venue.id}
+       and not exists (
+         select 1 from organizer_venues
+          where organizer_id = ${organizerId} and is_home and venue_id <> ${venue.id})`;
+
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  revalidatePath('/admin/venues');
+  revalidatePath('/');
+
+  return {
+    ok: true,
+    message: hasPin
+      ? `${name} created on an exact pin and linked.`
+      : `${name} created and linked, but Google returned no coordinates.`,
+  };
 }

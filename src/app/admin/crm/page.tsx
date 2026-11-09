@@ -56,6 +56,14 @@ export default async function CrmPage({
 
   return (
     <div className="wrap py-8">
+      <p className="panel tone-warn mb-5 p-4 text-sm">
+        <strong>These screens are retired.</strong> Every one of these records now
+        lives under <a href="/admin/organizers" className="underline">Organizers</a>,
+        alongside the organizations that have events. This page is kept read-only
+        so nothing is deleted before the replacement has been used \&mdash; editing
+        here is refused, because a save would land in a frozen table and look like
+        it worked.
+      </p>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="t-kicker text-[color:var(--grass)]">Organizers</p>

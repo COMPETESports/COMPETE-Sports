@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { venueProfile, venueSiblings } from '@/lib/venues-admin';
 import { MergeVenue } from '@/components/admin/MergeVenue';
+import { DeleteVenue } from '@/components/admin/DeleteVenue';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Venue', robots: { index: false, follow: false } };
@@ -141,6 +142,13 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
           </li>
         ))}
       </ul>
+
+      <DeleteVenue
+        id={v.id}
+        name={v.name}
+        events={events.length}
+        organizers={organizers.length}
+      />
     </div>
   );
 }

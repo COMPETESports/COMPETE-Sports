@@ -3,7 +3,10 @@
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { VenuePicker, type VenueOption } from './VenuePicker';
-import { linkVenue, setHomeVenue, unlinkVenue, type LinkedVenue } from '@/lib/organizers-admin';
+import {
+  linkVenue, setHomeVenue, unlinkVenue, createVenueFromPlace, type LinkedVenue,
+} from '@/lib/organizers-admin';
+import { PlacesAutocomplete } from './PlacesAutocomplete';
 
 /**
  * The venues an organizer uses, and a way to say so.
@@ -33,11 +36,13 @@ export function OrganizerVenues({
 
   return (
     <section className="panel mt-6 p-5">
-      <h2 className="t-head text-base">Venues they use</h2>
-      <p className="mt-1 text-sm text-[color:var(--muted)]">
-        Where this organizer runs events. Links marked <em>from events</em> were
-        worked out from the events themselves; the rest someone stated.
-      </p>
+      {/* Created from Google, not typed. The picker below can only offer
+          venues that already exist, which is no help for an organizer
+          like Stratman Sports whose venue is not in the database at all
+          -- and that is exactly when you learn it, on the call. */}
+      <PlacesAutocomplete
+        onPick={(place) => run(() => createVenueFromPlace(organizerId, place))}
+      />
 
       {linked.length === 0 ? (
         <p className="mt-3 text-sm" style={{ color: 'var(--beach)' }}>

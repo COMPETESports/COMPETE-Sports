@@ -18,7 +18,8 @@ export interface OrganizerListRow {
   /** From organizer_private. Never reaches a public page. */
   status: string;
   category: string | null;
-  sports: string;
+  /** Null where nobody has checked which sports they run. */
+  sport_slugs: string[] | null;
   phone: string | null;
   email: string | null;
   verified_at: string | null;
@@ -115,11 +116,11 @@ export interface OrganizerProfileForm {
   contact_email: string;
   // private
   category: string;
-  sports: string;
+  sport_slugs: string[];
+  surface_slugs: string[];
   address: string;
   postal_code: string;
   courts: string;
-  offerings: string;
   booking_platform: string;
   phone: string;
   email: string;
@@ -135,13 +136,6 @@ export interface OrganizerProfileForm {
   confidence_score: string;
 }
 
-export const SPORT_OPTIONS: Array<[string, string]> = [
-  ['unknown', 'Not checked'],
-  ['volleyball', 'Volleyball'],
-  ['volleyball?', 'Volleyball (pickleball never checked)'],
-  ['pickleball', 'Pickleball'],
-  ['both', 'Both'],
-];
 
 /**
  * How likely an organization is to convert. Tom's scale, 9 Nov, in his

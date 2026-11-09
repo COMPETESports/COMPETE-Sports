@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { organizerProfile, organizerFull, organizerVenues } from '@/lib/organizers-admin';
-import { loadVenueOptions } from '@/lib/ref-data';
+import { loadVenueOptions, loadSportSurfaceOptions } from '@/lib/ref-data';
 import { MergeOrganizer } from '@/components/admin/MergeOrganizer';
 import { OrganizerVenues } from '@/components/admin/OrganizerVenues';
 import { OrganizerProfile } from '@/components/admin/OrganizerProfile';
@@ -32,15 +32,123 @@ export default async function OrganizerPage({
   const found = await organizerProfile(id);
   if (!found) notFound();
 
-  const [linkedVenues, allVenues, full] = await Promise.all([
+  const [linkedVenues, allVenues, full, taxonomy] = await Promise.all([
     organizerVenues(id),
     loadVenueOptions(),
     organizerFull(id),
+    loadSportSurfaceOptions(),
   ]);
+
+  // organizerProfile already proved this organizer exists and the caller
+  // is signed in, so this is belt and braces -- but it narrows `full` for
+  // everything below, which is what builds the form.
+  if (!full) notFound();
 
   const { organizer: o, venues, total, siblings } = found;
   const placed = venues.filter((v) => v.venue_id);
   const vague = placed.filter((v) => v.geo_precision !== 'exact');
+
+  const initial = {
+            name: str(full.row.name), city: str(full.row.city),
+            state: str(full.row.state), website_url: str(full.row.website_url),
+            contact_email: str(full.row.contact_email),
+            category: str(full.row.category),
+            sport_slugs: Array.isArray(full.row.sport_slugs) ? full.row.sport_slugs as string[] : [],
+            surface_slugs: Array.isArray(full.row.surface_slugs) ? full.row.surface_slugs as string[] : [],
+            address: str(full.row.address), postal_code: str(full.row.postal_code),
+            courts: str(full.row.courts),
+            booking_platform: str(full.row.booking_platform),
+            phone: str(full.row.phone), email: str(full.row.email),
+            instagram: str(full.row.instagram), facebook: str(full.row.facebook),
+            tiktok: str(full.row.tiktok),
+            status: str(full.row.status) || 'prospect',
+            status_note: str(full.row.status_note),
+            next_action: str(full.row.next_action),
+            next_action_on: str(full.row.next_action_on),
+            notes: str(full.row.notes),
+            confidence_score: str(full.row.confidence_score),
+          };
+
+  const venuesSlot = (
+    <>
+    <OrganizerVenues organizerId={o.id} linked={linkedVenues} allVenues={allVenues} />
+
+    {vague.length > 0 && (
+      <p className="panel tone-warn mt-6 p-4 text-sm">
+        {vague.length} of these {vague.length === 1 ? 'venue sits' : 'venues sit'} on an
+        approximate pin — placed from a ZIP code or a city rather than a street
+        address. Close enough for radius search, wrong on a map.
+      </p>
+    )}
+    </>
+  );
+
+  const historySlot = (
+    <>
+    {venues.length === 0 && (
+      <p className="panel mt-6 p-4 text-sm text-[color:var(--muted)]">
+        No events on this record yet.
+      </p>
+    )}
+
+    <div className="mt-6 grid gap-5">
+      {venues.map((v) => (
+        <section key={v.venue_id ?? 'none'} className="panel p-5">
+          <header className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="t-head text-base">
+              {v.venue_name ?? 'No venue recorded'}
+            </h2>
+            <span className="t-mono text-[11px] text-[color:var(--muted)]">
+              {v.events.length} {v.events.length === 1 ? 'event' : 'events'}
+            </span>
+          </header>
+
+          {v.venue_id ? (
+            <p className="mt-1 text-sm text-[color:var(--muted)]">
+              {[v.address_line, [v.city, v.state].filter(Boolean).join(', '), v.postal_code]
+                .filter(Boolean)
+                .join(' · ') || 'No address recorded'}
+              {v.geo_precision && v.geo_precision !== 'exact' && (
+                <span className="t-mono ml-2 text-[10px] uppercase tracking-wider text-[color:var(--beach)]">
+                  {v.geo_precision} pin
+                </span>
+              )}
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-[color:var(--beach)]">
+              These events have no venue at all, so they cannot appear in any
+              location search.
+            </p>
+          )}
+
+          <ul className="mt-3 grid gap-1">
+            {v.events.map((e) => (
+              <li key={e.id}>
+                <Link
+                  href={`/admin/events/${e.id}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 rounded-lg px-2 py-1.5 hover:bg-[color:var(--raised)]"
+                >
+                  <span className="min-w-0 text-sm">{e.name}</span>
+                  <span className="t-mono text-[11px] text-[color:var(--muted)]">
+                    {e.starts_on}
+                    {' · '}
+                    {e.status}
+                    {e.event_type !== 'tournament' && ` · ${e.event_type.replace('_', ' ')}`}
+                    {e.brackets === 0 && (
+                      <span style={{ color: 'var(--beach)' }}> · no brackets</span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+    </>
+  );
 
   return (
     <div className="wrap py-8">
@@ -57,104 +165,18 @@ export default async function OrganizerPage({
 
       <MergeOrganizer winnerId={o.id} winnerName={o.name} siblings={siblings} />
 
-      {full && (
-        <OrganizerProfile
-          id={o.id}
-          contacts={full.contacts}
-          initial={{
-            name: str(full.row.name), city: str(full.row.city),
-            state: str(full.row.state), website_url: str(full.row.website_url),
-            contact_email: str(full.row.contact_email),
-            category: str(full.row.category),
-            sports: str(full.row.sports) || 'unknown',
-            address: str(full.row.address), postal_code: str(full.row.postal_code),
-            courts: str(full.row.courts), offerings: str(full.row.offerings),
-            booking_platform: str(full.row.booking_platform),
-            phone: str(full.row.phone), email: str(full.row.email),
-            instagram: str(full.row.instagram), facebook: str(full.row.facebook),
-            tiktok: str(full.row.tiktok),
-            status: str(full.row.status) || 'prospect',
-            status_note: str(full.row.status_note),
-            next_action: str(full.row.next_action),
-            next_action_on: str(full.row.next_action_on),
-            notes: str(full.row.notes),
-            confidence_score: str(full.row.confidence_score),
-          }}
-        />
-      )}
-
-      <OrganizerVenues organizerId={o.id} linked={linkedVenues} allVenues={allVenues} />
-
-      {vague.length > 0 && (
-        <p className="panel tone-warn mt-6 p-4 text-sm">
-          {vague.length} of these {vague.length === 1 ? 'venue sits' : 'venues sit'} on an
-          approximate pin — placed from a ZIP code or a city rather than a street
-          address. Close enough for radius search, wrong on a map.
-        </p>
-      )}
-
-      {venues.length === 0 && (
-        <p className="panel mt-6 p-4 text-sm text-[color:var(--muted)]">
-          No events on this record yet.
-        </p>
-      )}
-
-      <div className="mt-6 grid gap-5">
-        {venues.map((v) => (
-          <section key={v.venue_id ?? 'none'} className="panel p-5">
-            <header className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="t-head text-base">
-                {v.venue_name ?? 'No venue recorded'}
-              </h2>
-              <span className="t-mono text-[11px] text-[color:var(--muted)]">
-                {v.events.length} {v.events.length === 1 ? 'event' : 'events'}
-              </span>
-            </header>
-
-            {v.venue_id ? (
-              <p className="mt-1 text-sm text-[color:var(--muted)]">
-                {[v.address_line, [v.city, v.state].filter(Boolean).join(', '), v.postal_code]
-                  .filter(Boolean)
-                  .join(' · ') || 'No address recorded'}
-                {v.geo_precision && v.geo_precision !== 'exact' && (
-                  <span className="t-mono ml-2 text-[10px] uppercase tracking-wider text-[color:var(--beach)]">
-                    {v.geo_precision} pin
-                  </span>
-                )}
-              </p>
-            ) : (
-              <p className="mt-1 text-sm text-[color:var(--beach)]">
-                These events have no venue at all, so they cannot appear in any
-                location search.
-              </p>
-            )}
-
-            <ul className="mt-3 grid gap-1">
-              {v.events.map((e) => (
-                <li key={e.id}>
-                  <Link
-                    href={`/admin/events/${e.id}`}
-                    target="_blank"
-                    rel="noopener"
-                    className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 rounded-lg px-2 py-1.5 hover:bg-[color:var(--raised)]"
-                  >
-                    <span className="min-w-0 text-sm">{e.name}</span>
-                    <span className="t-mono text-[11px] text-[color:var(--muted)]">
-                      {e.starts_on}
-                      {' · '}
-                      {e.status}
-                      {e.event_type !== 'tournament' && ` · ${e.event_type.replace('_', ' ')}`}
-                      {e.brackets === 0 && (
-                        <span style={{ color: 'var(--beach)' }}> · no brackets</span>
-                      )}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
+      <OrganizerProfile
+        id={o.id}
+        contacts={full.contacts}
+        sports={taxonomy.sports}
+        surfaces={taxonomy.surfaces}
+        offeringsNote={full.row.offerings ? String(full.row.offerings) : null}
+        venueAddresses={linkedVenues}
+        eventCount={total}
+        venuesSlot={venuesSlot}
+        historySlot={historySlot}
+        initial={initial}
+      />
 
       <DeleteOrganizer id={o.id} name={o.name} events={total} />
     </div>
