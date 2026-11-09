@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { organizerProfile, organizerProspect, organizerVenues } from '@/lib/organizers-admin';
+import { organizerProfile, organizerFull, organizerVenues } from '@/lib/organizers-admin';
 import { loadVenueOptions } from '@/lib/ref-data';
 import { MergeOrganizer } from '@/components/admin/MergeOrganizer';
 import { OrganizerVenues } from '@/components/admin/OrganizerVenues';
-import { OrganizerDetails } from '@/components/admin/OrganizerDetails';
+import { OrganizerProfile } from '@/components/admin/OrganizerProfile';
 import { DeleteOrganizer } from '@/components/admin/DeleteOrganizer';
 
 export const dynamic = 'force-dynamic';
@@ -32,10 +32,10 @@ export default async function OrganizerPage({
   const found = await organizerProfile(id);
   if (!found) notFound();
 
-  const [linkedVenues, allVenues, prospect] = await Promise.all([
+  const [linkedVenues, allVenues, full] = await Promise.all([
     organizerVenues(id),
     loadVenueOptions(),
-    organizerProspect(id),
+    organizerFull(id),
   ]);
 
   const { organizer: o, venues, total, siblings } = found;
@@ -57,13 +57,31 @@ export default async function OrganizerPage({
 
       <MergeOrganizer winnerId={o.id} winnerName={o.name} siblings={siblings} />
 
-      <OrganizerDetails
-        id={o.id}
-        name={o.name}
-        contactEmail={o.contact_email}
-        websiteUrl={o.website_url}
-        prospect={prospect}
-      />
+      {full && (
+        <OrganizerProfile
+          id={o.id}
+          contacts={full.contacts}
+          initial={{
+            name: str(full.row.name), city: str(full.row.city),
+            state: str(full.row.state), website_url: str(full.row.website_url),
+            contact_email: str(full.row.contact_email),
+            category: str(full.row.category),
+            sports: str(full.row.sports) || 'unknown',
+            address: str(full.row.address), postal_code: str(full.row.postal_code),
+            courts: str(full.row.courts), offerings: str(full.row.offerings),
+            booking_platform: str(full.row.booking_platform),
+            phone: str(full.row.phone), email: str(full.row.email),
+            instagram: str(full.row.instagram), facebook: str(full.row.facebook),
+            tiktok: str(full.row.tiktok),
+            status: str(full.row.status) || 'prospect',
+            status_note: str(full.row.status_note),
+            next_action: str(full.row.next_action),
+            next_action_on: str(full.row.next_action_on),
+            notes: str(full.row.notes),
+            confidence_score: str(full.row.confidence_score),
+          }}
+        />
+      )}
 
       <OrganizerVenues organizerId={o.id} linked={linkedVenues} allVenues={allVenues} />
 
@@ -141,4 +159,8 @@ export default async function OrganizerPage({
       <DeleteOrganizer id={o.id} name={o.name} events={total} />
     </div>
   );
+}
+/** The profile query returns unknowns; the form wants strings, '' for empty. */
+function str(v: unknown): string {
+  return v === null || v === undefined ? '' : String(v);
 }

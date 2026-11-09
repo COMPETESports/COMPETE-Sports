@@ -3,6 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { sql } from './db';
 import { isSignedIn } from './auth';
+import { PAGE_SIZE, ORGANIZER_STATUSES } from './organizer-fields';
+import type {
+  OrganizerListRow, OrganizerFilters, OrganizerContact, OrganizerProfileForm,
+} from './organizer-fields';
 
 /**
  * Organizer records, and putting the duplicates back together.
@@ -425,6 +429,80 @@ export async function mergeOrganizers(
     update partner_prospects set organizer_id = ${winnerId}
      where organizer_id = ${loserId}`;
 
+  // ---- after the merge of 9 Nov, the research has to follow too ----
+  // organizer_private cascades on delete, so without this the losing
+  // record's phone, notes, pipeline and call history would be destroyed
+  // by a merge. Everything the winner lacks is taken from the loser;
+  // nothing the winner already has is overwritten.
+  await sql`
+    insert into organizer_private (organizer_id)
+    values (${winnerId})
+    on conflict (organizer_id) do nothing`;
+
+  await sql`
+    update organizer_private w set
+      category     = coalesce(w.category,     l.category),
+      region       = coalesce(w.region,       l.region),
+      address      = coalesce(w.address,      l.address),
+      postal_code  = coalesce(w.postal_code,  l.postal_code),
+      phone        = coalesce(w.phone,        l.phone),
+      email        = coalesce(w.email,        l.email),
+      website      = coalesce(w.website,      l.website),
+      instagram    = coalesce(w.instagram,    l.instagram),
+      facebook     = coalesce(w.facebook,     l.facebook),
+      tiktok       = coalesce(w.tiktok,       l.tiktok),
+      social       = coalesce(w.social,       l.social),
+      courts       = coalesce(w.courts,       l.courts),
+      offerings    = coalesce(w.offerings,    l.offerings),
+      sports_basis = coalesce(w.sports_basis, l.sports_basis),
+      booking_platform = coalesce(w.booking_platform, l.booking_platform),
+      source_url   = coalesce(w.source_url,   l.source_url),
+      source_file  = coalesce(w.source_file,  l.source_file),
+      verified_at  = greatest(w.verified_at,  l.verified_at),
+      last_contacted_at = greatest(w.last_contacted_at, l.last_contacted_at),
+      next_action    = coalesce(w.next_action,    l.next_action),
+      next_action_on = least(w.next_action_on,    l.next_action_on),
+      status_note    = coalesce(w.status_note,    l.status_note),
+      -- A sport confirmed on either record is confirmed. 'unknown' only
+      -- survives if neither record knew.
+      sports = case when w.sports <> 'unknown' then w.sports else l.sports end,
+      -- Whichever record got further down the pipeline wins. Merging
+      -- must never walk a relationship backwards.
+      status = case
+        when (case w.status when 'partner' then 4 when 'in_conversation' then 3
+                            when 'contacted' then 2 when 'prospect' then 1 else 0 end)
+           >= (case l.status when 'partner' then 4 when 'in_conversation' then 3
+                            when 'contacted' then 2 when 'prospect' then 1 else 0 end)
+        then w.status else l.status end,
+      -- Notes are researched prose, so they are joined rather than one
+      -- of them being dropped.
+      notes = case
+        when coalesce(w.notes,'') = '' then l.notes
+        when coalesce(l.notes,'') = '' then w.notes
+        else w.notes || E'\n\n--- merged from ' || ${loser.name} || E' ---\n' || l.notes end,
+      updated_at = now()
+    from organizer_private l
+    where w.organizer_id = ${winnerId} and l.organizer_id = ${loserId}`;
+
+  // Named people follow. is_primary is cleared on the way across,
+  // because the winner may already have one and only one is allowed.
+  await sql`
+    update organizer_contacts set organizer_id = ${winnerId}, is_primary = false
+     where organizer_id = ${loserId}`;
+  // If that left the winner with contacts but no primary, promote the oldest.
+  await sql`
+    update organizer_contacts set is_primary = true
+     where id = (select id from organizer_contacts
+                  where organizer_id = ${winnerId}
+                  order by created_at limit 1)
+       and not exists (select 1 from organizer_contacts
+                        where organizer_id = ${winnerId} and is_primary)`;
+
+  // The call log follows the organization, not the record it was typed on.
+  await sql`
+    update prospect_interactions set organizer_id = ${winnerId}
+     where organizer_id = ${loserId}`;
+
   await sql`delete from organizers where id = ${loserId}`;
 
   revalidatePath('/admin/organizers');
@@ -436,4 +514,405 @@ export async function mergeOrganizers(
     ok: true,
     message: `Merged "${loser.name}" into "${winner.name}" — ${n} ${n === 1 ? 'event' : 'events'} moved.`,
   };
+}
+
+
+/* ---------------------------------------------------------------------
+ * The organizer list, after the merge of 9 Nov
+ * -------------------------------------------------------------------*/
+/**
+ * One searchable, filtered, paged list over every organization.
+ *
+ * Before the merge this table held ~300 records and listOrganizers()
+ * could load all of them, group them in memory and render the lot. After
+ * the merge it holds ~1,580, so that approach renders an unusable page.
+ * This is the replacement; listOrganizers() stays for the merge view,
+ * which genuinely does want every record at once.
+ *
+ * LEFT join, not inner: saveEvent creates an organizer by slug and does
+ * not create its organizer_private row, so a brand-new organizer typed
+ * into the event form would silently vanish from an inner join -- the
+ * exact failure this merge existed to end. Defaults below stand in until
+ * the row is written.
+ */
+export async function listOrganizersPaged(f: OrganizerFilters) {
+  if (!(await isSignedIn())) {
+    return { rows: [] as OrganizerListRow[], total: 0, page: 1, lastPage: 1 };
+  }
+
+  const page = Math.max(1, f.page ?? 1);
+  const offset = (page - 1) * PAGE_SIZE;
+
+  const where = [sql`true`];
+
+  if (f.q?.trim()) {
+    const like = `%${f.q.trim()}%`;
+    where.push(sql`(o.name ilike ${like} or o.city ilike ${like} or x.notes ilike ${like})`);
+  }
+  if (f.state) where.push(sql`o.state = ${f.state}`);
+  if (f.status) where.push(sql`coalesce(x.status, 'prospect') = ${f.status}`);
+
+  if (f.sports === 'volleyball') {
+    // "Volleyball" means anything that touches it, including rows where
+    // pickleball was simply never asked about. Excluding `volleyball?`
+    // here would hide hundreds of real volleyball venues behind a
+    // research artefact. Same rule as the CRM list.
+    where.push(sql`coalesce(x.sports, 'unknown') in ('volleyball','both','volleyball?')`);
+  } else if (f.sports) {
+    where.push(sql`coalesce(x.sports, 'unknown') = ${f.sports}`);
+  }
+
+  if (f.contactable === 'yes') {
+    where.push(sql`(coalesce(x.phone,'') <> '' or coalesce(x.email,'') <> ''
+                    or coalesce(o.contact_email,'') <> '')`);
+  } else if (f.contactable === 'no') {
+    where.push(sql`coalesce(x.phone,'') = '' and coalesce(x.email,'') = ''
+                   and coalesce(o.contact_email,'') = ''`);
+  }
+
+  if (f.events === 'yes') {
+    where.push(sql`exists (select 1 from events e where e.organizer_id = o.id)`);
+  } else if (f.events === 'no') {
+    where.push(sql`not exists (select 1 from events e where e.organizer_id = o.id)`);
+  }
+
+  // '0' is a real answer (Disqualified), so this cannot test truthiness.
+  if (f.confidence !== undefined && f.confidence !== '') {
+    where.push(sql`x.confidence_score = ${Number(f.confidence)}`);
+  }
+
+  if (f.review === 'yes') where.push(sql`x.needs_review`);
+
+  const clause = where.reduce((a, b) => sql`${a} and ${b}`);
+
+  // Default: anything with a date on it first, because a commitment made
+  // is the only thing here that can be missed. Then by pipeline stage,
+  // then whoever has been quiet longest. Carried over from the CRM list.
+  // 'confidence' instead leads with the most promising, for working a
+  // call list top-down. Unjudged records sink either way -- null is not
+  // a low score, it just has not been looked at.
+  const order = f.sort === 'confidence'
+    ? sql`order by x.confidence_score desc nulls last,
+           (x.next_action_on is not null and x.next_action_on <= current_date + 7) desc,
+           x.next_action_on asc nulls last,
+           o.name`
+    : sql`order by
+           (x.next_action_on is not null and x.next_action_on <= current_date + 7) desc,
+           x.next_action_on asc nulls last,
+           case coalesce(x.status, 'prospect')
+             when 'in_conversation' then 1 when 'partner' then 2
+             when 'contacted' then 3 when 'prospect' then 4 else 5 end,
+           x.last_contacted_at asc nulls first,
+           o.name`;
+
+  // The counts sit in the select list rather than in joins so Postgres
+  // evaluates them only for the 50 rows that survive the limit.
+  const rows = await sql<OrganizerListRow[]>`
+    select o.id, o.slug, o.name, o.city, o.state, o.website_url,
+           coalesce(x.status, 'prospect')   as status,
+           x.category,
+           coalesce(x.sports, 'unknown')    as sports,
+           x.phone,
+           coalesce(x.email, o.contact_email) as email,
+           x.verified_at::text,
+           x.last_contacted_at::text,
+           x.next_action,
+           x.next_action_on::text,
+           coalesce(x.needs_review, false)  as needs_review,
+           x.confidence_score,
+           coalesce(x.origin, 'manual')     as origin,
+           case when x.last_contacted_at is null then null
+                else extract(day from now() - x.last_contacted_at)::int end as days_quiet,
+           (select count(*)::int from prospect_interactions i where i.organizer_id = o.id) as touches,
+           (select count(*)::int from events e where e.organizer_id = o.id)                as events,
+           (select count(distinct e.venue_id)::int from events e where e.organizer_id = o.id) as venues,
+           (select count(*)::int from organizer_contacts c where c.organizer_id = o.id)    as contacts
+      from organizers o
+      left join organizer_private x on x.organizer_id = o.id
+     where ${clause}
+     -- Anything with a date on it comes first, because a commitment made
+     -- is the only thing here that can be missed. Then the ones already
+     -- in play, then everything untouched. Carried over from the CRM
+     -- list, which got this right.
+     ${order}
+     limit ${PAGE_SIZE} offset ${offset}
+  `;
+
+  const [{ total }] = await sql<{ total: number }[]>`
+    select count(*)::int as total
+      from organizers o
+      left join organizer_private x on x.organizer_id = o.id
+     where ${clause}
+  `;
+
+  return { rows: [...rows], total, page, lastPage: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
+}
+
+/** The four numbers that answer "where am I" before any filtering. */
+export async function organizerCounts() {
+  if (!(await isSignedIn())) {
+    return { total: 0, contactable: 0, working: 0, review: 0, with_events: 0 };
+  }
+  const [row] = await sql<{
+    total: number; contactable: number; working: number;
+    review: number; with_events: number;
+  }[]>`
+    select count(*)::int as total,
+           count(*) filter (
+             where coalesce(x.phone,'') <> '' or coalesce(x.email,'') <> ''
+                or coalesce(o.contact_email,'') <> ''
+           )::int as contactable,
+           count(*) filter (
+             where coalesce(x.status,'prospect') not in ('prospect','not_a_fit')
+           )::int as working,
+           count(*) filter (where coalesce(x.needs_review,false))::int as review,
+           count(*) filter (
+             where exists (select 1 from events e where e.organizer_id = o.id)
+           )::int as with_events
+      from organizers o
+      left join organizer_private x on x.organizer_id = o.id
+  `;
+  return row;
+}
+
+/** States that actually appear, with counts, for the filter dropdown. */
+export async function organizerStates() {
+  if (!(await isSignedIn())) return [];
+  const rows = await sql<{ state: string; n: number }[]>`
+    select state, count(*)::int as n
+      from organizers
+     where state is not null
+     group by state
+     order by state
+  `;
+  return [...rows];
+}
+
+
+/* ---------------------------------------------------------------------
+ * The organizer profile: one screen for one organization
+ * -------------------------------------------------------------------*/
+
+/** '' from a form input means "empty", which in the database is null. */
+function orNull(v: string | undefined): string | null {
+  const t = (v ?? '').trim();
+  return t === '' ? null : t;
+}
+
+/** Everything one organization is: public record, private record, people. */
+export async function organizerFull(id: string) {
+  if (!(await isSignedIn())) return null;
+
+  const [row] = await sql<Array<Record<string, unknown>>>`
+    select o.id, o.slug, o.name, o.city, o.state, o.website_url, o.contact_email,
+           coalesce(x.status, 'prospect')  as status,
+           coalesce(x.sports, 'unknown')   as sports,
+           x.category, x.address, x.postal_code, x.courts, x.offerings,
+           x.booking_platform, x.phone, x.email,
+           x.instagram, x.facebook, x.tiktok, x.social,
+           x.status_note, x.next_action, x.next_action_on::text,
+           x.notes, x.confidence_score, x.verified_at::text, x.last_contacted_at::text,
+           x.legacy_status, coalesce(x.needs_review, false) as needs_review,
+           coalesce(x.origin, 'manual') as origin
+      from organizers o
+      left join organizer_private x on x.organizer_id = o.id
+     where o.id = ${id}`;
+  if (!row) return null;
+
+  const contacts = await sql<OrganizerContact[]>`
+    select id, name, title, email, phone, notes, is_primary
+      from organizer_contacts
+     where organizer_id = ${id}
+     order by is_primary desc, created_at`;
+
+  return { row, contacts: [...contacts] };
+}
+
+/**
+ * Save the whole profile.
+ *
+ * Writes the five public fields to `organizers` and the rest to
+ * `organizer_private`, upserting the latter because an organizer created
+ * by the event form has no private row yet.
+ */
+export async function saveOrganizerProfile(
+  id: string,
+  f: OrganizerProfileForm,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+
+  const name = f.name.trim();
+  if (!name) return { ok: false, message: 'An organization needs a name.' };
+
+  // organizers.state is guarded by a two-letter check constraint, so a
+  // half-typed "Mis" has to be refused here rather than blow up as a
+  // database error the form cannot explain.
+  const state = orNull(f.state)?.toUpperCase() ?? null;
+  if (state !== null && !/^[A-Z]{2}$/.test(state)) {
+    return { ok: false, message: 'State must be the two-letter code, like MO.' };
+  }
+
+  if (!ORGANIZER_STATUSES.includes(f.status as (typeof ORGANIZER_STATUSES)[number])) {
+    return { ok: false, message: 'That is not one of the five statuses.' };
+  }
+
+  // '' means not yet judged. 0 is a decision, so it must survive as 0.
+  const raw = (f.confidence_score ?? '').trim();
+  const score = raw === '' ? null : Number(raw);
+  if (score !== null && (!Number.isInteger(score) || score < 0 || score > 5)) {
+    return { ok: false, message: 'Confidence has to be one of the six steps.' };
+  }
+
+  const due = orNull(f.next_action_on);
+  if (due !== null && !/^\d{4}-\d{2}-\d{2}$/.test(due)) {
+    return { ok: false, message: 'The next-action date needs to be a real date.' };
+  }
+
+  await sql`
+    update organizers set
+      name          = ${name},
+      city          = ${orNull(f.city)},
+      state         = ${state},
+      website_url   = ${orNull(f.website_url)},
+      contact_email = ${orNull(f.contact_email)},
+      updated_at    = now()
+    where id = ${id}`;
+
+  await sql`
+    insert into organizer_private (
+      organizer_id, category, sports, address, postal_code, courts, offerings,
+      booking_platform, phone, email, instagram, facebook, tiktok,
+      status, status_note, next_action, next_action_on, notes, confidence_score, origin
+    ) values (
+      ${id}, ${orNull(f.category)}, ${f.sports || 'unknown'}, ${orNull(f.address)},
+      ${orNull(f.postal_code)}, ${orNull(f.courts)}, ${orNull(f.offerings)},
+      ${orNull(f.booking_platform)}, ${orNull(f.phone)}, ${orNull(f.email)},
+      ${orNull(f.instagram)}, ${orNull(f.facebook)}, ${orNull(f.tiktok)},
+      ${f.status}, ${orNull(f.status_note)}, ${orNull(f.next_action)},
+      ${due}, ${orNull(f.notes)}, ${score}, 'manual'
+    )
+    on conflict (organizer_id) do update set
+      category = excluded.category, sports = excluded.sports,
+      address = excluded.address, postal_code = excluded.postal_code,
+      courts = excluded.courts, offerings = excluded.offerings,
+      booking_platform = excluded.booking_platform,
+      phone = excluded.phone, email = excluded.email,
+      instagram = excluded.instagram, facebook = excluded.facebook,
+      tiktok = excluded.tiktok,
+      status = excluded.status, status_note = excluded.status_note,
+      next_action = excluded.next_action, next_action_on = excluded.next_action_on,
+      notes = excluded.notes,
+      confidence_score = excluded.confidence_score,
+      -- Saving the profile by hand IS the verification. Same rule the
+      -- CRM form already used.
+      verified_at = now(),
+      updated_at = now()`;
+
+  revalidatePath(`/admin/organizers/${id}`);
+  revalidatePath('/admin/organizers');
+  revalidatePath('/');
+  return { ok: true, message: 'Saved and marked verified.' };
+}
+
+/** Add another person. The first one added becomes the primary. */
+export async function addOrganizerContact(
+  organizerId: string,
+  f: {
+    name: string; title?: string; email?: string; phone?: string;
+    notes?: string; is_primary?: boolean;
+  },
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  const name = f.name.trim();
+  if (!name) return { ok: false, message: 'A contact needs a name.' };
+
+  const [{ n }] = await sql<{ n: number }[]>`
+    select count(*)::int as n from organizer_contacts where organizer_id = ${organizerId}`;
+
+  // The first person added is the primary by default -- an organization
+  // with contacts and nobody marked is a gap you would only notice on a
+  // call. After that it is a deliberate choice on the form.
+  const primary = f.is_primary === true || n === 0;
+
+  // Only one primary is allowed, so the old one is stood down first;
+  // setting the new one first would be rejected by the database.
+  if (primary) {
+    await sql`
+      update organizer_contacts set is_primary = false
+       where organizer_id = ${organizerId} and is_primary`;
+  }
+
+  await sql`
+    insert into organizer_contacts (organizer_id, name, title, email, phone, notes, is_primary)
+    values (${organizerId}, ${name}, ${orNull(f.title)}, ${orNull(f.email)},
+            ${orNull(f.phone)}, ${orNull(f.notes)}, ${primary})`;
+
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  return { ok: true, message: `${name} added${primary ? ' as primary contact' : ''}.` };
+}
+
+export async function saveOrganizerContact(
+  contactId: string,
+  f: { name: string; title?: string; email?: string; phone?: string; notes?: string },
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  const name = f.name.trim();
+  if (!name) return { ok: false, message: 'A contact needs a name.' };
+
+  const rows = await sql<{ organizer_id: string }[]>`
+    update organizer_contacts set
+      name = ${name}, title = ${orNull(f.title)}, email = ${orNull(f.email)},
+      phone = ${orNull(f.phone)}, notes = ${orNull(f.notes)}, updated_at = now()
+    where id = ${contactId}
+    returning organizer_id`;
+  if (rows.length === 0) return { ok: false, message: 'That contact no longer exists.' };
+
+  revalidatePath(`/admin/organizers/${rows[0].organizer_id}`);
+  return { ok: true, message: 'Saved.' };
+}
+
+export async function deleteOrganizerContact(
+  contactId: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+
+  const rows = await sql<{ organizer_id: string; was_primary: boolean }[]>`
+    delete from organizer_contacts where id = ${contactId}
+    returning organizer_id, is_primary as was_primary`;
+  if (rows.length === 0) return { ok: false, message: 'That contact no longer exists.' };
+
+  // Never leave an organization with contacts but nobody marked primary.
+  if (rows[0].was_primary) {
+    await sql`
+      update organizer_contacts set is_primary = true
+       where id = (select id from organizer_contacts
+                    where organizer_id = ${rows[0].organizer_id}
+                    order by created_at limit 1)`;
+  }
+
+  revalidatePath(`/admin/organizers/${rows[0].organizer_id}`);
+  return { ok: true, message: 'Contact removed.' };
+}
+
+/**
+ * Promote someone to primary.
+ *
+ * Clears the old primary first: the database allows only one per
+ * organization, so setting the new one first would be rejected.
+ */
+export async function makeContactPrimary(
+  organizerId: string,
+  contactId: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+
+  await sql`
+    update organizer_contacts set is_primary = false
+     where organizer_id = ${organizerId} and is_primary and id <> ${contactId}`;
+  await sql`
+    update organizer_contacts set is_primary = true
+     where id = ${contactId} and organizer_id = ${organizerId}`;
+
+  revalidatePath(`/admin/organizers/${organizerId}`);
+  return { ok: true, message: 'Primary contact changed.' };
 }

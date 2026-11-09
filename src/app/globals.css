@@ -413,8 +413,15 @@
     color: var(--indoor);
   }
 
+  /* Square, not a pill. Tom, 9 Nov: the rounded ends limit how much text
+     you can see in a field. Same complaint as the textarea on 27 Oct, and
+     the same cause — rounded-full eats the first and last characters at
+     the curve, so a long URL or address reads as clipped. This is a
+     deliberate exception to the rounded direction of 2 Oct: that governs
+     lettering and containers, which stay rounded; the things you type
+     into are square so the text is all visible. */
   .field {
-    @apply w-full rounded-full border px-4 py-2.5 text-sm;
+    @apply w-full rounded-none border px-4 py-2.5 text-sm;
     border-color: var(--line-strong);
     background: var(--surface);
     color: var(--ink);
@@ -436,7 +443,7 @@
      Same palette and focus ring, square enough to hold paragraphs, and
      draggable so a long post can be seen whole. */
   .field-area {
-    @apply w-full rounded-xl border px-4 py-3 text-sm;
+    @apply w-full rounded-none border px-4 py-3 text-sm;
     border-color: var(--line-strong);
     background: var(--surface);
     color: var(--ink);
