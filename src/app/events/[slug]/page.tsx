@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getEventBySlug, getNearbyEvents } from '@/lib/queries';
+import { getEventBySlug, getLeagueSchedule, getNearbyEvents } from '@/lib/queries';
+import { today } from '@/lib/dates';
+import {
+  formatClock,
+  leagueStatus,
+  nightsLabel,
+  seasonLine,
+  underwayLabel,
+} from '@/lib/league';
 import {
   audienceLine,
   countdownLabel,
@@ -29,7 +37,11 @@ export async function generateMetadata({
   if (!event) return { title: 'Event not found' };
 
   const where = [event.city, event.state].filter(Boolean).join(', ');
-  const description = `${formatDate(event.starts_on)} in ${where}. ${audienceLine(event)}. ${
+  const when =
+    event.event_type === 'league' && event.league_days?.length
+      ? `${nightsLabel(event.league_days)} from ${formatDate(event.starts_on)}`
+      : formatDate(event.starts_on);
+  const description = `${when} in ${where}. ${audienceLine(event)}. ${
     event.division_names.length ? `Divisions: ${event.division_names.join(', ')}.` : ''
   }`.trim();
 
@@ -50,7 +62,23 @@ export default async function EventDetailPage({
   const event = await getEventBySlug(slug);
   if (!event) notFound();
 
-  const nearby = await getNearbyEvents(event);
+  const isLeague = event.event_type === 'league';
+  const [nearby, schedule] = await Promise.all([
+    getNearbyEvents(event),
+    isLeague ? getLeagueSchedule(event.id) : Promise.resolve([]),
+  ]);
+  const now = today();
+  const league = isLeague ? leagueStatus(event.league_nights, now) : null;
+  const statusChip = !league
+    ? countdownLabel(event.starts_on)
+    : league.phase === 'underway'
+      ? `Underway · ${underwayLabel(league)}`
+      : league.phase === 'finished'
+        ? 'Season over'
+        : `Starts ${countdownLabel(event.starts_on).toLowerCase()}`;
+  const nightLine = isLeague
+    ? [nightsLabel(event.league_days), formatClock(event.start_time)].filter(Boolean).join(' at ')
+    : '';
   const genders = [...new Set(event.genders)].map((g) => GENDER_LABELS[g] ?? g);
 
   const account = await currentAccount();
@@ -114,22 +142,23 @@ export default async function EventDetailPage({
           </Link>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
+            {isLeague && <span className="chip-accent">League</span>}
             {event.surface_names.map((name) => (
               <span key={name} className="chip-muted">
                 {name}
               </span>
             ))}
             <span className="chip-muted">{event.sport_name}</span>
-            <span className="chip-accent">
-              {countdownLabel(event.starts_on)}
-            </span>
+            <span className="chip-accent">{statusChip}</span>
           </div>
 
           <h1 className="t-head mt-3 max-w-3xl text-2xl leading-tight sm:text-4xl">
             {event.name}
           </h1>
           <p className="mt-3 text-base text-[color:var(--muted)]">
-            {formatDateRange(event.starts_on, event.ends_on)} · {venueLine(event)}
+            {[nightLine, formatDateRange(event.starts_on, event.ends_on), venueLine(event)]
+              .filter(Boolean)
+              .join(' · ')}
           </p>
 
           <div className="mt-6 flex flex-wrap gap-2">
@@ -178,6 +207,10 @@ export default async function EventDetailPage({
             </p>
           </section>
 
+          {isLeague && schedule.length > 0 && (
+            <LeagueScheduleSection schedule={schedule} today={now} next={league?.nextNight ?? null} />
+          )}
+
           {event.notes && (
             <section className="panel p-5">
               <h2 className="t-kicker mb-3 text-[color:var(--muted)]">From the organizer</h2>
@@ -222,13 +255,28 @@ export default async function EventDetailPage({
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="panel p-5">
-            <p className="t-kicker text-[color:var(--muted)]">Entry fee</p>
+            <p className="t-kicker text-[color:var(--muted)]">
+              {isLeague ? 'Fee for the season' : 'Entry fee'}
+            </p>
             <p className="t-head mt-1 text-2xl text-[color:var(--coral-ink)]">
               {formatMoney(event.entry_fee_cents, event.fee_basis)}
             </p>
 
             <dl className="mt-5 space-y-3 border-t-2 border-[color:var(--line)] pt-4">
-              <Detail label="Date" value={formatDateRange(event.starts_on, event.ends_on)} small />
+              {isLeague ? (
+                <>
+                  {nightLine && <Detail label="Plays" value={nightLine} small />}
+                  <Detail
+                    label="Season"
+                    value={[seasonLine({ ...event, start_time: null }), formatDateRange(event.starts_on, event.ends_on)]
+                      .filter(Boolean)
+                      .join(' · ')}
+                    small
+                  />
+                </>
+              ) : (
+                <Detail label="Date" value={formatDateRange(event.starts_on, event.ends_on)} small />
+              )}
               {event.registration_deadline && (
                 <Detail
                   label="Register by"
@@ -308,5 +356,57 @@ function Detail({
       <dt className="t-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--faint)]">{label}</dt>
       <dd className={`mt-1 ${small ? 'text-sm' : 'text-base'} text-[color:var(--muted)]`}>{value}</dd>
     </div>
+  );
+}
+
+/**
+ * Every scheduled night, including the ones it does not play.
+ *
+ * The skipped nights are the point: "no play 26 Nov -- Thanksgiving" answers
+ * the question a gap in the dates only raises, which is why 015 stores them
+ * rather than computing a clean run of weeks.
+ */
+function LeagueScheduleSection({
+  schedule,
+  today,
+  next,
+}: {
+  schedule: Array<{ plays_on: string; skipped: boolean; note: string | null }>;
+  today: string;
+  next: string | null;
+}) {
+  let night = 0;
+  return (
+    <section className="panel p-5" aria-labelledby="season-schedule">
+      <h2 id="season-schedule" className="t-kicker mb-4 text-[color:var(--muted)]">
+        Season schedule
+      </h2>
+      <ol className="divide-y-2 divide-[color:var(--line)]">
+        {schedule.map((row) => {
+          if (!row.skipped) night += 1;
+          const past = row.plays_on < today;
+          const isNext = row.plays_on === next;
+          return (
+            <li
+              key={row.plays_on}
+              className={`flex items-baseline justify-between gap-3 py-2 text-sm ${
+                past ? 'text-[color:var(--faint)]' : 'text-[color:var(--muted)]'
+              }`}
+            >
+              <span className={row.skipped ? 'line-through' : isNext ? 'font-semibold text-[color:var(--ink)]' : ''}>
+                {formatDate(row.plays_on, 'short')}
+              </span>
+              <span className="t-mono text-right text-[11px] uppercase tracking-wider">
+                {row.skipped
+                  ? `No play${row.note ? ` · ${row.note}` : ''}`
+                  : isNext
+                    ? `Next · night ${night}`
+                    : `Night ${night}`}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }

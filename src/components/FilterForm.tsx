@@ -5,6 +5,7 @@ import type { Facets, SearchFilters } from '@/lib/types';
 import { GENDER_LABELS } from '@/lib/types';
 import { RADIUS_MAX, RADIUS_MIN, RADIUS_STEP } from '@/lib/search-params';
 import { today } from '@/lib/dates';
+import { EVENT_TYPE_LABELS } from '@/lib/league';
 
 /**
  * The discovery filter panel.
@@ -52,6 +53,7 @@ export function FilterForm({
   const chosenFrom = filters.from && filters.from !== today() ? filters.from : null;
 
   const activeCount =
+    filters.types.length +
     filters.surfaces.length +
     filters.formats.length +
     filters.genders.length +
@@ -126,10 +128,24 @@ export function FilterForm({
         <div
           className={
             landing
-              ? 'mt-7 grid items-start gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-4'
+              ? 'mt-7 grid items-start gap-x-6 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
               : ''
           }
         >
+        {/* First, because it changes what every other answer means: a
+            player looking for a weekly league is not shopping for a
+            Saturday, and until 10 Nov had no way to say so. */}
+        <FacetGroup
+          legend="Event type"
+          name="type"
+          options={facets.types.map((t) => ({
+            ...t,
+            name: EVENT_TYPE_LABELS[t.slug] ?? t.slug,
+          }))}
+          selected={filters.types}
+          onToggle={submit}
+        />
+
         <FacetGroup
           legend="Surface"
           name="surface"

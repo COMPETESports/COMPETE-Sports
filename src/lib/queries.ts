@@ -18,6 +18,45 @@ function andAll(parts: Frag[]): Frag {
 }
 
 /**
+ * "Is this event on between `from` and `to`?" -- the one date test every
+ * public list uses. Added 10 Nov 2026 with leagues in search.
+ *
+ * A tournament is on if it starts in the window. A league is on if it
+ * PLAYS a night in the window: a Tuesday league that began in October is
+ * still on next Tuesday, and is not on "this weekend" even though its
+ * season spans it. Before this, every list tested `starts_on >= today`,
+ * so a league vanished from search the day after its first night and
+ * stayed gone for the rest of its season.
+ *
+ * A league with no stored nights (none yet, but an import could make one)
+ * falls back to the tournament test rather than disappearing.
+ */
+function playsBetween(from: string, to: string | null): Frag {
+  const upper = (col: Frag) => (to ? sql`${col} <= ${to}` : sql`true`);
+  return sql`(case
+    when event_type = 'league' and cardinality(league_nights) > 0 then exists (
+      select 1 from unnest(league_nights) as n(night)
+      where n.night >= ${from} and ${upper(sql`n.night`)}
+    )
+    else starts_on >= ${from} and ${upper(sql`starts_on`)}
+  end)`;
+}
+
+/**
+ * The date a list should sort an event by: a league's next night, anything
+ * else's start. Without it an underway league, whose start is in the
+ * past, would sit at the top of every date-sorted list forever.
+ */
+function nextOn(from: string): Frag {
+  return sql`(case
+    when event_type = 'league' and cardinality(league_nights) > 0 then coalesce(
+      (select min(n.night) from unnest(league_nights) as n(night) where n.night >= ${from}),
+      starts_on)
+    else starts_on
+  end)`;
+}
+
+/**
  * The Phase 1 discovery query.
  *
  * Location filtering runs a bounding box first so the planner can use the
@@ -34,8 +73,8 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
   // A text search looks back as well as forward when asked to: someone
   // searching an event by name wants to know it exists, and "that was in
   // November" beats an empty page. Every other search is upcoming only.
-  if (!filters.includePast) scope.push(sql`starts_on >= ${filters.from ?? today()}`);
-  if (filters.to) scope.push(sql`starts_on <= ${filters.to}`);
+  if (!filters.includePast) scope.push(playsBetween(filters.from ?? today(), filters.to));
+  else if (filters.to) scope.push(sql`starts_on <= ${filters.to}`);
 
   // Free text over the three names a person might type. One box, because
   // nobody knows whether what they remember is the event, the organizer or
@@ -92,6 +131,9 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
   }
 
   const selections: Frag[] = [];
+  // Event type is a selection, not scope, so the Tournaments / Leagues
+  // counts beside the checkboxes stay true when one of them is ticked.
+  if (filters.types.length) selections.push(sql`event_type = any(${filters.types})`);
   if (filters.surfaces.length) selections.push(sql`surface_slugs && ${filters.surfaces}`);
 
   // Format, gender and division are not three independent properties of an
@@ -182,11 +224,12 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
       or coalesce(city, '') ilike ${phrase} then 2
     else 3 end`;
 
+  const when = filters.includePast ? sql`starts_on` : nextOn(filters.from ?? today());
   const order =
     filters.sort === 'distance' && origin
-      ? sql`${distance} asc nulls last, starts_on asc`
+      ? sql`${distance} asc nulls last, ${when} asc`
       : filters.sort === 'price'
-        ? sql`entry_fee_cents asc nulls last, starts_on asc`
+        ? sql`entry_fee_cents asc nulls last, ${when} asc`
         : filters.includePast
           ? // Looking back, so the most recent one is the one they mean.
             sql`starts_on desc, name asc`
@@ -195,8 +238,8 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
               // the whole phrase inside the event's own name is almost
               // certainly the one they typed, then the phrase anywhere
               // else, then everything the subsequence swept up.
-              sql`${relevance} asc, starts_on asc, name asc`
-            : sql`starts_on asc, name asc`;
+              sql`${relevance} asc, ${when} asc, name asc`
+            : sql`${when} asc, name asc`;
 
   const offset = (filters.page - 1) * PAGE_SIZE;
 
@@ -235,14 +278,21 @@ export async function getFacetsForSport(sportSlug: string): Promise<Facets> {
     andAll([
       sql`status = 'approved'`,
       sql`sport_slug = ${sportSlug}`,
-      sql`starts_on >= ${today()}`,
+      playsBetween(today(), null),
     ]),
     sportSlug,
   );
 }
 
 async function loadFacets(scopeWhere: Frag, sportSlug: string): Promise<Facets> {
-  const [surfaces, formats, genders, divisions] = await Promise.all([
+  const [types, surfaces, formats, genders, divisions] = await Promise.all([
+    sql<FacetOption[]>`
+      with scoped as (select * from event_discovery where ${scopeWhere})
+      select t.slug, t.slug as name, count(e.id)::int as count
+      from (values ('tournament'),('league'),('open_play')) as t(slug)
+      left join scoped e on e.event_type = t.slug
+      group by t.slug
+      order by array_position(array['tournament','league','open_play'], t.slug)`,
     sql<FacetOption[]>`
       with scoped as (select * from event_discovery where ${scopeWhere})
       select s.slug, s.name, count(e.id)::int as count
@@ -299,6 +349,7 @@ async function loadFacets(scopeWhere: Frag, sportSlug: string): Promise<Facets> 
   // A facet nobody is running is noise on the page, not a useful choice.
   const used = (xs: FacetOption[]) => xs.filter((x) => x.count > 0);
   return {
+    types: used(types),
     surfaces: used(surfaces),
     formats: used(formats),
     genders: used(genders),
@@ -325,10 +376,10 @@ export async function getNearbyEvents(
     from event_discovery
     where status = 'approved'
       and id <> ${event.id}
-      and starts_on >= ${today()}
+      and ${playsBetween(today(), null)}
       and latitude is not null
       and miles_between(${event.latitude}, ${event.longitude}, latitude, longitude) <= 150
-    order by distance_miles asc, starts_on asc
+    order by distance_miles asc, ${nextOn(today())} asc
     limit ${limit}`;
   return rows.map(normalise);
 }
@@ -445,7 +496,7 @@ export async function getSiteStats() {
       count(distinct state)::int                      as states,
       count(distinct organizer_name)::int             as organizers
     from event_discovery
-    where status = 'approved' and starts_on >= ${today()}`;
+    where status = 'approved' and ${playsBetween(today(), null)}`;
   return row ?? { events: 0, states: 0, organizers: 0 };
 }
 
@@ -464,6 +515,10 @@ function normalise(row: DiscoveryEvent): DiscoveryEvent {
     genders: row.genders ?? [],
     division_slugs: row.division_slugs ?? [],
     division_names: row.division_names ?? [],
+    league_days: row.league_days ? row.league_days.map(Number) : null,
+    league_weeks: row.league_weeks === null || row.league_weeks === undefined ? null : Number(row.league_weeks),
+    playoffs: !!row.playoffs,
+    league_nights: asIsoDates(row.league_nights),
     distance_miles:
       row.distance_miles === null || row.distance_miles === undefined
         ? null
@@ -483,6 +538,31 @@ function asIsoDate(value: string | Date): string {
     ).padStart(2, '0')}`;
   }
   return String(value).slice(0, 10);
+}
+
+/**
+ * A `date[]` column. postgres.js parses it into Dates when it knows the
+ * array type and leaves the raw `{2026-11-17,...}` text when it does not,
+ * so both are handled rather than trusting one load path.
+ */
+function asIsoDates(value: unknown): string[] {
+  if (!value) return [];
+  const list: Array<string | Date> = Array.isArray(value)
+    ? value
+    : String(value).replace(/^\{|\}$/g, '').split(',').filter(Boolean);
+  return list.map(asIsoDate);
+}
+
+/** Every night a league is scheduled, skipped ones included, for its page. */
+export async function getLeagueSchedule(
+  eventId: string,
+): Promise<Array<{ plays_on: string; skipped: boolean; note: string | null }>> {
+  const rows = await sql<{ plays_on: string | Date; skipped: boolean; note: string | null }[]>`
+    select plays_on, skipped, note
+    from league_dates
+    where event_id = ${eventId}
+    order by plays_on`;
+  return rows.map((r) => ({ plays_on: asIsoDate(r.plays_on), skipped: r.skipped, note: r.note }));
 }
 
 export { today };
@@ -510,7 +590,7 @@ export async function getFeaturedEvents(
       from event_discovery
       where status = 'approved'
         and sport_slug = ${sportSlug}
-        and starts_on >= ${today()}
+        and ${playsBetween(today(), null)}
         and featured
         and (featured_until is null or featured_until >= ${today()})
       order by featured_rank nulls last, starts_on
@@ -521,7 +601,7 @@ export async function getFeaturedEvents(
       from event_discovery
       where status = 'approved'
         and sport_slug = ${sportSlug}
-        and starts_on >= ${today()}
+        and ${playsBetween(today(), null)}
         and id not in (select id from picked)
       order by
         (payout_text is not null) desc,
@@ -553,12 +633,12 @@ export async function getLocalEvents(
     from event_discovery
     where status = 'approved'
       and sport_slug = ${sportSlug}
-      and starts_on >= ${today()}
+      and ${playsBetween(today(), null)}
       and latitude is not null
       and latitude between ${box.minLat} and ${box.maxLat}
       and longitude between ${box.minLng} and ${box.maxLng}
       and miles_between(${lat}, ${lng}, latitude, longitude) <= ${radiusMiles}
-    order by starts_on, distance_miles
+    order by ${nextOn(today())}, distance_miles
     limit ${limit}`;
   return rows.map(normalise);
 }
@@ -593,10 +673,10 @@ export async function getRegionalEvents(
     from event_discovery
     where status = 'approved'
       and sport_slug = ${sportSlug}
-      and starts_on >= ${today()}
+      and ${playsBetween(today(), null)}
       and state = any(${stateCodes as string[]})
       and id <> all(${excluded as string[]}::uuid[])
-    order by starts_on
+    order by ${nextOn(today())}
     limit ${limit}`;
   return rows.map(normalise);
 }

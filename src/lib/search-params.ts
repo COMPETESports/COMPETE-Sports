@@ -65,6 +65,7 @@ export function parseFilters(params: RawParams): SearchFilters {
     includePast: false,
     from: isIsoDate(from) ? from : today(),
     to: isIsoDate(to) ? to : null,
+    types: asArray(params.type).filter((t) => ['tournament', 'league', 'open_play'].includes(t)),
     surfaces: asArray(params.surface),
     formats: asArray(params.format),
     // reverse_coed was missing until 21 Oct 2026, so a real gender on real
@@ -109,6 +110,7 @@ export function buildQuery(
 export function hasAnyFilter(f: SearchFilters): boolean {
   return (
     !!f.q ||
+    f.types.length > 0 ||
     f.surfaces.length > 0 ||
     f.formats.length > 0 ||
     f.genders.length > 0 ||

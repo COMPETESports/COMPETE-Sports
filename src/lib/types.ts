@@ -2,7 +2,7 @@ export interface DiscoveryEvent {
   id: string;
   slug: string;
   name: string;
-  event_type: 'tournament' | 'league';
+  event_type: 'tournament' | 'league' | 'open_play';
   starts_on: string;
   ends_on: string | null;
   registration_deadline: string | null;
@@ -35,6 +35,14 @@ export interface DiscoveryEvent {
   genders: string[];
   division_slugs: string[];
   division_names: string[];
+  /** Weekly tip-off for a league; the start for anything else. "19:00:00". */
+  start_time: string | null;
+  /** League only (015, surfaced by 023). 0 = Sunday. */
+  league_days: number[] | null;
+  league_weeks: number | null;
+  playoffs: boolean;
+  /** The dates a league actually plays, skipped nights left out. */
+  league_nights: string[];
   distance_miles: number | null;
 }
 
@@ -52,6 +60,8 @@ export interface FacetOption {
 }
 
 export interface Facets {
+  /** Tournament / league / open play. Added 10 Nov with leagues in search. */
+  types: FacetOption[];
   surfaces: FacetOption[];
   formats: FacetOption[];
   genders: FacetOption[];
@@ -76,6 +86,8 @@ export interface SearchFilters {
   includePast: boolean;
   from: string | null;
   to: string | null;
+  /** event_type values: tournament, league, open_play. */
+  types: string[];
   surfaces: string[];
   formats: string[];
   genders: string[];
