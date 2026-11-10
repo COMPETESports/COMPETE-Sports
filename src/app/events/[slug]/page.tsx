@@ -20,6 +20,7 @@ import {
   venueLine,
 } from '@/lib/format';
 import { EventCard } from '@/components/EventCard';
+import { AddToCalendar } from '@/components/AddToCalendar';
 import { SaveButton } from '@/components/account/SaveButton';
 import { currentAccount } from '@/lib/accounts';
 import { getRelation } from '@/lib/my-events';
@@ -172,9 +173,10 @@ export default async function EventDetailPage({
                 Register on organizer site ↗
               </a>
             )}
-            <a href={`/events/${event.slug}/calendar.ics`} className="btn-ghost">
-              Add to calendar
-            </a>
+            <AddToCalendar
+              event={event}
+              siteUrl={process.env.NEXT_PUBLIC_SITE_URL ?? 'https://joincompete.com'}
+            />
             <SaveButton
               eventId={event.id}
               relation={relation}

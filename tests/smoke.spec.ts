@@ -137,7 +137,11 @@ test('an event detail page shows the core details, a map link and a calendar lin
   await page.locator('a[href^="/events/"]').first().click();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.getByText('Who can play')).toBeVisible();
-  await expect(page.getByRole('link', { name: /Add to calendar/ })).toBeVisible();
+  // A menu since 10 Nov: the first event may be a league ("Add season to
+  // calendar"), so match either, open it, and check a calendar is offered.
+  await page.locator('summary', { hasText: /Add (season )?to calendar/ }).click();
+  await expect(page.getByRole('link', { name: /Google Calendar/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Download \.ics file/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Open in maps/ })).toBeVisible();
   await expect(page.getByText('Adult recreational event', { exact: true })).toBeVisible();
 });
