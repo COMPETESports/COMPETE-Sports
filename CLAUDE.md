@@ -1,7 +1,8 @@
 # COMPETE — working notes for Claude
 
-Read this first. It is the project's memory: what COMPETE is, what has
-already been decided, and the conventions that keep the codebase coherent.
+Read this first. It is the project's memory: what COMPETE is, how Tom
+works, what has already been decided, and the conventions that keep the
+codebase coherent.
 If something here conflicts with an instinct, this file wins — most of these
 lines exist because the obvious thing was tried and was wrong.
 
@@ -186,16 +187,30 @@ src/lib/
   compliance.ts     age-bracket audit + operator alerts
   map-scale.ts      the Communities map colour ramp
   legal.ts          entity, governing state, contact address
-supabase/           001 → 005, run in order
+  organizers-admin.ts  the organizer list, profile, merge, contacts, venues
+  organizer-fields.ts  types + constants for the above ('use server' split)
+  venues-admin.ts      venue list, merge, profile, delete
+  read-flyer.ts        the vision model that reads an event flyer
+  crm.ts               RETIRED 9 Nov — reads work, all writes refuse
+supabase/           001 → 022, run in order. 016 is DELETED, not missing —
+                    020 superseded it; the gap in the numbering is deliberate.
 scripts/            seed + the 2022-24 import pipeline
 tests/              *.spec.ts = Playwright, *.test.ts = node:test
 DEPLOY.md           step-by-step deployment
 ```
 
-The claude.ai Project holds the long-form docs: `decisions-locked.md`,
-`design-system.md`, `wireframe-review.md`, `history-merge.md`,
-`survey-findings.md`, `partner-crm-concept.md`, and the two build-status
-files.
+**The long-form docs are NOT files on disk.** They live in the claude.ai
+Project knowledge base and are read with the Projects tool
+(`project_read`), never with Read/Glob/Grep. A path like
+`claude/work-split.md` is a Project doc path, not a filesystem path —
+looking for it on disk finds nothing. A session not attached to the
+COMPETE SPORTS Project cannot see them at all, and should ask rather
+than guess.
+
+The ones worth reading, and only when a task needs them:
+`work-split.md` (everything outstanding, this week by day),
+`running-locally.md` (migrations and the dev server),
+`decisions-locked.md`, `design-system.md`, `dictionary.md`.
 
 ---
 
@@ -219,22 +234,58 @@ files.
 
 ---
 
-## State, as of 5 Oct 2026
+## How Tom works
 
-**Built and tested:** Phase 1 discovery, Phase 2 accounts/profiles, the
-2022-24 historical import (398 events, 295 organizations, 138 venues), the
-bracket model, the age-gate audit, and the neon redesign.
+- **Visual and kinesthetic learner.** Show him rather than describe.
+- **Any SQL or Terminal command** gets one sentence on what it does, then
+  the full how-to — which file, how to open it, where to paste it. Never
+  assume he knows a step. He has asked for this more than once.
+- He commits and pushes through **GitHub Desktop**. Claude's shell has no
+  git identity and cannot commit for him — hand him a summary line and a
+  description instead. Commit frequently; that is his standing rule.
+- **Progress update at the start and end of every session**, in the
+  build-progress page format.
+- Disagree *before* building, not after.
+- **Never run `npm install`** from Claude's Linux shell — it would replace
+  his macOS binaries. `tsc` runs fine; `npm run build` and the tests can
+  only run on his Mac.
+- **Migrations:** Claude writes the numbered `.sql`; Tom pastes it into the
+  Supabase SQL Editor himself. Claude never runs one.
 
-**Deploying now.** Supabase project → migrations 001-005 → seed locally →
-GitHub → Vercel (`.vercel.app` first, domain second).
+---
 
-**Next after deploy:** the partner CRM. Its first job is **contact
-enrichment, not pipeline management** — 258 of 295 organizations have no
-contact route at all, which is the real bottleneck. Google Places lookup on
-organization name + city should recover a meaningful share. Needs
-`NEXT_PUBLIC_GOOGLE_MAPS_KEY`.
+## State, as of 10 Nov 2026
 
-**Then:** organization pages + Follow (the organizer's reason to care, and
-the cold-call opener), free-text search, venue amenities, list/map toggle,
-and organizer self-serve submission with its division → format → skill
-cascade — which is the only way confirmed brackets ever arrive.
+**Live.** Deployed on Vercel, database on Supabase (East US). 568 events,
+4 of them in 2027. 1,581 organizations. 172 venues, 12 on an exact pin.
+hello@joincompete.com sends with SPF, DKIM and DMARC passing.
+
+**9 Nov — the organizer merge, the big one.** `partner_prospects` (1,310
+researched) and `organizers` (271 with events) became one table of 1,581.
+Everything private — phone, notes, pipeline, research provenance — moved
+to `organizer_private`, which has **no public read policy**. `organizers`
+stays publicly readable and holds only public identity: name, slug, city,
+state, website. `organizer_contacts` holds several named people per
+organization.
+
+**`partner_prospects` is FROZEN.** The `/admin/crm` screens are retired:
+removed from the nav, bannered, and all five write actions refuse. Reads
+still work so nothing is lost before the replacement has been used.
+
+**Migrations 001–022 are run.** 016 is absent on purpose: it was written
+on 3 Nov, never run, and 020 creates everything it would have added in
+the right place. It was deleted on 10 Nov rather than left lying around
+being mistaken for pending work. Git still has it; 020's header explains
+what it was for.
+
+**Also recent:** the flyer vision reader, Google Places venue lookup and
+exact pins, multi-sport and surfaces per organizer (022), a 0–5
+confidence scale separate from pipeline stage (021), creating a venue
+from Google and linking it in one step, and deleting a venue that holds
+no events.
+
+**Next, and it is the priority:** *leagues visible to players.*
+Submission has worked since 31 Oct; a player still cannot see a league in
+search. That is the whole gap between COMPETE being a very good CRM and
+being a product. After that: the public organizer page, and the 13
+confirmed 2027 events that are still unentered.
