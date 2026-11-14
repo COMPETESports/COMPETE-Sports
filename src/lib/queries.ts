@@ -1,6 +1,7 @@
 import { sql } from './db';
 import { boundingBox, geocode } from './geocode';
 import { today } from './dates';
+import { parseFilters } from './search-params';
 import type {
   DiscoveryEvent,
   FacetOption,
@@ -65,7 +66,15 @@ function nextOn(from: string): Frag {
  * scope, so the numbers beside each checkbox tell you what you would get
  * if you ticked it, rather than collapsing to zero as you narrow.
  */
-export async function searchEvents(filters: SearchFilters): Promise<SearchResult> {
+/**
+ * The WHERE clause behind a search, shared by the results list and the
+ * homepage map (10 Nov 2026) so the two can never disagree: the number on
+ * a state is exactly how many cards clicking it will show.
+ *
+ * `scopeWhere` is date + place + sport; facet counts are taken over it.
+ * `fullWhere` adds the ticked boxes.
+ */
+async function buildSearchWhere(filters: SearchFilters) {
   const origin = filters.near ? await geocode(filters.near) : null;
 
   const scope: Frag[] = [sql`status = 'approved'`, sql`sport_slug = ${filters.sport}`];
@@ -207,6 +216,12 @@ export async function searchEvents(filters: SearchFilters): Promise<SearchResult
 
   const scopeWhere = andAll(scope);
   const fullWhere = selections.length ? andAll([scopeWhere, ...selections]) : scopeWhere;
+
+  return { origin, scopeWhere, fullWhere };
+}
+
+export async function searchEvents(filters: SearchFilters): Promise<SearchResult> {
+  const { origin, scopeWhere, fullWhere } = await buildSearchWhere(filters);
 
   const distance = origin
     ? sql`miles_between(${origin.lat}, ${origin.lng}, latitude, longitude)`
@@ -400,13 +415,32 @@ export interface StateCount {
  * right now", which is a real and useful difference to a player deciding
  * whether a state is worth watching.
  */
-export async function getStateCounts(sportSlug: string): Promise<StateCount[]> {
+/**
+ * Events per state, for the map.
+ *
+ * `upcoming` is what the map colours by. Since 10 Nov it is counted with
+ * the search's own WHERE clause, so ticking "Leagues" or "Beach" on the
+ * homepage recolours the map to exactly those events -- and an underway
+ * league is counted, which the old `starts_on >= today` test missed.
+ *
+ * `total` stays everything ever listed there, unfiltered: it is what tells
+ * a state with a scene but nothing matching apart from one with nothing.
+ *
+ * `filters.state` is ignored. The map is how a state gets chosen; counting
+ * only the chosen one would grey out the rest of the country.
+ */
+export async function getStateCounts(
+  sportSlug: string,
+  filters?: SearchFilters,
+): Promise<StateCount[]> {
+  const f: SearchFilters = { ...(filters ?? parseFilters({})), sport: sportSlug, state: null, page: 1 };
+  const { fullWhere } = await buildSearchWhere(f);
   const rows = await sql<StateCount[]>`
     select
       state,
-      count(*) filter (where starts_on >= ${today()})::int as upcoming,
-      count(*)::int                                        as total,
-      count(distinct organizer_name)::int                  as organizers
+      count(*) filter (where ${fullWhere})::int                       as upcoming,
+      count(*)::int                                                   as total,
+      count(distinct organizer_name) filter (where ${fullWhere})::int as organizers
     from event_discovery
     where status = 'approved' and sport_slug = ${sportSlug} and state is not null
     group by state`;

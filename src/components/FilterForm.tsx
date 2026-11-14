@@ -82,7 +82,9 @@ export function FilterForm({
         id="filter-form"
         ref={formRef}
         method="get"
-        action="/events"
+        // The homepage's form comes back to the homepage, at the map, which
+        // recolours to the results (10 Nov). The search page's stays put.
+        action={landing ? '/#map' : '/events'}
         className={`${openOnMobile ? 'block' : 'hidden'} panel p-4 lg:block ${
           landing ? 'sm:p-6' : ''
         }`}
@@ -206,11 +208,11 @@ export function FilterForm({
              It is the only thing on the homepage that runs a search. */
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button type="submit" className="btn-primary">
-              Search events
+              Show on the map
             </button>
             {activeCount > 0 && (
               <>
-                <a href="/" className="btn-ghost">
+                <a href="/#map" className="btn-ghost">
                   Clear
                 </a>
                 <span className="t-mono text-[11px] text-[color:var(--faint)]">

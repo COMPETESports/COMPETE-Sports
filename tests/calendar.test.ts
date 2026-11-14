@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildIcs, calendarLinks, type CalendarEvent } from '../src/lib/calendar';
+import { buildIcs, calendarLinks, timezoneFor, type CalendarEvent } from '../src/lib/calendar';
 
 const base: CalendarEvent = {
   id: 'abc',
@@ -38,8 +38,9 @@ const unfold = (ics: string) => ics.replace(/\r\n /g, '');
 test('a league puts its whole season in the file: one entry per night it plays', () => {
   const ics = unfold(buildIcs({ event: base, siteUrl: site, schedule, now }));
   assert.equal(ics.match(/BEGIN:VEVENT/g)?.length, 3, 'the skipped night gets no entry');
-  assert.match(ics, /DTSTART:20261103T190000\r\n/);
-  assert.match(ics, /DTSTART:20261201T190000\r\n/);
+  assert.match(ics, /DTSTART;TZID=America\/Chicago:20261103T190000\r\n/);
+  assert.match(ics, /DTSTART;TZID=America\/Chicago:20261201T190000\r\n/);
+  assert.match(ics, /X-WR-TIMEZONE:America\/Chicago/);
   assert.doesNotMatch(ics, /20261124T/);
   assert.match(ics, /SUMMARY:Tuesday Coed Sixes · Night 3 of 3/);
   assert.match(ics, /No play: Nov 24 \(Thanksgiving\)/);
@@ -52,7 +53,7 @@ test('no end time is invented for a league', () => {
   const ics = buildIcs({ event: base, siteUrl: site, schedule, now });
   assert.doesNotMatch(ics, /DTEND/);
   const withEnd = buildIcs({ event: base, siteUrl: site, schedule, now, endTime: '21:00:00' });
-  assert.match(withEnd, /DTEND:20261103T210000/);
+  assert.match(withEnd, /DTEND;TZID=America\/Chicago:20261103T210000/);
 });
 
 test('a league with no stated time is all-day on each night', () => {
@@ -86,4 +87,22 @@ test('tournament links open a pre-filled entry', () => {
   const google = calendarLinks(t, site)[0].href;
   assert.ok(google.startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE'));
   assert.ok(google.includes('dates=20261205%2F20261206'));
+});
+
+test('a league night carries the venue timezone, so 6:30 PM stays 6:30 PM (Tom, 10 Nov)', () => {
+  const ics = buildIcs({ event: { ...base, start_time: '18:30:00' }, siteUrl: site, schedule, now });
+  // Floating times were read by Google as UTC: 6:30 PM became 12:30 PM in St. Louis.
+  assert.doesNotMatch(ics, /DTSTART:2026/);
+  assert.match(ics, /DTSTART;TZID=America\/Chicago:20261103T183000/);
+});
+
+test('split states use the venue longitude', () => {
+  assert.equal(timezoneFor('MO', null, null), 'America/Chicago');
+  assert.equal(timezoneFor('TN', 36.16, -86.78), 'America/Chicago'); // Nashville
+  assert.equal(timezoneFor('TN', 35.96, -83.92), 'America/New_York'); // Knoxville
+  assert.equal(timezoneFor('KY', 38.25, -85.76), 'America/New_York'); // Louisville
+  assert.equal(timezoneFor('FL', 30.42, -87.22), 'America/Chicago'); // Pensacola
+  assert.equal(timezoneFor('TX', 31.76, -106.49), 'America/Denver'); // El Paso
+  assert.equal(timezoneFor('AZ', null, null), 'America/Phoenix');
+  assert.equal(timezoneFor(null, null, null), null);
 });

@@ -13,7 +13,8 @@
 import { sql } from '../src/lib/db';
 import { projectToMap } from '../src/lib/project';
 import { MAP_VIEWBOX, US_STATES } from '../src/lib/us-states';
-import { DORMANT_STEP, EMPTY_STEP, SCALE } from '../src/lib/map-scale';
+import { BUCKETS, EMPTY_STEP } from '../src/lib/map-scale';
+import { MAP_REGIONS } from '../src/lib/map-regions';
 
 interface Row {
   [key: string]: unknown;
@@ -163,7 +164,8 @@ async function main() {
         bounds: s.bounds,
       })),
     },
-    scale: { steps: SCALE, dormant: DORMANT_STEP, empty: EMPTY_STEP },
+    // Region colours since 10 Nov 2026: see src/lib/map-scale.ts.
+    scale: { regions: MAP_REGIONS, buckets: BUCKETS, empty: EMPTY_STEP },
   };
 
   process.stdout.write(JSON.stringify(bundle));

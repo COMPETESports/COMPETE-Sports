@@ -60,7 +60,7 @@ test('the homepage leads with the map and filters, then the event rails', async 
     .check({ force: true });
   await page.waitForTimeout(400);
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('button', { name: 'Search events' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Show on the map' })).toBeVisible();
 
   await expect(page.getByRole('heading', { name: 'Featured events' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Events near you' })).toBeVisible();
@@ -83,6 +83,21 @@ test('the homepage leads with the map and filters, then the event rails', async 
 
   // The map is on the homepage now, not two clicks in.
   await expect(page.locator('svg path')).toHaveCount(51);
+});
+
+test('homepage filters recolour the map, and a state opens its events as cards', async ({
+  page,
+}) => {
+  // 10 Nov 2026: the homepage map links a state straight to its events as
+  // cards, carrying the filters, instead of to the Communities venue map.
+  await page.goto('/?surface=beach');
+  await expect(page.getByRole('heading', { name: /events? match/ })).toBeVisible();
+  const state = page.locator('#map a[aria-label*="matching"]').first();
+  await expect(state).toHaveAttribute('href', /^\/events\?state=[A-Z]{2}&.*surface=beach/);
+
+  await state.click();
+  await expect(page).toHaveURL(/\/events\?state=/);
+  expect(await page.locator('a[href^="/events/"]').count()).toBeGreaterThan(0);
 });
 
 test('a ZIP typed on the homepage fills Local and is remembered', async ({ page }) => {

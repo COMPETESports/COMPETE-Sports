@@ -11,12 +11,12 @@ import {
   getRegionalEvents,
   getStateCounts,
 } from '@/lib/queries';
-import { parseFilters } from '@/lib/search-params';
+import { buildQuery, hasAnyFilter, parseFilters, type RawParams } from '@/lib/search-params';
 import { geocode } from '@/lib/geocode';
 import { regionForState, type Region } from '@/lib/regions';
 import { currentAccount, getAthleteProfile } from '@/lib/accounts';
 import { HOME_ZIP_COOKIE, LOCAL_RADIUS_MILES } from '@/lib/home-location';
-import type { DiscoveryEvent, Facets } from '@/lib/types';
+import type { DiscoveryEvent, Facets, SearchFilters } from '@/lib/types';
 import type { StateCount } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
@@ -34,8 +34,18 @@ export const dynamic = 'force-dynamic';
  * then events ordered by how close they are to you — featured, local,
  * regional. Nothing above the fold asks to be read.
  */
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<RawParams>;
+}) {
   const sport = 'volleyball';
+
+  // The homepage filters submit back to the homepage (10 Nov 2026) and the
+  // map recolours to what they match, rather than sending the visitor off
+  // to a results list before they have seen where the matches are.
+  const params = await searchParams;
+  const filters = parseFilters({ ...params, sport });
 
   // Where "near you" comes from, in order of how much we trust it: the
   // signed-in player's profile — their ZIP and the radius they actually
@@ -68,7 +78,7 @@ export default async function HomePage() {
   const [featured, local, stateCounts, facets] = await Promise.all([
     getFeaturedEvents(sport, 3),
     origin ? getLocalEvents(sport, origin.lat, origin.lng, radius, 6) : Promise.resolve([]),
-    getStateCounts(sport),
+    getStateCounts(sport, filters),
     getFacetsForSport(sport),
   ]);
 
@@ -89,7 +99,7 @@ export default async function HomePage() {
   return (
     <>
       <Masthead />
-      <MapAndFilters sport={sport} counts={stateCounts} facets={facets} />
+      <MapAndFilters sport={sport} counts={stateCounts} facets={facets} filters={filters} params={params} />
       <FeaturedRail events={featured} />
       <LocalRail
         events={local}
@@ -132,19 +142,49 @@ function MapAndFilters({
   sport,
   counts,
   facets,
+  filters,
+  params,
 }: {
   sport: string;
   counts: StateCount[];
   facets: Facets;
+  filters: SearchFilters;
+  params: RawParams;
 }) {
-  // The landing panel is a plain GET form posting to /events, so no filter
-  // state needs to live here — defaults are enough, and the URL the visitor
-  // lands on is shareable.
-  const filters = parseFilters({});
+  const filtered = hasAnyFilter(filters);
+  const matching = counts.reduce((n, c) => n + c.upcoming, 0);
+
+  // The filters, carried onto every state link and the "see them" link, so
+  // the cards a visitor lands on are exactly the ones the map counted.
+  // `state` is dropped: the state comes from whichever one they click.
+  const query = buildQuery(params, { state: null, page: null, sport: null }).replace(/^\?/, '');
 
   return (
-    <section className="wrap py-9 sm:py-11">
-      <StateMap sport={sport} counts={counts} />
+    <section id="map" className="wrap scroll-mt-4 py-9 sm:py-11">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="t-kicker" style={{ color: 'var(--grape)' }}>
+            {filtered ? 'Your filters' : 'Pick a state'}
+          </p>
+          <h2 className="t-display mt-1.5 text-2xl sm:text-3xl">
+            {filtered
+              ? `${matching} ${matching === 1 ? 'event matches' : 'events match'}`
+              : 'Where the events are'}
+          </h2>
+        </div>
+        {filtered && (
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/events${query ? `?${query}` : ''}`} className="btn-primary">
+              See them as cards
+            </Link>
+            <Link href="/#map" className="btn-ghost">
+              Clear filters
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <StateMap sport={sport} counts={counts} linkQuery={query} filtered={filtered} />
 
       <div className="mt-8">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">

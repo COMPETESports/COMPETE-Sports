@@ -33,6 +33,8 @@ export interface CalendarEvent {
   city: string | null;
   state: string | null;
   postal_code: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   format_names: string[];
   division_names: string[];
 }
@@ -152,20 +154,25 @@ export function buildIcs(input: CalendarInput): string {
     head.push(`X-WR-CALNAME:${escapeIcs(event.name)}`);
     head.push('REFRESH-INTERVAL;VALUE=DURATION:PT12H');
     head.push('X-PUBLISHED-TTL:PT12H');
+    const tz = timezoneFor(event.state, event.latitude ?? null, event.longitude ?? null);
+    if (tz) head.push(`X-WR-TIMEZONE:${tz}`);
   }
 
   const events: string[][] = [];
 
   if (isLeague && nights.length) {
-    // Times are FLOATING -- no timezone -- so 7:00 PM shows as 7:00 PM
-    // wherever the player's calendar is set. COMPETE does not store a
-    // venue's timezone, and a local league is played in local time.
+    // Times carry the VENUE's timezone. They were "floating" (no zone) at
+    // first, meant to read as local time anywhere -- but Google treats a
+    // floating time in a subscribed calendar as UTC, so Tom's 6:30 PM
+    // Monday league landed at 12:30 PM (10 Nov). See timezoneFor().
     //
     // No end time is invented. Leagues do not record one, and a guessed
     // "9pm" would sit in a player's calendar looking like a fact. Without
     // one, a timed entry has no length and an untimed one is all-day.
     const start = clock(event.start_time);
     const end = clock(input.endTime);
+    const tz = timezoneFor(event.state, event.latitude ?? null, event.longitude ?? null);
+    const at = tz ? `;TZID=${tz}` : '';
     const desc = description(input, [skippedLine(input)].filter((x): x is string => !!x));
 
     nights.forEach((night, i) => {
@@ -177,8 +184,8 @@ export function buildIcs(input: CalendarInput): string {
         `DTSTAMP:${stamp}`,
       ];
       if (start) {
-        lines.push(`DTSTART:${compact(night)}T${start}`);
-        if (end && end > start) lines.push(`DTEND:${compact(night)}T${end}`);
+        lines.push(`DTSTART${at}:${compact(night)}T${start}`);
+        if (end && end > start) lines.push(`DTEND${at}:${compact(night)}T${end}`);
       } else {
         lines.push(`DTSTART;VALUE=DATE:${compact(night)}`, `DTEND;VALUE=DATE:${dayAfter(night)}`);
       }
@@ -312,6 +319,54 @@ export function calendarLinks(event: CalendarEvent, siteUrl: string): CalendarLi
       hint: 'For any other calendar app',
     },
   ];
+}
+
+/**
+ * The IANA timezone a venue is in, from its state -- refined by longitude
+ * in the states a zone line runs through. COMPETE stores no timezone, and
+ * every venue has a state, so this is the most it can know honestly.
+ *
+ * The cut-offs are approximate lines, not county borders: a venue within
+ * a few miles of a zone boundary can come out on the wrong side. Without
+ * coordinates, a split state gets the zone most of its people live in.
+ * Null for an unknown state -- the time is then written without a zone.
+ */
+export function timezoneFor(
+  state: string | null,
+  latitude: number | null,
+  longitude: number | null,
+): string | null {
+  const st = (state ?? '').toUpperCase();
+  const lng = longitude;
+  const west = (cut: number) => lng !== null && lng < cut;
+  const east = (cut: number) => lng !== null && lng > cut;
+  const E = 'America/New_York';
+  const C = 'America/Chicago';
+  const M = 'America/Denver';
+  const P = 'America/Los_Angeles';
+
+  switch (st) {
+    // Split states. Each line is roughly where the zone boundary runs.
+    case 'FL': return west(-85.0) ? C : E; // panhandle west of the Apalachicola
+    case 'TN': return east(-85.5) ? E : C; // East Tennessee
+    case 'KY': return east(-86.0) ? E : C; // Louisville and east
+    case 'IN': return west(-87.0) ? C : E; // Gary and Evansville corners
+    case 'TX': return west(-104.5) ? M : C; // El Paso
+    case 'KS': return west(-101.5) ? M : C;
+    case 'NE': return west(-101.5) ? M : C;
+    case 'SD': return west(-100.6) ? M : C;
+    case 'ND': return west(-101.5) ? M : C;
+    case 'ID': return latitude !== null && latitude > 45.5 ? P : M; // the panhandle
+    case 'OR': return east(-117.5) ? M : P; // Malheur County
+    case 'AZ': return 'America/Phoenix'; // no daylight saving
+    case 'AK': return 'America/Anchorage';
+    case 'HI': return 'Pacific/Honolulu';
+  }
+  if (['CT', 'DC', 'DE', 'GA', 'MA', 'MD', 'ME', 'MI', 'NC', 'NH', 'NJ', 'NY', 'OH', 'PA', 'RI', 'SC', 'VA', 'VT', 'WV'].includes(st)) return E;
+  if (['AL', 'AR', 'IA', 'IL', 'LA', 'MN', 'MO', 'MS', 'OK', 'WI'].includes(st)) return C;
+  if (['CO', 'MT', 'NM', 'UT', 'WY'].includes(st)) return M;
+  if (['CA', 'NV', 'WA'].includes(st)) return P;
+  return null;
 }
 
 /** RFC 5545 escaping for text values. */

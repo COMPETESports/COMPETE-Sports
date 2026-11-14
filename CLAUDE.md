@@ -128,8 +128,12 @@ Short version — do not rebuild these without Tom reopening them:
 
 **Colour is semantic.** Each playing surface owns a neon hue everywhere it
 appears: beach orange, grass green, indoor blue, turf purple (also the
-accent). Never reassign; a fifth surface needs a fifth hue. The map ramp uses
-violet precisely because the three primaries are spoken for.
+accent). Never reassign; a fifth surface needs a fifth hue. **One exception,
+Tom's call on 10 Nov 2026: the US map.** It colours states by Census region
+(Northeast teal, Midwest orange, South purple, Pacific lime, Mountain red),
+shaded by event count. It holds because the map carries no surface chips and
+its legend names the regions. See `map-scale.ts` and `map-regions.ts`; do
+not let region hues leak anywhere else.
 
 **Measure contrast, do not eyeball it.** Every pairing in `globals.css` has a
 recorded ratio. Three failed a first draft at ~4.4 and were adjusted. There
@@ -185,7 +189,9 @@ src/lib/
   queries.ts        discovery search, facets, bracket-aware filtering
   accounts.ts       sessions, registration, profiles, consent
   compliance.ts     age-bracket audit + operator alerts
-  map-scale.ts      the Communities map colour ramp
+  map-scale.ts      the US map's colours: region hue, shaded by count
+  map-regions.ts    Census regions for the map (NOT regions.ts, the rail's 8)
+  calendar.ts       .ics files + Google/Apple/Outlook links; league = whole season
   legal.ts          entity, governing state, contact address
   organizers-admin.ts  the organizer list, profile, merge, contacts, venues
   organizer-fields.ts  types + constants for the above ('use server' split)
