@@ -117,12 +117,21 @@ async function vocabulary(sportSlug: string) {
 function buildPrompt(
   vocab: Awaited<ReturnType<typeof vocabulary>>,
   today: string,
-  source: 'image' | 'text',
+  source: { images: number; page: boolean },
 ) {
   const list = (rows: { slug: string; name: string }[]) =>
     rows.map((r) => `${r.slug} (${r.name})`).join(', ');
 
-  return `You are reading ${source === 'image' ? 'a flyer image' : 'a pasted announcement'} for an adult recreational volleyball event. Your output pre-fills a submission form that a person checks line by line before saving.
+  const what =
+    source.images > 1
+      ? `${source.images} images of the SAME event -- screenshots or flyer pages that together carry its details. Combine what they say into one event; where two images disagree, omit the field and mention the conflict in notes`
+      : source.images === 1
+        ? 'a flyer image'
+        : source.page
+          ? 'the text of an event web page'
+          : 'a pasted announcement';
+
+  return `You are reading ${what} for an adult recreational volleyball event. Your output pre-fills a submission form that a person checks line by line before saving.
 
 Return ONLY a JSON object. No prose, no markdown fence.
 
@@ -164,10 +173,19 @@ Rules:
 - If the source is not an event announcement at all, return {}.`;
 }
 
+/** Most images per read. Each costs about a cent; five covers a flyer
+ *  front and back plus three screenshots of a long post. */
+const MAX_IMAGES = 5; // also in PasteBox.tsx -- a 'use server' file may only export async functions
+
 export async function readFlyer(input: {
+  /** Several images of the same event, read together (14 Nov 2026). */
+  images?: { base64: string; mediaType: string }[];
+  /** Single-image form, kept so older callers still work. */
   imageBase64?: string;
   imageMediaType?: string;
   text?: string;
+  /** An event web page to fetch and read as text. */
+  url?: string;
   sport?: string;
 }): Promise<FlyerReadResult> {
   if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
@@ -181,30 +199,48 @@ export async function readFlyer(input: {
     };
   }
 
-  const hasImage = Boolean(input.imageBase64 && input.imageMediaType);
-  const hasText = Boolean(input.text && input.text.trim().length > 20);
+  const images = [
+    ...(input.images ?? []),
+    ...(input.imageBase64 && input.imageMediaType
+      ? [{ base64: input.imageBase64, mediaType: input.imageMediaType }]
+      : []),
+  ].filter((i) => i.base64 && /^image\/(jpeg|png|gif|webp)$/.test(i.mediaType));
+  if (images.length > MAX_IMAGES) {
+    return { ok: false, message: `Up to ${MAX_IMAGES} images at a time.` };
+  }
+
+  // A link is fetched here, on the server, and read as text -- which means
+  // its quotes CAN be checked against what the page says, unlike an image.
+  let pageText = '';
+  const url = input.url?.trim();
+  if (url) {
+    const page = await fetchPageText(url);
+    if (!page.ok) return { ok: false, message: page.message };
+    pageText = page.text;
+  }
+
+  const sourceText = [input.text?.trim(), pageText].filter(Boolean).join('\n\n');
+  const hasImage = images.length > 0;
+  const hasText = sourceText.length > 20;
   if (!hasImage && !hasText) {
-    return { ok: false, message: 'Give it a flyer image or some text to read.' };
+    return { ok: false, message: 'Give it a flyer image, a link or some text to read.' };
   }
 
   const sport = input.sport || 'volleyball';
   const vocab = await vocabulary(sport);
   const today = new Date().toISOString().slice(0, 10);
-  const prompt = buildPrompt(vocab, today, hasImage ? 'image' : 'text');
+  const prompt = buildPrompt(vocab, today, { images: images.length, page: Boolean(pageText) });
 
   const content: unknown[] = [];
-  if (hasImage) {
+  images.forEach((img, i) => {
+    if (images.length > 1) content.push({ type: 'text', text: `Image ${i + 1} of ${images.length}:` });
     content.push({
       type: 'image',
-      source: {
-        type: 'base64',
-        media_type: input.imageMediaType,
-        data: input.imageBase64,
-      },
+      source: { type: 'base64', media_type: img.mediaType, data: img.base64 },
     });
-  }
+  });
   if (hasText) {
-    content.push({ type: 'text', text: `Source text:\n\n${input.text}` });
+    content.push({ type: 'text', text: `Source text:\n\n${sourceText}` });
   }
   content.push({ type: 'text', text: prompt });
 
@@ -275,7 +311,7 @@ export async function readFlyer(input: {
   const missing: string[] = [];
   const quotes: Record<string, string> = {};
 
-  const sourceFlat = hasText && !hasImage ? flatten(input.text ?? '') : null;
+  const sourceFlat = hasText && !hasImage ? flatten(sourceText) : null;
 
   /** The rule, in one place: no quote, or a quote that is not in the
    *  source when we can check, means the field does not get used. */
@@ -385,6 +421,15 @@ export async function readFlyer(input: {
   takeList('formats', validFormats);
   takeList('divisions', validDivisions);
 
+  // The link Tom pasted is, by definition, a page about this event. Used
+  // only when the page itself named no better registration link.
+  if (url && pageText && !filled.includes('event_page_url')) {
+    fields.event_page_url = url;
+    filled.push('event_page_url');
+    quotes.event_page_url = 'the link you pasted';
+    found.push(`${LABELS.event_page_url}: ${url} (the link you pasted)`);
+  }
+
   if (!filled.length) {
     return {
       ok: true,
@@ -405,4 +450,145 @@ export async function readFlyer(input: {
   }
 
   return { ok: true, fields, filled, found, missing, quotes, verified: Boolean(sourceFlat) };
+}
+
+/* ------------------------------------------------------------- web pages */
+
+/**
+ * Fetch a web page and reduce it to readable text.
+ *
+ * Three kinds of page cannot be read, and each gets a plain answer rather
+ * than an empty form:
+ * - Facebook and Instagram show a sign-in page to anything that is not a
+ *   logged-in person, so the reader would get "Log in" instead of the post.
+ *   Screenshots are the way in for those.
+ * - Pages that build themselves with JavaScript arrive nearly empty.
+ * - Anything on a private network is refused outright, so this box can
+ *   never be pointed at a machine inside Vercel's or anyone's network.
+ */
+async function fetchPageText(
+  raw: string,
+): Promise<{ ok: true; text: string } | { ok: false; message: string }> {
+  let target: URL;
+  try {
+    target = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+  } catch {
+    return { ok: false, message: 'That does not look like a web address.' };
+  }
+  if (target.protocol !== 'https:' && target.protocol !== 'http:') {
+    return { ok: false, message: 'Only web addresses (http or https) can be read.' };
+  }
+
+  const host = target.hostname.toLowerCase();
+  if (/(^|\.)(facebook\.com|fb\.com|fb\.me|instagram\.com)$/.test(host)) {
+    return {
+      ok: false,
+      message:
+        'Facebook and Instagram only show posts to people who are signed in, so the reader would get their sign-in page instead of the event. Take screenshots of the post and add them as images instead — you can add up to five.',
+    };
+  }
+  if (!(await isPublicHost(host))) {
+    return { ok: false, message: 'That address is not a public website.' };
+  }
+
+  let html: string;
+  try {
+    const res = await fetch(target, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10_000),
+      headers: {
+        // Some sites refuse requests that do not look like a browser.
+        'user-agent': 'Mozilla/5.0 (compatible; COMPETE event reader; +https://joincompete.com)',
+        accept: 'text/html,application/xhtml+xml',
+      },
+    });
+    if (!res.ok) {
+      return { ok: false, message: `That page answered with an error (HTTP ${res.status}). Try screenshots instead.` };
+    }
+    const type = res.headers.get('content-type') ?? '';
+    if (!type.includes('html') && !type.includes('text')) {
+      return { ok: false, message: 'That link is not a web page. If it is an image or PDF, save it and add it as an image.' };
+    }
+    html = (await res.text()).slice(0, 2_000_000);
+  } catch (err) {
+    const timedOut = err instanceof Error && err.name === 'TimeoutError';
+    return {
+      ok: false,
+      message: timedOut
+        ? 'That page took too long to answer. Try again, or use screenshots.'
+        : 'Could not reach that page. Check the link, or use screenshots.',
+    };
+  }
+
+  const text = htmlToText(html).slice(0, 30_000);
+  if (text.length < 80) {
+    return {
+      ok: false,
+      message:
+        'That page has almost no text until it runs in a browser, so there is nothing to read. Take screenshots of it instead.',
+    };
+  }
+  return { ok: true, text };
+}
+
+/** Title, description and the visible text of a page, without the markup. */
+function htmlToText(html: string): string {
+  const meta = (name: string) =>
+    new RegExp(
+      `<meta[^>]+(?:property|name)=["']${name}["'][^>]*content=["']([^"']*)["']`,
+      'i',
+    ).exec(html)?.[1] ?? '';
+  const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] ?? '';
+
+  const body = html
+    .replace(/<(script|style|noscript|svg|template)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<(br|\/p|\/div|\/li|\/h[1-6]|\/tr)[^>]*>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ');
+
+  return [title, meta('og:title'), meta('og:description'), meta('description'), body]
+    .map(decodeEntities)
+    .join('\n')
+    .replace(/[ \t ]+/g, ' ')
+    .replace(/\s*\n\s*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function decodeEntities(s: string): string {
+  const named: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ndash: '–', mdash: '—', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“' };
+  return s
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&([a-z]+);/gi, (m, n) => named[n.toLowerCase()] ?? m);
+}
+
+/** False for localhost, private and link-local addresses -- checked after
+ *  DNS, so a public-looking name that points inside a network is refused. */
+async function isPublicHost(host: string): Promise<boolean> {
+  if (host === 'localhost' || host.endsWith('.local') || host.endsWith('.internal')) return false;
+  const { lookup } = await import('node:dns/promises');
+  let addresses: { address: string }[];
+  try {
+    addresses = await lookup(host, { all: true });
+  } catch {
+    return false;
+  }
+  return addresses.length > 0 && addresses.every(({ address }) => !isPrivateIp(address));
+}
+
+function isPrivateIp(ip: string): boolean {
+  if (ip.includes(':')) {
+    const v6 = ip.toLowerCase();
+    if (v6.startsWith('::ffff:')) return isPrivateIp(v6.slice(7));
+    return v6 === '::1' || v6 === '::' || v6.startsWith('fc') || v6.startsWith('fd') || v6.startsWith('fe80');
+  }
+  const [a, b] = ip.split('.').map(Number);
+  return (
+    a === 10 || a === 127 || a === 0 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 100 && b >= 64 && b <= 127)
+  );
 }

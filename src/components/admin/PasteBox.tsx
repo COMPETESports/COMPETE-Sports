@@ -27,9 +27,39 @@ import { FIELD_LABELS as LABELS } from '@/lib/field-labels';
  *  would blow past the server action's body limit. */
 const MAX_EDGE = 1568;
 
-async function downscale(file: File): Promise<{ base64: string; mediaType: string }> {
+/** Most images per read. Matches MAX_IMAGES in read-flyer.ts. */
+const MAX_IMAGES = 5;
+
+/**
+ * Everything sent in one read must fit under Vercel's 4.5MB request limit,
+ * so the images SHARE a budget: one image gets all of it, five get a fifth
+ * each. A screenshot of a post is mostly text and stays sharp well below
+ * full quality, so this costs nothing a person would notice.
+ */
+const TOTAL_BUDGET = 3_200_000; // base64 characters, with room to spare
+
+async function downscale(
+  file: File,
+  budget: number,
+): Promise<{ base64: string; mediaType: string }> {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  let edge = MAX_EDGE;
+  let quality = 0.85;
+  // Step quality down first, then size, until it fits its share.
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const out = draw(bitmap, edge, quality);
+    if (out.length <= budget || attempt === 7) {
+      bitmap.close?.();
+      return { base64: out, mediaType: 'image/jpeg' };
+    }
+    if (quality > 0.6) quality -= 0.1;
+    else edge = Math.round(edge * 0.8);
+  }
+  throw new Error('Could not shrink that image.');
+}
+
+function draw(bitmap: ImageBitmap, maxEdge: number, quality: number): string {
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const w = Math.max(1, Math.round(bitmap.width * scale));
   const h = Math.max(1, Math.round(bitmap.height * scale));
 
@@ -42,10 +72,7 @@ async function downscale(file: File): Promise<{ base64: string; mediaType: strin
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, w, h);
   ctx.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close?.();
-
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-  return { base64: dataUrl.split(',')[1] ?? '', mediaType: 'image/jpeg' };
+  return canvas.toDataURL('image/jpeg', quality).split(',')[1] ?? '';
 }
 
 interface Outcome {
@@ -65,28 +92,50 @@ export function PasteBox({
   sport?: string;
 }) {
   const [text, setText] = useState('');
-  const [image, setImage] = useState<{ file: File; preview: string } | null>(null);
+  // Several images of one event, read together (14 Nov 2026): a flyer
+  // front and back, or three screenshots of a long Facebook post.
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [url, setUrl] = useState('');
   const [result, setResult] = useState<Outcome | null>(null);
   const [open, setOpen] = useState(true);
   const [dragging, setDragging] = useState(false);
   const [pending, start] = useTransition();
   const fileInput = useRef<HTMLInputElement>(null);
 
-  function takeFile(file: File | null | undefined) {
-    if (!file || !file.type.startsWith('image/')) return;
-    setImage({ file, preview: URL.createObjectURL(file) });
+  const image = images.length > 0;
+
+  /** Adds images up to the limit; anything past it is left out, and the
+   *  counter beside the thumbnails says how many fit. */
+  function takeFiles(list: FileList | File[] | null | undefined) {
+    const files = Array.from(list ?? []).filter((f) => f.type.startsWith('image/'));
+    if (!files.length) return;
+    setImages((prev) => [
+      ...prev,
+      ...files
+        .slice(0, Math.max(0, MAX_IMAGES - prev.length))
+        .map((file) => ({ file, preview: URL.createObjectURL(file) })),
+    ]);
     setResult(null);
   }
 
+  function removeImage(index: number) {
+    setImages((prev) => {
+      URL.revokeObjectURL(prev[index]?.preview ?? '');
+      return prev.filter((_, i) => i !== index);
+    });
+    if (fileInput.current) fileInput.current.value = '';
+  }
+
   /** A pasted image beats pasted text: if the clipboard holds both, the
-   *  image is what the person meant. */
+   *  image is what the person meant. Each paste ADDS to the set. */
   function onPaste(e: React.ClipboardEvent) {
-    const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith('image/'));
-    if (!item) return;
-    const file = item.getAsFile();
-    if (!file) return;
+    const files = Array.from(e.clipboardData.items)
+      .filter((i) => i.type.startsWith('image/'))
+      .map((i) => i.getAsFile())
+      .filter((f): f is File => Boolean(f));
+    if (!files.length) return;
     e.preventDefault();
-    takeFile(file);
+    takeFiles(files);
   }
 
   function readText() {
@@ -97,13 +146,14 @@ export function PasteBox({
   }
 
   function readImage() {
-    if (!image) return;
+    if (!image && !url.trim()) return;
     start(async () => {
       try {
-        const { base64, mediaType } = await downscale(image.file);
+        const share = Math.floor(TOTAL_BUDGET / Math.max(1, images.length));
+        const prepared = await Promise.all(images.map((img) => downscale(img.file, share)));
         const res = await readFlyer({
-          imageBase64: base64,
-          imageMediaType: mediaType,
+          images: prepared,
+          url: url.trim() || undefined,
           text: text.trim() || undefined,
           sport,
         });
@@ -129,9 +179,10 @@ export function PasteBox({
   }
 
   function clear() {
-    if (image) URL.revokeObjectURL(image.preview);
+    images.forEach((img) => URL.revokeObjectURL(img.preview));
     setText('');
-    setImage(null);
+    setUrl('');
+    setImages([]);
     setResult(null);
     if (fileInput.current) fileInput.current.value = '';
   }
@@ -142,8 +193,9 @@ export function PasteBox({
         <div>
           <h2 className="t-kicker text-[color:var(--surf-ink)]">Paste a post or a flyer</h2>
           <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--muted)]">
-            Paste the text of a post, or drop in a flyer image and it gets read
-            for you. Either way the fields below are filled in for you to check.
+            Drop in up to {MAX_IMAGES} images of one event, paste a link to its
+            page, or paste the text of a post. The fields below are filled in
+            for you to check.
           </p>
         </div>
         <button
@@ -168,7 +220,7 @@ export function PasteBox({
             onDrop={(e) => {
               e.preventDefault();
               setDragging(false);
-              takeFile(e.dataTransfer.files?.[0]);
+              takeFiles(e.dataTransfer.files);
             }}
             className="mt-4 rounded-2xl border-2 border-dashed p-4 transition-colors"
             style={{
@@ -177,42 +229,56 @@ export function PasteBox({
             }}
           >
             {image ? (
-              <div className="flex flex-wrap items-start gap-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={image.preview}
-                  alt="The flyer you added"
-                  className="max-h-48 rounded-lg border border-[color:var(--line)]"
-                />
-                <div className="min-w-0">
-                  <p className="t-head text-sm">{image.file.name}</p>
-                  <p className="mt-1 text-xs text-[color:var(--muted)]">
-                    {(image.file.size / 1024).toFixed(0)} KB · resized before sending
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      URL.revokeObjectURL(image.preview);
-                      setImage(null);
-                      if (fileInput.current) fileInput.current.value = '';
-                    }}
-                    className="btn-ghost mt-2 !py-1.5 !text-xs"
-                  >
-                    Remove image
-                  </button>
+              <div>
+                <ul className="flex flex-wrap gap-3">
+                  {images.map((img, i) => (
+                    <li key={img.preview} className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={img.preview}
+                        alt={`Image ${i + 1} you added`}
+                        className="h-32 w-auto rounded-lg border border-[color:var(--line)] object-cover"
+                      />
+                      <span className="t-mono absolute left-1.5 top-1.5 rounded bg-[color:var(--void)] px-1.5 text-[10px] text-[color:var(--ink)]">
+                        {i + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        aria-label={`Remove image ${i + 1}`}
+                        className="absolute right-1.5 top-1.5 rounded bg-[color:var(--void)] px-1.5 text-xs text-[color:var(--ink)] hover:text-[color:var(--beach)]"
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  {images.length < MAX_IMAGES && (
+                    <button
+                      type="button"
+                      onClick={() => fileInput.current?.click()}
+                      className="btn-ghost !py-1.5 !text-xs"
+                    >
+                      + Add another image
+                    </button>
+                  )}
+                  <span className="t-mono text-[10px] uppercase tracking-wider text-[color:var(--faint)]">
+                    {images.length} of {MAX_IMAGES} · read together as one event · resized before sending
+                  </span>
                 </div>
               </div>
             ) : (
               <div className="text-center">
                 <p className="text-sm text-[color:var(--muted)]">
-                  Drop a flyer here, or paste one into the box below
+                  Drop up to {MAX_IMAGES} images here, or paste them into the box below
                 </p>
                 <button
                   type="button"
                   onClick={() => fileInput.current?.click()}
                   className="btn-ghost mt-2 !py-1.5 !text-xs"
                 >
-                  Choose a file
+                  Choose images
                 </button>
               </div>
             )}
@@ -220,10 +286,31 @@ export function PasteBox({
               ref={fileInput}
               type="file"
               accept="image/png,image/jpeg,image/gif,image/webp"
+              multiple
               className="sr-only"
-              onChange={(e) => takeFile(e.target.files?.[0])}
+              onChange={(e) => {
+                takeFiles(e.target.files);
+                e.target.value = '';
+              }}
             />
           </div>
+
+          {/* ---- link ---- */}
+          <label htmlFor="paste-url" className="label mt-4">
+            Or a link to the event page
+          </label>
+          <input
+            id="paste-url"
+            type="url"
+            inputMode="url"
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setResult(null);
+            }}
+            placeholder="https://… (not Facebook or Instagram — screenshot those)"
+            className="field"
+          />
 
           {/* ---- text ---- */}
           <label htmlFor="paste" className="sr-only">
@@ -248,14 +335,18 @@ export function PasteBox({
           />
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {image ? (
+            {image || url.trim() ? (
               <button
                 type="button"
                 onClick={readImage}
                 disabled={pending}
                 className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {pending ? 'Reading the flyer…' : 'Read the flyer and fill the form'}
+                {pending
+                  ? image
+                    ? `Reading ${images.length === 1 ? 'the image' : `${images.length} images`}…`
+                    : 'Reading the page…'
+                  : 'Read it and fill the form'}
               </button>
             ) : (
               <button
@@ -267,14 +358,14 @@ export function PasteBox({
                 Read it and fill the form
               </button>
             )}
-            {(text || image || result) && (
+            {(text || image || url || result) && (
               <button type="button" onClick={clear} className="btn-ghost">
                 Clear
               </button>
             )}
-            {image && (
+            {(image || url.trim()) && (
               <span className="t-mono text-[10px] uppercase tracking-wider text-[color:var(--faint)]">
-                about a cent · a few seconds
+                about a cent per image · a few seconds
               </span>
             )}
           </div>
@@ -345,14 +436,14 @@ export function PasteBox({
                   </dl>
                   <p className="t-mono mt-3 text-[10px] leading-relaxed text-[color:var(--faint)]">
                     {result.verified
-                      ? 'Each quote was checked against what you pasted. Anything that did not match was thrown away.'
+                      ? 'Each quote was checked against what you pasted or the page you linked. Anything that did not match was thrown away.'
                       : 'These quotes come from the flyer and are shown so you can check them — they cannot be verified automatically against an image. Anything the reader could not quote was left blank rather than guessed.'}
                   </p>
                 </details>
               )}
 
               <p className="t-mono sm:col-span-2 text-[10px] leading-relaxed text-[color:var(--faint)]">
-                Highlighted fields below came from the paste. Nothing is saved
+                Highlighted fields below came from what you added. Nothing is saved
                 until you press the save button.
               </p>
             </div>
