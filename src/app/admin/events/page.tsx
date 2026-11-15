@@ -179,7 +179,7 @@ export default async function AdminEventsPage({
                     )}
                   </td>
                   <td className="t-mono px-4 py-3 text-xs text-[color:var(--muted)]">
-                    {formatDate(iso, 'short')}
+                    {`${formatDate(iso, 'short')}, ${iso.slice(0, 4)}`}
                   </td>
                   <td className="px-4 py-3 text-[color:var(--muted)]">
                     {[row.city, row.state].filter(Boolean).join(', ') || '—'}

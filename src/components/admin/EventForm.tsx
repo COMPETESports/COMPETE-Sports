@@ -501,7 +501,7 @@ export function EventForm({
 
               <Field
                 label="Last session"
-                hint="Leave blank if it runs on"
+                hint={v.is_ongoing ? 'Not needed — it runs until further notice' : 'The last night it runs'}
                 error={err('ends_on')}
                 auto={isAuto('ends_on')}
               >
@@ -514,24 +514,43 @@ export function EventForm({
                 />
               </Field>
 
+              {/* Two explicit choices, not one toggle. The toggle showed its
+                  CURRENT state ("Has a last session") rather than what a
+                  click would do, nothing said to click it, and the date hint
+                  said "leave blank if it runs on" -- which the save then
+                  refused. Found testing open play for the first time, 15 Nov. */}
               <div className="sm:col-span-2">
-                <button
-                  type="button"
-                  onClick={() => set('is_ongoing', !v.is_ongoing)}
-                  aria-pressed={v.is_ongoing}
-                  className="t-head rounded-xl border px-4 py-2.5 text-sm transition-colors"
-                  style={
-                    v.is_ongoing
-                      ? { borderColor: 'var(--grass)', color: 'var(--grass)' }
-                      : { borderColor: 'var(--line)', color: 'var(--muted)' }
-                  }
-                >
-                  {v.is_ongoing ? 'Runs until further notice' : 'Has a last session'}
-                </button>
+                <span className="t-head text-sm text-[color:var(--muted)]">Does it end?</span>
+                <div role="radiogroup" aria-label="Does it end?" className="mt-1.5 flex flex-wrap gap-2">
+                  {([
+                    [false, 'Has a last session'],
+                    [true, 'Runs until further notice'],
+                  ] as const).map(([ongoing, label]) => {
+                    const on = v.is_ongoing === ongoing;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() => set('is_ongoing', ongoing)}
+                        className="t-head rounded-xl border px-4 py-2.5 text-sm transition-colors"
+                        style={
+                          on
+                            ? { borderColor: 'var(--grass)', color: 'var(--grass)' }
+                            : { borderColor: 'var(--line)', color: 'var(--muted)' }
+                        }
+                      >
+                        {on ? '✓ ' : ''}{label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <input type="hidden" name="is_ongoing" value={v.is_ongoing ? 'on' : ''} />
                 <p className="mt-1.5 text-xs text-[color:var(--muted)]">
-                  An ongoing session has no end date on purpose — without this
-                  it would drop off the site the day after it started.
+                  Choose &ldquo;Runs until further notice&rdquo; for a weekly session with no
+                  end date. It then stays on the site instead of dropping off the
+                  day after it starts.
                 </p>
               </div>
 

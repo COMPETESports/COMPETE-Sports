@@ -109,7 +109,7 @@ const EventInput = z.object({
           code: 'custom',
           path: ['ends_on'],
           message:
-            'Give a last date, or tick “runs until further notice” — otherwise this disappears from the site tomorrow.',
+            'Give the last session date, or choose “Runs until further notice” just below it.',
         });
       }
       return;
@@ -179,7 +179,11 @@ export async function saveEvent(
     event_type: formData.get('event_type') ?? 'tournament',
     sport: formData.get('sport') ?? 'volleyball',
     starts_on: formData.get('starts_on'),
-    ends_on: formData.get('ends_on'),
+    // `?? undefined`, same reason as the fields below: when open play runs
+    // until further notice the date box is disabled, a disabled input is
+    // never sent, and null failed validation -- an ongoing session could
+    // not be saved at all. Found the first time open play was used, 15 Nov.
+    ends_on: formData.get('ends_on') ?? undefined,
     // formData.get() returns NULL for a field the browser never sent, and a
     // field only rendered for one event type is exactly that. Zod's
     // .optional() accepts undefined, not null - so a tournament failed
