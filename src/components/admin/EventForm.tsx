@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { saveEvent, type ActionState } from '@/lib/admin';
-import { DeleteDraft } from './DeleteDraft';
+import { DeleteEvent } from './DeleteEvent';
 import { PasteBox } from './PasteBox';
 import {
   BracketBuilder,
@@ -816,10 +816,8 @@ export function EventForm({
           <Link href="/admin/events" className="btn-ghost">
             Back to list
           </Link>
-          {values.id && values.status === 'draft' && (
-            <span className="ml-auto">
-              <DeleteDraft id={values.id} name={values.name || 'this draft'} />
-            </span>
+          {values.id && (
+            <DeleteEvent id={values.id} name={values.name || 'this event'} status={values.status} />
           )}
         </div>
       </form>

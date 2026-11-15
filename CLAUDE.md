@@ -260,6 +260,37 @@ The ones worth reading, and only when a task needs them:
 
 ---
 
+## Work sessions — start and end
+
+Tom announces when a session starts and when it ends ("I have a 3 hour
+window", "time to pause"). **Either announcement triggers a quality
+assurance check** — standing instruction, 15 Nov 2026.
+
+**The QA check**, the same at both ends so the two can be compared:
+1. **Code** — `git status` (anything uncommitted?), last commits, and
+   `tsc` type-check (`node node_modules/typescript/bin/tsc --noEmit`).
+2. **Live site** — open https://www.joincompete.com in the browser: the
+   homepage map draws with numbers on it, search returns cards, one event
+   page opens. Numbers on the map also prove the database is awake.
+3. **Carry-overs** — every "Still yours" item from the last session
+   report on the build-progress page: done, or still open?
+4. Report it as a short ✅ / ⚠️ list. Anything ⚠️ is raised before new work.
+
+**At the start**, after the check: the start-of-session progress update,
+and a plan sized to the window he named, from the progress page's list.
+
+**At the end**, after the check, in this order:
+1. **Show what was built** — a screenshot or short walkthrough of each new
+   feature. Tom is a visual learner; a feature he has not seen is not done.
+2. **Glossary** — add any new term from the session to the Project doc
+   `claude/dictionary.md` (read it first; write the whole doc back).
+3. **Progress page** — the build-progress artifact updated in place with
+   two reports: this session, and the whole project.
+4. **Hand-off note** — update "State, as of" below, so a brand-new
+   conversation starts fully briefed.
+5. **Commit** — the build check, then the GitHub Desktop summary +
+   description.
+
 ## State, as of 10 Nov 2026
 
 **Live.** Deployed on Vercel, database on Supabase (East US). 568 events,

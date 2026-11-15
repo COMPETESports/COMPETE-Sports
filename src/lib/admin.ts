@@ -627,41 +627,45 @@ async function replaceLinks(
 }
 
 /**
- * Deleting an event, and why only a draft may be deleted.
+ * Deleting an event -- drafts, and published events nobody has kept.
  *
  * Five tables point at `events` with `on delete cascade`, and one of them
- * is `account_events` - every player's saved, registered and attended
- * record. Deleting a published event would take those with it, silently,
- * out of lists belonging to people who never asked.
+ * is `account_events`: every player's saved, registered and attended
+ * record. Deleting an event a player kept would take it out of their list
+ * silently, so THAT is the line, not the status.
  *
- * Tom's rule, 28 Oct: drafts are for probable events, so an abandoned one
- * should go rather than clog the list; archived is for events that
- * actually happened. A published event therefore moves to cancelled or
- * archived and is never destroyed.
+ * Until 15 Nov only drafts could be deleted (Tom's rule, 28 Oct). Then a
+ * published duplicate turned up -- "Deck The Balls", entered twice -- and
+ * there was no way to remove it: cancelling it would have shown players
+ * a cancelled copy beside the real one. Tom asked for delete on published
+ * events too. So: any event with no player attached can be deleted; one a
+ * player kept says how many, and points to Cancelled instead.
  *
- * The status is re-read here rather than trusted from the form, because a
- * stale page could otherwise ask to delete something that has since gone
- * live.
+ * Everything is re-read here rather than trusted from the form, because
+ * a stale page could otherwise delete something that has since changed.
  */
-export async function deleteDraftEvent(id: string): Promise<ActionState> {
+export async function deleteEvent(id: string): Promise<ActionState> {
   if (!(await isSignedIn())) redirect('/admin');
 
-  const [row] = await sql<{ status: string; name: string }[]>`
-    select status, name from events where id = ${id}`;
+  const [row] = await sql<{ status: string; name: string; kept: number }[]>`
+    select e.status, e.name,
+           (select count(*)::int from account_events ae where ae.event_id = e.id) as kept
+      from events e
+     where e.id = ${id}`;
 
   if (!row) return { ok: false, message: 'That event no longer exists.' };
-  if (row.status !== 'draft') {
+  if (row.kept > 0) {
     return {
       ok: false,
-      message:
-        'Only drafts can be deleted. This one has been published, so set it to Cancelled or Archived instead — deleting it would also remove it from the saved lists of anyone who kept it.',
+      message: `${row.kept} ${row.kept === 1 ? 'player has' : 'players have'} saved this event, so deleting it would quietly remove it from their lists. Set its status to Cancelled instead.`,
     };
   }
 
   await sql`delete from events where id = ${id}`;
   revalidatePath('/admin/events');
   revalidatePath('/');
-  return { ok: true, message: `Deleted the draft "${row.name}".` };
+  revalidatePath('/events');
+  return { ok: true, message: `Deleted "${row.name}".` };
 }
 
 export async function setEventStatus(id: string, status: string): Promise<void> {

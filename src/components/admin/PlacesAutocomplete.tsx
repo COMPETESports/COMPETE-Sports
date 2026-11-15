@@ -54,16 +54,35 @@ function loadMaps(key: string): Promise<void> {
   if (w.google?.maps?.importLibrary) return Promise.resolve();
   if (mapsLoader) return mapsLoader;
 
+  // Resolve on Google's own callback, NOT the script tag's load event.
+  // With loading=async the tag finishes loading before the API inside it
+  // is ready, so the load event raced `importLibrary` into existence:
+  // when Google was quick the box appeared, and when it was slow Tom got
+  // "maps.importLibrary is not a function" (15 Nov 2026). The callback
+  // fires only once the API is usable.
   mapsLoader = new Promise<void>((resolve, reject) => {
+    const callback = '__competeMapsReady';
+    const fail = (message: string) => {
+      mapsLoader = null;
+      reject(new Error(message));
+    };
+    const timer = window.setTimeout(
+      () => fail('Google Maps took too long to load. Reload the page to try again.'),
+      15_000,
+    );
+    (window as unknown as Record<string, unknown>)[callback] = () => {
+      window.clearTimeout(timer);
+      resolve();
+    };
+
     const script = document.createElement('script');
     script.src =
       `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}` +
-      '&v=weekly&libraries=places&loading=async';
+      `&v=weekly&libraries=places&loading=async&callback=${callback}`;
     script.async = true;
-    script.onload = () => resolve();
     script.onerror = () => {
-      mapsLoader = null;
-      reject(new Error('Google Maps failed to load.'));
+      window.clearTimeout(timer);
+      fail('Google Maps failed to load.');
     };
     document.head.appendChild(script);
   });
