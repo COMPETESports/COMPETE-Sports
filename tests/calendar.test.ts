@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildIcs, calendarLinks, timezoneFor, type CalendarEvent } from '../src/lib/calendar';
+import { buildIcs, calendarLinks, followUpCalendarLink, timezoneFor, type CalendarEvent } from '../src/lib/calendar';
 
 const base: CalendarEvent = {
   id: 'abc',
@@ -105,4 +105,25 @@ test('split states use the venue longitude', () => {
   assert.equal(timezoneFor('TX', 31.76, -106.49), 'America/Denver'); // El Paso
   assert.equal(timezoneFor('AZ', null, null), 'America/Phoenix');
   assert.equal(timezoneFor(null, null, null), null);
+});
+
+test('a CRM follow-up becomes an all-day Google Calendar entry on its date', () => {
+  const href = followUpCalendarLink({
+    organizer: 'Tsunami Volleyball',
+    action: 'Call about 2027 dates',
+    date: '2026-11-20',
+    phone: '555-0100',
+    profileUrl: 'https://www.joincompete.com/admin/organizers/abc',
+  });
+  assert.ok(href);
+  const url = new URL(href!);
+  assert.equal(url.searchParams.get('action'), 'TEMPLATE');
+  assert.equal(url.searchParams.get('dates'), '20261120/20261121');
+  assert.equal(url.searchParams.get('text'), 'Tsunami Volleyball — Call about 2027 dates');
+  assert.match(url.searchParams.get('details') ?? '', /Phone: 555-0100/);
+});
+
+test('no date, no link', () => {
+  assert.equal(followUpCalendarLink({ organizer: 'X', action: 'Call', date: '', profileUrl: 'u' }), null);
+  assert.equal(followUpCalendarLink({ organizer: 'X', action: 'Call', date: null, profileUrl: 'u' }), null);
 });

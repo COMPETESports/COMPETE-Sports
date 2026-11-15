@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
+import { followUpCalendarLink } from '@/lib/calendar';
 import { listOrganizersPaged, organizerCounts, organizerStates } from '@/lib/organizers-admin';
 import { loadSportSurfaceOptions } from '@/lib/ref-data';
 import {
@@ -230,6 +231,22 @@ export default async function OrganizersPage({
                           {r.next_action_on && (
                             <div className="t-mono text-[11px] text-[color:var(--faint)]">
                               {r.next_action_on}{due ? ' · due' : ''}
+                              {(() => {
+                                const cal = followUpCalendarLink({
+                                  organizer: r.name,
+                                  action: r.next_action,
+                                  date: r.next_action_on,
+                                  phone: r.phone,
+                                  profileUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.joincompete.com'}/admin/organizers/${r.id}`,
+                                });
+                                return cal ? (
+                                  <a href={cal} target="_blank" rel="noopener noreferrer"
+                                    title="Add to Google Calendar"
+                                    className="ml-2 hover:text-[color:var(--surf-ink)]">
+                                    📅 add
+                                  </a>
+                                ) : null;
+                              })()}
                             </div>
                           )}
                         </>

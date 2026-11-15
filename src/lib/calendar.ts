@@ -395,3 +395,39 @@ function fold(line: string): string {
   if (rest) chunks.push(' ' + rest);
   return chunks.join('\r\n');
 }
+
+/**
+ * "Add to Google Calendar" for a CRM follow-up (15 Nov 2026).
+ *
+ * A pre-filled Google Calendar page, opened by a plain link: no sign-in to
+ * COMPETE's side, no OAuth, no Google Cloud project. One way and manual --
+ * Tom presses Save in Google -- and it covers the actual fear, which is a
+ * follow-up date sitting in the CRM where nobody looks.
+ *
+ * All-day on the "By when" date, because the CRM records a day, not a time.
+ * Null when there is no valid date, so the caller shows no link at all.
+ */
+export function followUpCalendarLink(input: {
+  organizer: string;
+  action: string | null;
+  date: string | null;
+  phone?: string | null;
+  profileUrl: string;
+}): string | null {
+  const date = (input.date ?? '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const action = (input.action ?? '').trim();
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `${input.organizer} — ${action || 'follow up'}`,
+    dates: `${compact(date)}/${dayAfter(date)}`,
+    details: [
+      action ? `Next action: ${action}` : null,
+      input.phone ? `Phone: ${input.phone}` : null,
+      `Organizer in COMPETE: ${input.profileUrl}`,
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}

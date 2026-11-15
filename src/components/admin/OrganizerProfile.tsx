@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { PlacesAutocomplete } from '@/components/admin/PlacesAutocomplete';
+import { followUpCalendarLink } from '@/lib/calendar';
 import {
   saveOrganizerProfile, addOrganizerContact, saveOrganizerContact,
   deleteOrganizerContact, makeContactPrimary,
@@ -291,6 +292,11 @@ export function OrganizerProfile({
             <Field label="By when" v={form.next_action_on} on={(x) => set('next_action_on', x)}
               type="date" hint="Anything dated sorts to the top of the list" />
           </div>
+
+          {/* One click from a follow-up date to Tom's calendar (15 Nov). It
+              reads what is on screen, so it works before saving too. */}
+          <FollowUpLink id={id} name={form.name} action={form.next_action}
+            date={form.next_action_on} phone={form.phone} />
 
           <label className="mt-4 grid gap-1">
             <span className="t-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--faint)]">
@@ -644,5 +650,32 @@ function Tiny({
       style={{ color: danger ? 'var(--coral-ink)' : 'var(--faint)' }}>
       {children}
     </button>
+  );
+}
+
+function FollowUpLink({
+  id, name, action, date, phone,
+}: {
+  id: string; name: string; action: string; date: string; phone: string;
+}) {
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.joincompete.com';
+  const href = followUpCalendarLink({
+    organizer: name || 'Organizer',
+    action,
+    date,
+    phone,
+    profileUrl: `${site}/admin/organizers/${id}`,
+  });
+  if (!href) {
+    return (
+      <p className="mt-3 text-[11px] text-[color:var(--faint)]">
+        Set a “By when” date to add this follow-up to Google Calendar.
+      </p>
+    );
+  }
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="btn-ghost mt-4 !py-2 !text-xs">
+      📅 Add to Google Calendar
+    </a>
   );
 }
