@@ -12,12 +12,12 @@ import { calendarLinks, type CalendarEvent } from '@/lib/calendar';
  */
 export function AddToCalendar({ event, siteUrl }: { event: CalendarEvent; siteUrl: string }) {
   const links = calendarLinks(event, siteUrl);
-  const isLeague = event.event_type === 'league';
+  const isLeague = event.event_type === 'league' || event.event_type === 'open_play';
 
   return (
     <details className="relative">
       <summary className="btn-ghost cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        {isLeague ? 'Add season to calendar' : 'Add to calendar'} ▾
+        {event.event_type === 'league' ? 'Add season to calendar' : isLeague ? 'Add all sessions to calendar' : 'Add to calendar'} ▾
       </summary>
       <div className="panel absolute left-0 z-20 mt-2 w-72 p-2 shadow-lg">
         {isLeague && (

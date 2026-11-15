@@ -20,6 +20,8 @@ interface Row {
   state: string | null;
   has_coords: boolean;
   featured: boolean;
+  /** Days until an open play series' last session; null otherwise. */
+  ends_in: number | null;
 }
 
 export default async function AdminEventsPage({
@@ -49,7 +51,9 @@ export default async function AdminEventsPage({
 
   const rows = await sql<Row[]>`
     select e.id, e.slug, e.name, e.starts_on, e.status,
-           v.city, v.state, (v.latitude is not null) as has_coords, e.featured
+           v.city, v.state, (v.latitude is not null) as has_coords, e.featured,
+           case when e.event_type = 'open_play' and e.status = 'approved'
+                then (coalesce(e.ends_on, e.starts_on) - current_date)::int end as ends_in
     from events e
     left join venues v on v.id = e.venue_id
     where ${where(status)}
@@ -176,6 +180,14 @@ export default async function AdminEventsPage({
                       <span className="chip-warn ml-2">
                         no map
                       </span>
+                    )}
+                    {/* Two weeks' warning before an open play series runs
+                        out (Tom, 15 Nov), so renewing is a call to the
+                        organizer, not a listing that quietly vanished. */}
+                    {row.ends_in !== null && row.ends_in >= 0 && row.ends_in <= 14 && (
+                      <Link href={`/admin/events/new?from=${row.id}&renew=1`} className="chip-warn ml-2">
+                        {row.ends_in === 0 ? 'ends today' : `ends in ${row.ends_in} ${row.ends_in === 1 ? 'day' : 'days'}`} — renew
+                      </Link>
                     )}
                   </td>
                   <td className="t-mono px-4 py-3 text-xs text-[color:var(--muted)]">

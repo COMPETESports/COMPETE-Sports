@@ -291,38 +291,43 @@ and a plan sized to the window he named, from the progress page's list.
 5. **Commit** — the build check, then the GitHub Desktop summary +
    description.
 
-## State, as of 10 Nov 2026
+## State, as of 15 Nov 2026
 
-**Live.** Deployed on Vercel, database on Supabase (East US). 568 events,
-4 of them in 2027. 1,581 organizations. 172 venues, 12 on an exact pin.
-hello@joincompete.com sends with SPF, DKIM and DMARC passing.
+**Live at https://www.joincompete.com** since 14 Nov — Softr disconnected,
+DNS at Squarespace points at Vercel (apex 308s to www, so **www is the
+real address**; anything that lists allowed web addresses needs both).
+`NEXT_PUBLIC_SITE_URL` = https://www.joincompete.com. Email unaffected —
+tested 15 Nov. Vercel's own address: compete-sports-ashen.vercel.app.
 
-**9 Nov — the organizer merge, the big one.** `partner_prospects` (1,310
-researched) and `organizers` (271 with events) became one table of 1,581.
-Everything private — phone, notes, pipeline, research provenance — moved
-to `organizer_private`, which has **no public read policy**. `organizers`
-stays publicly readable and holds only public identity: name, slug, city,
-state, website. `organizer_contacts` holds several named people per
-organization.
+**Data:** 568+ events, ~24 upcoming across 9 states on 15 Nov. 1,580
+organizations. 166 venues. Migrations 001–023 run (016 deleted on purpose).
 
-**`partner_prospects` is FROZEN.** The `/admin/crm` screens are retired:
-removed from the nav, bannered, and all five write actions refuse. Reads
-still work so nothing is lost before the replacement has been used.
+**Built since 10 Nov:**
+- Leagues visible to players (023): stay in search until their last
+  night, Event type filter, League card, season schedule on the page.
+- "Add to calendar" menu: Google / Apple / Outlook / .ics; a league or open
+  play subscribes to its whole series; entries carry the venue timezone.
+- US map: full width, Census-region colours, follows the homepage filters,
+  a state opens its events as cards.
+- Flyer reader: up to 5 images at once, and links to event pages
+  (Facebook/Instagram refused with a plain reason).
+- Delete any event from inside it, unless a player saved it.
+- CRM follow-ups: one-click "Add to Google Calendar".
+- **Open play is a dated series (15 Nov):** 1–12 weeks, switchable dates,
+  Renew, two-week warning. Spec + decisions: `claude/open-play-schedule-spec.md`.
+  Pushed 15 Nov at session end — **verify on the live site first thing.**
 
-**Migrations 001–022 are run.** 016 is absent on purpose: it was written
-on 3 Nov, never run, and 020 creates everything it would have added in
-the right place. It was deleted on 10 Nov rather than left lying around
-being mistaken for pending work. Git still has it; 020's header explains
-what it was for.
+**Google Cloud:** browser key now allows www.joincompete.com (the venue box
+was blocked without it). **No OAuth client exists** — Google sign-in is
+built but off; switch on after the lawyer review (P3).
 
-**Also recent:** the flyer vision reader, Google Places venue lookup and
-exact pins, multi-sport and surfaces per organizer (022), a 0–5
-confidence scale separate from pipeline stage (021), creating a venue
-from Google and linking it in one step, and deleting a venue that holds
-no events.
+**Next, in order:**
+1. Verify open play on the live site; Tom re-saves his test open play event
+   with 12 weeks (it was entered as "until further notice").
+2. Delete the duplicate "Deck The Balls" (Dec 19, Jonesboro) if Tom hasn't.
+3. **The public organizer page** — the partner pitch, 2–3 h together.
+4. Tom's own: EIN (SS-4), call Pete, rotate the DB password, operating
+   agreement by 23 Nov, bank account, the 13 confirmed 2027 events.
 
-**Next, and it is the priority:** *leagues visible to players.*
-Submission has worked since 31 Oct; a player still cannot see a league in
-search. That is the whole gap between COMPETE being a very good CRM and
-being a product. After that: the public organizer page, and the 13
-confirmed 2027 events that are still unentered.
+Full list with priorities: the build-progress artifact, and
+`claude/work-split.md` (older; the progress page is newer).

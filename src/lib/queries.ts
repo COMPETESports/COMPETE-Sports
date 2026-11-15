@@ -35,7 +35,7 @@ function andAll(parts: Frag[]): Frag {
 function playsBetween(from: string, to: string | null): Frag {
   const upper = (col: Frag) => (to ? sql`${col} <= ${to}` : sql`true`);
   return sql`(case
-    when event_type = 'league' and cardinality(league_nights) > 0 then exists (
+    when event_type in ('league', 'open_play') and cardinality(league_nights) > 0 then exists (
       select 1 from unnest(league_nights) as n(night)
       where n.night >= ${from} and ${upper(sql`n.night`)}
     )
@@ -50,7 +50,7 @@ function playsBetween(from: string, to: string | null): Frag {
  */
 function nextOn(from: string): Frag {
   return sql`(case
-    when event_type = 'league' and cardinality(league_nights) > 0 then coalesce(
+    when event_type in ('league', 'open_play') and cardinality(league_nights) > 0 then coalesce(
       (select min(n.night) from unnest(league_nights) as n(night) where n.night >= ${from}),
       starts_on)
     else starts_on

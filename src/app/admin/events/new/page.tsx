@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { loadOrganizerOptions, loadRefOptions, loadVenueOptions } from '@/lib/ref-data';
-import { hhmm, isUuid, loadBrackets, loadEvent } from '@/lib/event-form-data';
+import { hhmm, isUuid, loadBrackets, loadEvent, loadLeagueDates } from '@/lib/event-form-data';
+import { generateLeagueDates, renewalStart } from '@/lib/series-dates';
 import { EventForm, type EventFormValues } from '@/components/admin/EventForm';
 
 export const dynamic = 'force-dynamic';
@@ -64,11 +65,11 @@ const EMPTY: EventFormValues = {
 export default async function NewEventPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; renew?: string }>;
 }) {
   if (!(await isSignedIn())) redirect('/admin');
 
-  const { from } = await searchParams;
+  const { from, renew } = await searchParams;
   const source = from && isUuid(from) ? await loadEvent(from) : null;
 
   let values: EventFormValues = EMPTY;
@@ -121,6 +122,26 @@ export default async function NewEventPage({
     };
   }
 
+  // Renew (15 Nov 2026): the same open play, continuing after its last
+  // date. Everything above is already copied; this adds the next run's
+  // dates, so the form opens ready to check and save rather than blank.
+  let renewing = false;
+  if (source && renew === '1' && values.league_days.length) {
+    const prior = await loadLeagueDates(source.id);
+    const last = prior.map((d) => d.plays_on).sort().pop() ?? null;
+    const start = last ? renewalStart(last, values.league_days) : null;
+    if (start) {
+      renewing = true;
+      const weeks = Math.min(Number(values.league_weeks) || 12, 12);
+      values = {
+        ...values,
+        league_weeks: String(weeks),
+        starts_on: start,
+        league_dates: generateLeagueDates(start, values.league_days, weeks),
+      };
+    }
+  }
+
   const [options, venues, organizers] = await Promise.all([
     loadRefOptions(values.sport),
     loadVenueOptions(),
@@ -135,9 +156,22 @@ export default async function NewEventPage({
       >
         ← Events
       </Link>
-      <h1 className="t-head mt-3 text-2xl">{source ? 'Duplicate event' : 'New event'}</h1>
+      <h1 className="t-head mt-3 text-2xl">
+        {renewing ? 'Renew open play' : source ? 'Duplicate event' : 'New event'}
+      </h1>
 
-      {source ? (
+      {renewing ? (
+        <div className="panel tone-warn mt-4 p-4 text-sm">
+          <p>
+            Renewing <strong>{source?.name}</strong> — everything is copied, and
+            the dates carry on from its last session.
+          </p>
+          <p className="mt-2">
+            <strong>Check the dates and change anything that has changed</strong>,
+            then save. It starts as a draft; set it to Approved to put it live.
+          </p>
+        </div>
+      ) : source ? (
         <div className="panel tone-warn mt-4 p-4 text-sm">
           <p>
             Copied from <strong>{source.name}</strong> — organizer, venue, money,

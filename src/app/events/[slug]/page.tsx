@@ -39,7 +39,7 @@ export async function generateMetadata({
 
   const where = [event.city, event.state].filter(Boolean).join(', ');
   const when =
-    event.event_type === 'league' && event.league_days?.length
+    (event.event_type === 'league' || event.event_type === 'open_play') && event.league_days?.length
       ? `${nightsLabel(event.league_days)} from ${formatDate(event.starts_on)}`
       : formatDate(event.starts_on);
   const description = `${when} in ${where}. ${audienceLine(event)}. ${
@@ -63,7 +63,8 @@ export default async function EventDetailPage({
   const event = await getEventBySlug(slug);
   if (!event) notFound();
 
-  const isLeague = event.event_type === 'league';
+  const isLeague = event.event_type === 'league' || event.event_type === 'open_play';
+  const isOpenPlay = event.event_type === 'open_play';
   const [nearby, schedule] = await Promise.all([
     getNearbyEvents(event),
     isLeague ? getLeagueSchedule(event.id) : Promise.resolve([]),
@@ -143,7 +144,7 @@ export default async function EventDetailPage({
           </Link>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            {isLeague && <span className="chip-accent">League</span>}
+            {isLeague && <span className="chip-accent">{isOpenPlay ? 'Open play' : 'League'}</span>}
             {event.surface_names.map((name) => (
               <span key={name} className="chip-muted">
                 {name}
@@ -210,7 +211,7 @@ export default async function EventDetailPage({
           </section>
 
           {isLeague && schedule.length > 0 && (
-            <LeagueScheduleSection schedule={schedule} today={now} next={league?.nextNight ?? null} />
+            <LeagueScheduleSection schedule={schedule} today={now} next={league?.nextNight ?? null} title={isOpenPlay ? 'Session dates' : 'Season schedule'} />
           )}
 
           {event.notes && (
@@ -258,7 +259,7 @@ export default async function EventDetailPage({
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="panel p-5">
             <p className="t-kicker text-[color:var(--muted)]">
-              {isLeague ? 'Fee for the season' : 'Entry fee'}
+              {isLeague && !isOpenPlay ? 'Fee for the season' : 'Entry fee'}
             </p>
             <p className="t-head mt-1 text-2xl text-[color:var(--coral-ink)]">
               {formatMoney(event.entry_fee_cents, event.fee_basis)}
@@ -372,7 +373,9 @@ function LeagueScheduleSection({
   schedule,
   today,
   next,
+  title,
 }: {
+  title: string;
   schedule: Array<{ plays_on: string; skipped: boolean; note: string | null }>;
   today: string;
   next: string | null;
@@ -381,7 +384,7 @@ function LeagueScheduleSection({
   return (
     <section className="panel p-5" aria-labelledby="season-schedule">
       <h2 id="season-schedule" className="t-kicker mb-4 text-[color:var(--muted)]">
-        Season schedule
+        {title}
       </h2>
       <ol className="divide-y-2 divide-[color:var(--line)]">
         {schedule.map((row) => {

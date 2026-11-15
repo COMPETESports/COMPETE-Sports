@@ -98,7 +98,7 @@ export function locationLine(event: CalendarEvent): string {
 function description(input: CalendarInput, extra: string[] = []): string {
   const { event, siteUrl } = input;
   const basis = event.fee_basis === 'per_team' ? 'per team' : 'per player';
-  const isLeague = event.event_type === 'league';
+  const isLeague = event.event_type === 'league'; // a season fee; open play is per session
   return [
     event.format_names.length ? `Formats: ${event.format_names.join(', ')}` : null,
     event.division_names.length ? `Divisions: ${event.division_names.join(', ')}` : null,
@@ -138,7 +138,8 @@ export function buildIcs(input: CalendarInput): string {
   const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const url = `${siteUrl}/events/${event.slug}`;
   const location = escapeIcs(locationLine(event));
-  const isLeague = event.event_type === 'league';
+  // A dated series: a league, or open play since 15 Nov 2026.
+  const isLeague = event.event_type === 'league' || event.event_type === 'open_play';
   const nights = isLeague ? playingNights(input) : [];
 
   const head = [
@@ -240,7 +241,7 @@ export function calendarLinks(event: CalendarEvent, siteUrl: string): CalendarLi
   const webcal = feed.replace(/^https?:\/\//, 'webcal://');
   const download = `${feed}?download=1`;
 
-  if (event.event_type === 'league') {
+  if (event.event_type === 'league' || event.event_type === 'open_play') {
     return [
       {
         key: 'google',

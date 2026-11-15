@@ -32,7 +32,8 @@ export default async function EditEventPage({
   const row = await loadEvent(id);
   if (!row) notFound();
 
-  const leagueDates = row.event_type === 'league' ? await loadLeagueDates(id) : [];
+  const isSeries = row.event_type === 'league' || row.event_type === 'open_play';
+  const leagueDates = isSeries ? await loadLeagueDates(id) : [];
 
   // Existing brackets, grouped back into the shape the builder edits.
   //
@@ -78,6 +79,14 @@ export default async function EditEventPage({
           <Link href={`/admin/events/new?from=${row.id}`} className="btn-ghost">
             Duplicate
           </Link>
+          {/* Renew = a copy that carries on where this one ends: same
+              nights, weeks and everything else, dates following on from
+              the last one, ready to change before saving. Staff-only. */}
+          {row.event_type === 'open_play' && (
+            <Link href={`/admin/events/new?from=${row.id}&renew=1`} className="btn-primary">
+              Renew
+            </Link>
+          )}
           {row.status === 'approved' && (
             <Link href={`/events/${row.slug}`} className="btn-ghost">
               View public page ↗

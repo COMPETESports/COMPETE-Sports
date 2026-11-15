@@ -30,55 +30,6 @@ const WEEK = [
   { n: 6, short: 'Sat' },
 ];
 
-/** Which nights open play runs. Same shape as the league night picker,
- *  without a season to generate - open play repeats, it does not have a
- *  fixed run of dates with a champion at the end. */
-function OpenPlayNights({
-  days,
-  onChange,
-  error,
-}: {
-  days: number[];
-  onChange: (d: number[]) => void;
-  error?: string | null;
-}) {
-  return (
-    <fieldset className="sm:col-span-2">
-      <legend className="t-head mb-2 block text-sm text-[color:var(--muted)]">
-        Which nights does it run?
-      </legend>
-      <div className="flex flex-wrap gap-2">
-        {WEEK.map((d) => {
-          const on = days.includes(d.n);
-          return (
-            <button
-              key={d.n}
-              type="button"
-              onClick={() =>
-                onChange(on ? days.filter((x) => x !== d.n) : [...days, d.n].sort())
-              }
-              aria-pressed={on}
-              className="t-head rounded-xl border px-4 py-2 text-sm transition-colors"
-              style={
-                on
-                  ? { borderColor: 'var(--grass)', color: 'var(--grass)' }
-                  : { borderColor: 'var(--line)', color: 'var(--muted)' }
-              }
-            >
-              {d.short}
-            </button>
-          );
-        })}
-      </div>
-      <input type="hidden" name="league_days" value={JSON.stringify(days)} />
-      {error && (
-        <p className="t-mono mt-2 text-[10px] uppercase tracking-wider text-[color:var(--coral-ink)]">
-          {error}
-        </p>
-      )}
-    </fieldset>
-  );
-}
 
 export interface RefOption {
   slug: string;
@@ -491,73 +442,36 @@ export function EventForm({
               night to turn up on. Tom, 31 Oct. */}
           {isOpenPlay ? (
             <>
-              {/* Drop in & ball. Not a tournament with one date, not a
-                  league with a fixed season and a champion. It runs on
-                  certain nights, between certain hours, until further
-                  notice. Tom, 4 Nov. */}
+              {/* Drop in & ball, as a DATED series since 15 Nov 2026. It was
+                  "runs until further notice", which read as one date on the
+                  site and never expired. Now it works like a league: nights,
+                  up to 12 weeks, every date shown and switchable, renewed by
+                  copying it forward. See claude/open-play-schedule-spec.md. */}
               <Field label="First session" error={err('starts_on')} auto={isAuto('starts_on')}>
-                <input type="date" name="starts_on" {...text('starts_on')} required className="field" />
-              </Field>
-
-              <Field
-                label="Last session"
-                hint={v.is_ongoing ? 'Not needed — it runs until further notice' : 'The last night it runs'}
-                error={err('ends_on')}
-                auto={isAuto('ends_on')}
-              >
                 <input
                   type="date"
-                  name="ends_on"
-                  {...text('ends_on')}
-                  disabled={v.is_ongoing}
-                  className="field disabled:opacity-40"
+                  name="starts_on"
+                  value={v.starts_on}
+                  onChange={(e) => setFirstNight(e.target.value)}
+                  required
+                  className="field"
                 />
               </Field>
 
-              {/* Two explicit choices, not one toggle. The toggle showed its
-                  CURRENT state ("Has a last session") rather than what a
-                  click would do, nothing said to click it, and the date hint
-                  said "leave blank if it runs on" -- which the save then
-                  refused. Found testing open play for the first time, 15 Nov. */}
-              <div className="sm:col-span-2">
-                <span className="t-head text-sm text-[color:var(--muted)]">Does it end?</span>
-                <div role="radiogroup" aria-label="Does it end?" className="mt-1.5 flex flex-wrap gap-2">
-                  {([
-                    [false, 'Has a last session'],
-                    [true, 'Runs until further notice'],
-                  ] as const).map(([ongoing, label]) => {
-                    const on = v.is_ongoing === ongoing;
-                    return (
-                      <button
-                        key={label}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        onClick={() => set('is_ongoing', ongoing)}
-                        className="t-head rounded-xl border px-4 py-2.5 text-sm transition-colors"
-                        style={
-                          on
-                            ? { borderColor: 'var(--grass)', color: 'var(--grass)' }
-                            : { borderColor: 'var(--line)', color: 'var(--muted)' }
-                        }
-                      >
-                        {on ? '✓ ' : ''}{label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <input type="hidden" name="is_ongoing" value={v.is_ongoing ? 'on' : ''} />
-                <p className="mt-1.5 text-xs text-[color:var(--muted)]">
-                  Choose &ldquo;Runs until further notice&rdquo; for a weekly session with no
-                  end date. It then stays on the site instead of dropping off the
-                  day after it starts.
-                </p>
-              </div>
-
-              <OpenPlayNights
+              <LeagueSchedule
+                firstNight={v.starts_on}
                 days={v.league_days}
-                onChange={(d) => set('league_days', d)}
-                error={err('league_days')}
+                weeks={v.league_weeks}
+                dates={v.league_dates}
+                playoffs={false}
+                onDaysChange={(d) => set('league_days', d)}
+                onWeeksChange={(w) => set('league_weeks', w)}
+                onDatesChange={(d) => set('league_dates', d)}
+                onPlayoffsChange={() => {}}
+                error={err('league_dates') ?? err('league_days') ?? err('league_weeks')}
+                weeksLabel="How many weeks will this open play be running?"
+                maxWeeks={12}
+                showPlayoffs={false}
               />
 
               <Field label="Starts at" error={err('start_time')}>
@@ -566,6 +480,9 @@ export function EventForm({
               <Field label="Ends at" error={err('end_time')}>
                 <input type="time" name="end_time" step={300} {...text('end_time')} className="field" />
               </Field>
+
+              <input type="hidden" name="ends_on" value={seasonEnd} />
+              <input type="hidden" name="is_ongoing" value="" />
             </>
           ) : isLeague ? (
             <>

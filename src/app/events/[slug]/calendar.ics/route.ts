@@ -21,7 +21,7 @@ export async function GET(
   const event = await getEventBySlug(slug);
   if (!event) return new Response('Not found', { status: 404 });
 
-  const isLeague = event.event_type === 'league';
+  const isLeague = event.event_type === 'league' || event.event_type === 'open_play';
   const [schedule, timing] = await Promise.all([
     isLeague ? getLeagueSchedule(event.id) : Promise.resolve([]),
     sql<{ end_time: string | null }[]>`select end_time from events where id = ${event.id}`,

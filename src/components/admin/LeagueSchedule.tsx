@@ -1,5 +1,11 @@
 'use client';
 
+import { generateLeagueDates, playingRange, type LeagueDate } from '@/lib/series-dates';
+
+// Re-exported so existing imports from this file keep working.
+export { generateLeagueDates, playingRange };
+export type { LeagueDate };
+
 /**
  * The league half of the submission form.
  *
@@ -11,12 +17,6 @@
  * are what gets saved, so the hole in the schedule survives.
  */
 
-export interface LeagueDate {
-  /** yyyy-mm-dd */
-  plays_on: string;
-  skipped: boolean;
-  note?: string | null;
-}
 
 /** 0 = Sunday, matching JavaScript getDay() and Postgres extract(dow). */
 const DAYS = [
@@ -56,49 +56,6 @@ export function formatNight(iso: string): string {
   });
 }
 
-/**
- * Build the schedule from the four stated facts.
- *
- * `prior` carries skips and notes forward: changing the season from 8 to
- * 10 weeks must not silently un-skip Thanksgiving. Exported so the parent
- * form can regenerate when the first-night date changes, rather than
- * running an effect that watches its own output -- that pattern cost us a
- * laggy search box once already.
- */
-export function generateLeagueDates(
-  firstNight: string,
-  days: number[],
-  weeks: number,
-  prior: LeagueDate[] = [],
-): LeagueDate[] {
-  const start = parseISO(firstNight);
-  if (!start || days.length === 0 || !Number.isFinite(weeks) || weeks < 1) return [];
-
-  const kept = new Map(prior.map((d) => [d.plays_on, d]));
-  const out: LeagueDate[] = [];
-
-  for (const day of days) {
-    // How far from the stated first night to that weekday's first occurrence.
-    const offset = (day - start.getUTCDay() + 7) % 7;
-    for (let w = 0; w < Math.min(weeks, 52); w += 1) {
-      const d = new Date(start.getTime());
-      d.setUTCDate(d.getUTCDate() + offset + w * 7);
-      const iso = toISO(d);
-      const was = kept.get(iso);
-      out.push({ plays_on: iso, skipped: was?.skipped ?? false, note: was?.note ?? null });
-    }
-  }
-
-  out.sort((a, b) => a.plays_on.localeCompare(b.plays_on));
-  return out.filter((d, i, arr) => i === 0 || d.plays_on !== arr[i - 1].plays_on);
-}
-
-/** First and last night actually played — what starts_on / ends_on become. */
-export function playingRange(dates: LeagueDate[]): { first: string; last: string } | null {
-  const playing = dates.filter((d) => !d.skipped).map((d) => d.plays_on).sort();
-  if (playing.length === 0) return null;
-  return { first: playing[0], last: playing[playing.length - 1] };
-}
 
 export interface LeagueScheduleProps {
   firstNight: string;
@@ -111,6 +68,11 @@ export interface LeagueScheduleProps {
   onDatesChange: (dates: LeagueDate[]) => void;
   onPlayoffsChange: (on: boolean) => void;
   error?: string | null;
+  /** Open play reuses this schedule (15 Nov 2026) with its own wording, a
+   *  12-week cap and no playoffs. */
+  weeksLabel?: string;
+  maxWeeks?: number;
+  showPlayoffs?: boolean;
 }
 
 export function LeagueSchedule({
@@ -124,6 +86,9 @@ export function LeagueSchedule({
   onDatesChange,
   onPlayoffsChange,
   error,
+  weeksLabel = 'How many weeks?',
+  maxWeeks = 52,
+  showPlayoffs = true,
 }: LeagueScheduleProps) {
   const weeksNum = Number(weeks);
 
@@ -136,8 +101,11 @@ export function LeagueSchedule({
   }
 
   function setWeeks(value: string) {
-    onWeeksChange(value);
-    onDatesChange(generateLeagueDates(firstNight, days, Number(value), dates));
+    // Capped as typed, so "20" on an open play form becomes 12 on screen
+    // rather than being refused on save.
+    const capped = value && Number(value) > maxWeeks ? String(maxWeeks) : value;
+    onWeeksChange(capped);
+    onDatesChange(generateLeagueDates(firstNight, days, Number(capped), dates));
   }
 
   function toggleNight(iso: string) {
@@ -186,15 +154,16 @@ export function LeagueSchedule({
       {/* 2 - how long */}
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-1.5">
-          <span className="t-head text-sm text-[color:var(--muted)]">How many weeks?</span>
+          <span className="t-head text-sm text-[color:var(--muted)]">{weeksLabel}</span>
           <input
             value={weeks}
             onChange={(e) => setWeeks(e.target.value.replace(/[^0-9]/g, ''))}
             inputMode="numeric"
-            placeholder="8"
+            placeholder={maxWeeks < 52 ? `Up to ${maxWeeks}` : '8'}
             className="field"
           />
         </label>
+        {showPlayoffs && (
         <label className="grid content-end gap-1.5">
           <span className="t-head text-sm text-[color:var(--muted)]">Season ends with</span>
           <button
@@ -211,13 +180,14 @@ export function LeagueSchedule({
             {playoffs ? 'Playoffs / end-of-season tournament' : 'Regular season only'}
           </button>
         </label>
+        )}
       </div>
 
       {/* 3 - the actual nights, to look at and correct */}
       {dates.length > 0 ? (
         <div>
           <p className="t-head mb-2 text-sm text-[color:var(--muted)]">
-            These are the nights. Click any one the league does <em>not</em> play.
+            These are the nights. Click any one it does <em>not</em> run — a holiday, a gym booking — and players see it crossed out.
           </p>
           <div className="flex flex-wrap gap-2">
             {dates.map((d) => (

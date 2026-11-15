@@ -96,20 +96,24 @@ const EventInput = z.object({
    * type is 'league' - a tournament must not be asked for either.
    */
   .superRefine((val, ctx) => {
+    // Open play is a dated series of up to 12 weeks since 15 Nov 2026.
     if (val.event_type === 'open_play') {
       if (val.league_days.length === 0) {
+        ctx.addIssue({ code: 'custom', path: ['league_days'], message: 'Pick which nights open play runs.' });
+      }
+      const weeks = Number(val.league_weeks);
+      if (!weeks || weeks < 1 || weeks > 12) {
         ctx.addIssue({
           code: 'custom',
-          path: ['league_days'],
-          message: 'Pick which nights open play runs.',
+          path: ['league_weeks'],
+          message: 'Open play runs for 1 to 12 weeks. Renew it to go longer.',
         });
       }
-      if (!val.is_ongoing && !val.ends_on) {
+      if (!val.league_dates.some((d) => !d.skipped)) {
         ctx.addIssue({
           code: 'custom',
-          path: ['ends_on'],
-          message:
-            'Give the last session date, or choose “Runs until further notice” just below it.',
+          path: ['league_dates'],
+          message: 'No sessions are left on. Set the weeks, and switch back on any date you turned off.',
         });
       }
       return;
@@ -336,7 +340,9 @@ export async function saveEvent(
    * all read starts_on. Skip the first night for a holiday and the season
    * genuinely starts a week later, so the column has to agree.
    */
-  const isLeague = input.event_type === 'league';
+  // "League" here means any dated series: a league, or open play since
+  // 15 Nov 2026. Both store their nights in league_dates.
+  const isLeague = input.event_type === 'league' || input.event_type === 'open_play';
   const playingNights = input.league_dates
     .filter((d) => !d.skipped)
     .map((d) => d.plays_on)

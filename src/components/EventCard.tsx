@@ -32,7 +32,9 @@ export function EventCard({ event, wide = false }: { event: DiscoveryEvent; wide
   // A league is a night and a season, not a date. Its date block shows the
   // NEXT night it plays -- which is also what search sorts it by -- so an
   // underway league reads "Nov 17" rather than a start date in the past.
-  const isLeague = event.event_type === 'league';
+  // A dated series: a league, or open play since 15 Nov 2026. Both show
+  // their nights and next date, e.g. "Tuesdays & Thursdays" (Tom's call).
+  const isLeague = event.event_type === 'league' || event.event_type === 'open_play';
   const league = isLeague ? leagueStatus(event.league_nights, today()) : null;
   const shownOn = league?.nextNight ?? event.starts_on;
   const [y, m, d] = shownOn.split('-').map(Number);
@@ -93,7 +95,9 @@ export function EventCard({ event, wide = false }: { event: DiscoveryEvent; wide
 
         <div className="min-w-0 flex-1 p-5">
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
-            {isLeague && <span className="chip-accent">League</span>}
+            {isLeague && (
+              <span className="chip-accent">{event.event_type === 'open_play' ? 'Open play' : 'League'}</span>
+            )}
             {event.surface_names.map((name, i) => (
               <span key={name} className={surfaceChip[event.surface_slugs[i]] ?? 'chip-muted'}>
                 {name}
