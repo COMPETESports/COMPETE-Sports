@@ -321,9 +321,20 @@ organizations. 166 venues. Migrations 001–023 run (016 deleted on purpose).
 was blocked without it). **No OAuth client exists** — Google sign-in is
 built but off; switch on after the lawyer review (P3).
 
+**Found 15 Nov — sign-up emails are not sent on the live site.** Tom signed
+up as a player: "account created, watch for a confirmation email", and none
+came. `RESEND_API_KEY` is unset (Resend was never set up), so every
+verification and password-reset email is logged, not sent — a player who
+forgets their password cannot get back in. Setup steps are in the 15 Nov
+session report on the progress page. **P1, before any player outreach.**
+
+**Decided 15 Nov:** one search card per series (league or open play), not
+one per session. Open play verified live: 12 weeks, calendar times right,
+two-week warning and Renew both work.
+
 **Next, in order:**
-1. Verify open play on the live site; Tom re-saves his test open play event
-   with 12 weeks (it was entered as "until further notice").
+1. Set up Resend (domain records in Squarespace, key in Vercel), then
+   sign up again to confirm the email arrives.
 2. Delete the duplicate "Deck The Balls" (Dec 19, Jonesboro) if Tom hasn't.
 3. **The public organizer page** — the partner pitch, 2–3 h together.
 4. Tom's own: EIN (SS-4), call Pete, rotate the DB password, operating

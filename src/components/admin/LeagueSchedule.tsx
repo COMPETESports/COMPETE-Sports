@@ -71,6 +71,8 @@ export interface LeagueScheduleProps {
   /** Open play reuses this schedule (15 Nov 2026) with its own wording, a
    *  12-week cap and no playoffs. */
   weeksLabel?: string;
+  nightsLabel?: string;
+  nightsHint?: string;
   maxWeeks?: number;
   showPlayoffs?: boolean;
 }
@@ -87,6 +89,8 @@ export function LeagueSchedule({
   onPlayoffsChange,
   error,
   weeksLabel = 'How many weeks?',
+  nightsLabel = 'Which night does it play?',
+  nightsHint = 'Most leagues play one night. Pick two if yours runs twice a week.',
   maxWeeks = 52,
   showPlayoffs = true,
 }: LeagueScheduleProps) {
@@ -123,7 +127,7 @@ export function LeagueSchedule({
       {/* 1 - which night */}
       <fieldset>
         <legend className="t-head mb-2 block text-sm text-[color:var(--muted)]">
-          Which night does it play?
+          {nightsLabel}
         </legend>
         <div className="flex flex-wrap gap-2">
           {DAYS.map((d) => {
@@ -147,7 +151,7 @@ export function LeagueSchedule({
           })}
         </div>
         <p className="mt-2 text-xs text-[color:var(--muted)] opacity-70">
-          Most leagues play one night. Pick two if yours runs twice a week.
+          {nightsHint}
         </p>
       </fieldset>
 

@@ -470,6 +470,8 @@ export function EventForm({
                 onPlayoffsChange={() => {}}
                 error={err('league_dates') ?? err('league_days') ?? err('league_weeks')}
                 weeksLabel="How many weeks will this open play be running?"
+                nightsLabel="Which nights does it run?"
+                nightsHint="Pick every night it runs — most open play is one or two nights a week."
                 maxWeeks={12}
                 showPlayoffs={false}
               />
