@@ -15,9 +15,9 @@ export const metadata = { title: 'Player profile', robots: { index: false } };
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ welcome?: string; reset?: string }>;
+  searchParams: Promise<{ welcome?: string; reset?: string; mail?: string }>;
 }) {
-  const { welcome, reset } = await searchParams;
+  const { welcome, reset, mail } = await searchParams;
   const account = (await currentAccount())!;
 
   const [profile, preferences, options, consent] = await Promise.all([
@@ -37,6 +37,13 @@ export default async function AccountPage({
             homepage. Everything else on this page is optional.
           </p>
         </div>
+      )}
+      {mail && (
+        <p role="alert" className="panel tone-warn p-4 text-sm">
+          Your account is ready, but the confirmation email could not be sent
+          ({mail}). That is our problem, not yours. Use <strong>Send it again</strong>{' '}
+          below in a little while.
+        </p>
       )}
       {reset && (
         <p className="panel tone-good p-4 text-sm">Your password has been changed.</p>

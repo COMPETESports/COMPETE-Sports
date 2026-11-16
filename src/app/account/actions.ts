@@ -112,7 +112,7 @@ export async function register(_prev: FormState, data: FormData): Promise<FormSt
 
   const token = await issueToken(result.account.id, 'email_verify', 60 * 48);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  await sendMail({
+  const sent = await sendMail({
     to: email,
     subject: 'Confirm your COMPETE email',
     text:
@@ -121,7 +121,8 @@ export async function register(_prev: FormState, data: FormData): Promise<FormSt
       `The link is good for 48 hours. If you did not sign up, ignore this.\n`,
   });
 
-  redirect('/account?welcome=1');
+  // Carry a failed send to the next page, so it is not announced as sent.
+  redirect(sent.ok ? '/account?welcome=1' : `/account?welcome=1&mail=${sent.detail ?? 'failed'}`);
 }
 
 export async function signIn(_prev: FormState, data: FormData): Promise<FormState> {
@@ -267,7 +268,7 @@ export async function resendVerification(): Promise<FormState> {
 
   const token = await issueToken(account.id, 'email_verify', 60 * 48);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  await sendMail({
+  const sent = await sendMail({
     to: account.email,
     subject: 'Confirm your COMPETE email',
     text:
@@ -276,7 +277,15 @@ export async function resendVerification(): Promise<FormState> {
       `The link is good for 48 hours.\n`,
   });
 
-  return { notice: 'Sent. Check your inbox.' };
+  // Say what actually happened. This used to report "Sent" whatever the
+  // mail service answered, so a broken setup looked like a slow inbox
+  // (Tom, 15 Nov). The code in brackets is for whoever fixes it.
+  if (!sent.ok) {
+    return {
+      error: `The email could not be sent (${sent.detail ?? 'unknown'}). It is our problem, not yours — try again later.`,
+    };
+  }
+  return { notice: 'Sent. Check your inbox and spam folder.' };
 }
 
 // ---------------------------------------------------------------------
