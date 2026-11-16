@@ -297,7 +297,10 @@ export async function saveProfile(_prev: FormState, data: FormData): Promise<For
   }
 
   const bracket = str(data, 'age_bracket') as AgeBracket;
-  if (bracket && !VALID_BRACKETS.has(bracket)) return { error: 'That is not one of the age ranges.' };
+  // Required since 15 Nov (Tom). Sign-up already asks for it, so this only
+  // stops it being cleared later.
+  if (!bracket) return { error: 'Choose your age range.' };
+  if (!VALID_BRACKETS.has(bracket)) return { error: 'That is not one of the age ranges.' };
 
   const genderRaw = str(data, 'gender');
   const gender =

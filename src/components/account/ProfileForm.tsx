@@ -51,6 +51,14 @@ export function ProfileForm({
 }) {
   const [state, action] = useActionState<FormState, FormData>(saveProfile, null);
   const [bracket, setBracket] = useState<string>(profile?.age_bracket ?? '');
+  // Live, so the number moves with the thumb. It used to print the SAVED
+  // value, which never changed while dragging (Tom, 15 Nov).
+  const [radius, setRadius] = useState<number>(profile?.travel_radius_miles ?? 100);
+  // Male / Female only, and a second tap clears it -- optional, never
+  // forced (Tom, 15 Nov). A radio cannot be un-ticked, hence buttons.
+  const [gender, setGender] = useState<string>(
+    profile?.gender === 'male' || profile?.gender === 'female' ? profile.gender : '',
+  );
   const [phone, setPhone] = useState<string>(displayPhone(profile?.phone_e164 ?? null) ?? '');
 
   const isMinor = bracket === 'under_18';
@@ -101,7 +109,7 @@ export function ProfileForm({
 
         <div className="mt-4">
           <label className="label" htmlFor="travel_radius_miles">
-            How far you will drive — {profile?.travel_radius_miles ?? 100} miles
+            How far you will drive — {radius} miles
           </label>
           <input
             id="travel_radius_miles"
@@ -110,23 +118,19 @@ export function ProfileForm({
             min={10}
             max={250}
             step={10}
-            defaultValue={profile?.travel_radius_miles ?? 100}
+            value={radius}
+            onChange={(e) => setRadius(Number(e.target.value))}
             className="w-full accent-[color:var(--surf-ink)]"
           />
         </div>
       </section>
 
-      {/* ------------------------------------------------------- optional */}
+      {/* ------------------------------------------------------ age, gender */}
+      {/* Age range is REQUIRED (Tom, 15 Nov) -- it is what keeps texts away
+          from under-18s. Gender stays optional. */}
       <section className="panel p-5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="t-head text-lg">Optional</h2>
-          <span className="t-mono text-[10px] uppercase tracking-[0.15em] text-[color:var(--faint)]">
-            leave any of it blank
-          </span>
-        </div>
-
-        <fieldset className="mt-4">
-          <legend className="label">Age range</legend>
+        <fieldset>
+          <legend className="label">Age range — required</legend>
           <div className="flex flex-wrap gap-2">
             {AGE_BRACKETS.map((option) => (
               <label key={option.value} className="toggle-chip">
@@ -148,21 +152,32 @@ export function ProfileForm({
         </fieldset>
 
         <fieldset className="mt-5">
-          <legend className="label">Gender</legend>
+          <legend className="label">Gender — optional</legend>
           <div className="flex flex-wrap gap-2">
-            {GENDER_OPTIONS.map((option) => (
-              <label key={option.value} className="toggle-chip">
-                <input
-                  type="radio"
-                  name="gender"
-                  value={option.value}
-                  defaultChecked={profile?.gender === option.value}
-                  className="sr-only"
-                />
-                <span>{option.label}</span>
-              </label>
-            ))}
+            {GENDER_OPTIONS.filter((o) => o.value !== 'undisclosed').map((option) => {
+              const on = gender === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setGender(on ? '' : option.value)}
+                  className="toggle-chip"
+                  style={
+                    on
+                      ? { color: 'var(--void)', borderColor: 'var(--beach)', background: 'var(--beach)' }
+                      : undefined
+                  }
+                >
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
           </div>
+          <input type="hidden" name="gender" value={gender} />
+          <p className="mt-2 text-xs text-[color:var(--faint)]">
+            Tap again to clear it.
+          </p>
         </fieldset>
       </section>
 
