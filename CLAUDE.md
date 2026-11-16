@@ -321,23 +321,31 @@ organizations. 166 venues. Migrations 001–023 run (016 deleted on purpose).
 was blocked without it). **No OAuth client exists** — Google sign-in is
 built but off; switch on after the lawyer review (P3).
 
-**Found 15 Nov — sign-up emails are not sent on the live site.** Tom signed
-up as a player: "account created, watch for a confirmation email", and none
-came. `RESEND_API_KEY` is unset (Resend was never set up), so every
-verification and password-reset email is logged, not sent — a player who
-forgets their password cannot get back in. Setup steps are in the 15 Nov
-session report on the progress page. **P1, before any player outreach.**
+**Email works (15 Nov, late).** Resend is set up for joincompete.com
+(verified; `send`/`rsend` CNAMEs are Resend Forge, `resend._domainkey` its
+signature; `_dmarc` is Tom's own and stays). `RESEND_API_KEY` and
+`MAIL_FROM` are on Vercel. Sign-up confirmation arrived in Gmail. The first
+attempt failed with 403 because the Resend domain was typed
+"joincomplete.com". **Receiving stays off** — it would clash with Google
+Workspace's MX. Sign-up and "Send it again" now report a failed send with
+its code instead of claiming "Sent".
 
 **Decided 15 Nov:** one search card per series (league or open play), not
 one per session. Open play verified live: 12 weeks, calendar times right,
-two-week warning and Renew both work.
+two-week warning and Renew both work. Profile: age range required; gender
+Male/Female only, optional, clearable; mileage label live.
 
-**Next, in order:**
-1. Set up Resend (domain records in Squarespace, key in Vercel), then
-   sign up again to confirm the email arrives.
-2. Delete the duplicate "Deck The Balls" (Dec 19, Jonesboro) if Tom hasn't.
-3. **The public organizer page** — the partner pitch, 2–3 h together.
-4. Tom's own: EIN (SS-4), call Pete, rotate the DB password, operating
+**Next, in order — start here:**
+1. **Player profile, sport by sport** — `claude/sports-and-player-profile-spec.md`.
+   Tom confirmed all of it on 15 Nov: (a) retired formats/divisions show
+   in "What you play" — `loadPreferenceOptions` in ref-data.ts filters
+   neither on `is_active`; (b) one section per sport, opening only when
+   ticked, volleyball first, pickleball second; (c) gender hides the other
+   gender's formats; (d) 20 "coming soon" sports to collect demand
+   (migration 024 — check every `from sports` query first). Open
+   question: Softball and Slow pitch softball, one entry or two?
+2. **The public organizer page** — the partner pitch, 2–3 h together.
+3. Tom's own: EIN (SS-4), call Pete, rotate the DB password, operating
    agreement by 23 Nov, bank account, the 13 confirmed 2027 events.
 
 Full list with priorities: the build-progress artifact, and
