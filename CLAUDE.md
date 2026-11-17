@@ -282,8 +282,17 @@ assurance check** — standing instruction, 15 Nov 2026.
 2. **Reschedule anything not done by its date** — new date, and an orange
    "moved from …" tag. Tom does not work every day and pivots are normal;
    a stale date on that page is the failure, not a missed task.
-3. Read event counts from the live site, not from memory.
-4. Then the start-of-session update, and a plan sized to his window.
+3. **Keep the Google Calendar in step.** Every dated task is also an
+   all-day event on **tommy@joincompete.com**'s calendar (calendarId
+   `tommy@joincompete.com`), written through the Google Calendar connector,
+   which is signed in as Tom's personal Gmail and has edit rights to the
+   business calendar (shared 17 Nov). Tom sees it in both accounts. NOT the
+   "COMPETE" calendar inside the personal account. Moving a date on the page means
+   moving the calendar event too; finishing a task means deleting it.
+   Titles start "P1 ·", "P2 ·", "P3 ·". All-day, shown as free, no guests,
+   no notifications.
+4. Read event counts from the live site, not from memory.
+5. Then the start-of-session update, and a plan sized to his window.
 
 **At the end**, after the check, in this order:
 1. **Show what was built** — a screenshot or short walkthrough of each new
