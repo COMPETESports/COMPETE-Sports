@@ -276,8 +276,14 @@ assurance check** — standing instruction, 15 Nov 2026.
    report on the build-progress page: done, or still open?
 4. Report it as a short ✅ / ⚠️ list. Anything ⚠️ is raised before new work.
 
-**At the start**, after the check: the start-of-session progress update,
-and a plan sized to the window he named, from the progress page's list.
+**At the start**, after the check — standing rule, Tom, 17 Nov:
+1. **Review every dated task** in "Scheduled tasks" at the top of the
+   build-progress page. Ask Tom about anything due or past due: done?
+2. **Reschedule anything not done by its date** — new date, and an orange
+   "moved from …" tag. Tom does not work every day and pivots are normal;
+   a stale date on that page is the failure, not a missed task.
+3. Read event counts from the live site, not from memory.
+4. Then the start-of-session update, and a plan sized to his window.
 
 **At the end**, after the check, in this order:
 1. **Show what was built** — a screenshot or short walkthrough of each new
