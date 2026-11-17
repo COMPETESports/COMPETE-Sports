@@ -66,9 +66,7 @@ export default async function AdminEventsPage({
   const where = (s: string) =>
     s === 'live'
       ? sql`e.status = 'approved' and ${isUpcoming}`
-      : s === 'past'
-        ? sql`e.status in ('approved','archived') and not ${isUpcoming}`
-        : s === 'all'
+      : s === 'all'
           ? sql`true`
           : sql`e.status = ${s}`;
 
@@ -88,13 +86,12 @@ export default async function AdminEventsPage({
     limit 300`;
 
   const [tally] = await sql<
-    { all: number; live: number; past: number; draft: number;
+    { all: number; live: number; draft: number;
       approved: number; cancelled: number; archived: number }[]
   >`
     select
       count(*)::int as all,
       count(*) filter (where status = 'approved' and ${isUpcoming})::int as live,
-      count(*) filter (where status in ('approved','archived') and not ${isUpcoming})::int as past,
       count(*) filter (where status = 'draft')::int     as draft,
       count(*) filter (where status = 'approved')::int  as approved,
       count(*) filter (where status = 'cancelled')::int as cancelled,
@@ -160,8 +157,6 @@ export default async function AdminEventsPage({
               ['all', 'All'],
               ['live', 'Live on the site'],
               ['draft', 'Draft'],
-              ['past', 'Past'],
-              ['approved', 'Approved (any date)'],
               ['cancelled', 'Cancelled'],
               ['archived', 'Archived'],
             ].map(([s, label]) => (
