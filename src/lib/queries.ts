@@ -376,7 +376,7 @@ export async function getEventBySlug(slug: string): Promise<DiscoveryEvent | nul
   const [row] = await sql<DiscoveryEvent[]>`
     select *, null::double precision as distance_miles
     from event_discovery
-    where slug = ${slug} and status = 'approved'
+    where slug = ${slug} and status in ('approved', 'archived')
     limit 1`;
   return row ? normalise(row) : null;
 }

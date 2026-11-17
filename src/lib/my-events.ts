@@ -59,7 +59,7 @@ export async function getMyEvents(accountId: string): Promise<MyEventLists> {
       from account_events ae
       join event_discovery d on d.id = ae.event_id
      where ae.account_id = ${accountId}
-       and d.status in ('approved','cancelled')
+       and d.status in ('approved','cancelled','archived')
      order by d.starts_on asc
   `;
 

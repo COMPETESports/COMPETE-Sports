@@ -26,6 +26,12 @@ const surfaceChip: Record<string, string> = {
  * homepage still shows two cards a row, and a side panel sized for a
  * full-width card would eat half of one of those.
  */
+const eventTypeLabel: Record<string, string> = {
+  tournament: 'Tournament',
+  league: 'League',
+  open_play: 'Open play',
+};
+
 export function EventCard({ event, wide = false }: { event: DiscoveryEvent; wide?: boolean }) {
   const distance = formatDistance(event.distance_miles);
 
@@ -95,9 +101,8 @@ export function EventCard({ event, wide = false }: { event: DiscoveryEvent; wide
 
         <div className="min-w-0 flex-1 p-5">
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
-            {isLeague && (
-              <span className="chip-accent">{event.event_type === 'open_play' ? 'Open play' : 'League'}</span>
-            )}
+            {/* Every card names its type, so a tournament reads as plainly as a league. */}
+            <span className="chip-accent">{eventTypeLabel[event.event_type] ?? 'Tournament'}</span>
             {event.surface_names.map((name, i) => (
               <span key={name} className={surfaceChip[event.surface_slugs[i]] ?? 'chip-muted'}>
                 {name}

@@ -31,7 +31,7 @@ export default async function OrganizersPage() {
            count(distinct v.state)::int as states,
            count(distinct v.id)::int as venues
       from events e join venues v on v.id = e.venue_id
-     where e.status = 'approved'
+     where e.status in ('approved', 'archived')
   `;
 
   return (

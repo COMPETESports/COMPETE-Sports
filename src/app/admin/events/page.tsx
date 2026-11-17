@@ -49,8 +49,10 @@ export default async function AdminEventsPage({
   // A league or open play series is live until its LAST session, the same
   // rule search uses since 10 Nov -- so Live here matches what players see.
   // It used to test the start date only, so a running series showed as past.
-  const isUpcoming = sql`(e.starts_on >= current_date
-    or (e.event_type in ('league', 'open_play') and coalesce(e.ends_on, e.starts_on) >= current_date))`;
+  // Still running until its last day: multi-day tournaments, leagues and open
+  // play included. The same rule archives finished events each night
+  // (supabase/024_auto_archive.sql), so the two never disagree.
+  const isUpcoming = sql`(coalesce(e.ends_on, e.starts_on) >= current_date)`;
 
   // Click a column heading to sort by it; click again to reverse (17 Nov).
   const orderBy = {
@@ -65,7 +67,7 @@ export default async function AdminEventsPage({
     s === 'live'
       ? sql`e.status = 'approved' and ${isUpcoming}`
       : s === 'past'
-        ? sql`e.status = 'approved' and not ${isUpcoming}`
+        ? sql`e.status in ('approved','archived') and not ${isUpcoming}`
         : s === 'all'
           ? sql`true`
           : sql`e.status = ${s}`;
@@ -92,7 +94,7 @@ export default async function AdminEventsPage({
     select
       count(*)::int as all,
       count(*) filter (where status = 'approved' and ${isUpcoming})::int as live,
-      count(*) filter (where status = 'approved' and not ${isUpcoming})::int as past,
+      count(*) filter (where status in ('approved','archived') and not ${isUpcoming})::int as past,
       count(*) filter (where status = 'draft')::int     as draft,
       count(*) filter (where status = 'approved')::int  as approved,
       count(*) filter (where status = 'cancelled')::int as cancelled,
