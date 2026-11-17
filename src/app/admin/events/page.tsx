@@ -6,6 +6,7 @@ import { signOut } from '@/app/admin/actions';
 import { StatusControl } from '@/components/admin/StatusControl';
 import { FeatureToggle } from '@/components/admin/FeatureToggle';
 import { formatDate } from '@/lib/format';
+import { AutoSubmitSelect } from '@/components/admin/AutoSubmitSelect';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Events', robots: { index: false, follow: false } };
@@ -18,6 +19,7 @@ interface Row {
   status: string;
   city: string | null;
   state: string | null;
+  organizer_name: string | null;
   has_coords: boolean;
   featured: boolean;
   /** Days until an open play series' last session; null otherwise. */
@@ -27,11 +29,15 @@ interface Row {
 export default async function AdminEventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; sort?: string; dir?: string }>;
 }) {
   if (!(await isSignedIn())) redirect('/admin');
 
-  const { status = 'all', q = '' } = await searchParams;
+  // Live by default (Tom, 17 Nov): signing in lands on what players can
+  // see right now. "All" is one click away in the Status filter.
+  const { status = 'live', q = '', sort: sortRaw = 'date', dir: dirRaw = 'asc' } = await searchParams;
+  const sort = ['name', 'organizer', 'date', 'where'].includes(sortRaw) ? sortRaw : 'date';
+  const dir = dirRaw === 'desc' ? 'desc' : 'asc';
   const search = q.trim();
 
   // "Approved" is not the same as "on the site right now", which is what
@@ -40,25 +46,43 @@ export default async function AdminEventsPage({
   // conditions the public site applies - so the Live count should match
   // the number of events a player sees. If the two ever disagree,
   // something is wrong, which makes this a check as well as a filter.
+  // A league or open play series is live until its LAST session, the same
+  // rule search uses since 10 Nov -- so Live here matches what players see.
+  // It used to test the start date only, so a running series showed as past.
+  const isUpcoming = sql`(e.starts_on >= current_date
+    or (e.event_type in ('league', 'open_play') and coalesce(e.ends_on, e.starts_on) >= current_date))`;
+
+  // Click a column heading to sort by it; click again to reverse (17 Nov).
+  const orderBy = {
+    name: sql`lower(e.name)`,
+    organizer: sql`lower(coalesce(o.name, 'zzzz'))`,
+    date: sql`e.starts_on`,
+    where: sql`coalesce(v.state, 'zz'), coalesce(v.city, 'zz')`,
+  }[sort]!;
+  const direction = dir === 'desc' ? sql`desc` : sql`asc`;
+
   const where = (s: string) =>
     s === 'live'
-      ? sql`e.status = 'approved' and e.starts_on >= current_date`
+      ? sql`e.status = 'approved' and ${isUpcoming}`
       : s === 'past'
-        ? sql`e.status = 'approved' and e.starts_on < current_date`
+        ? sql`e.status = 'approved' and not ${isUpcoming}`
         : s === 'all'
           ? sql`true`
           : sql`e.status = ${s}`;
 
   const rows = await sql<Row[]>`
     select e.id, e.slug, e.name, e.starts_on, e.status,
-           v.city, v.state, (v.latitude is not null) as has_coords, e.featured,
+           v.city, v.state, o.name as organizer_name,
+           (v.latitude is not null) as has_coords, e.featured,
            case when e.event_type = 'open_play' and e.status = 'approved'
                 then (coalesce(e.ends_on, e.starts_on) - current_date)::int end as ends_in
     from events e
     left join venues v on v.id = e.venue_id
+    left join organizers o on o.id = e.organizer_id
     where ${where(status)}
-      and (${search} = '' or e.name ilike ${'%' + search + '%'} or v.city ilike ${'%' + search + '%'})
-    order by e.starts_on asc
+      and (${search} = '' or e.name ilike ${'%' + search + '%'} or v.city ilike ${'%' + search + '%'}
+           or o.name ilike ${'%' + search + '%'})
+    order by ${orderBy} ${direction}, e.starts_on asc
     limit 300`;
 
   const [tally] = await sql<
@@ -67,13 +91,13 @@ export default async function AdminEventsPage({
   >`
     select
       count(*)::int as all,
-      count(*) filter (where status = 'approved' and starts_on >= current_date)::int as live,
-      count(*) filter (where status = 'approved' and starts_on <  current_date)::int as past,
+      count(*) filter (where status = 'approved' and ${isUpcoming})::int as live,
+      count(*) filter (where status = 'approved' and not ${isUpcoming})::int as past,
       count(*) filter (where status = 'draft')::int     as draft,
       count(*) filter (where status = 'approved')::int  as approved,
       count(*) filter (where status = 'cancelled')::int as cancelled,
       count(*) filter (where status = 'archived')::int  as archived
-    from events`;
+    from events e`;
   const countFor = (s: string) => (tally as unknown as Record<string, number>)[s] ?? 0;
 
   const missingCoords = rows.filter((r) => !r.has_coords).length;
@@ -89,7 +113,7 @@ export default async function AdminEventsPage({
           <Link href="/admin/events/new" className="btn-primary">
             + New event
           </Link>
-          <Link href="/admin/crm" className="btn-ghost">
+          <Link href="/admin/organizers" className="btn-ghost">
             Organizers
           </Link>
           <Link href="/admin/compliance" className="btn-ghost">
@@ -119,7 +143,7 @@ export default async function AdminEventsPage({
             id="q"
             name="q"
             defaultValue={search}
-            placeholder="Event name or city"
+            placeholder="Event, organizer or city"
             className="field"
           />
         </div>
@@ -127,7 +151,9 @@ export default async function AdminEventsPage({
           <label className="label" htmlFor="status">
             Status
           </label>
-          <select id="status" name="status" defaultValue={status} className="field">
+          {/* Changing the status filter applies it at once (17 Nov) -- no
+              Filter button to press. */}
+          <AutoSubmitSelect id="status" name="status" defaultValue={status} className="field">
             {[
               ['all', 'All'],
               ['live', 'Live on the site'],
@@ -141,10 +167,12 @@ export default async function AdminEventsPage({
                 {label} ({countFor(s)})
               </option>
             ))}
-          </select>
+          </AutoSubmitSelect>
         </div>
+        <input type="hidden" name="sort" value={sort} />
+        <input type="hidden" name="dir" value={dir} />
         <button type="submit" className="btn-ghost">
-          Filter
+          Search
         </button>
       </form>
 
@@ -152,11 +180,38 @@ export default async function AdminEventsPage({
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead>
             <tr className="border-b-2 border-[color:var(--line)]">
-              {['Event', 'Date', 'Where', 'Status', 'Homepage', ''].map((h) => (
-                <th key={h} className="t-kicker px-4 py-3 text-[color:var(--faint)]">
-                  {h}
-                </th>
-              ))}
+              {(
+                [
+                  ['Event', 'name'],
+                  ['Organizer', 'organizer'],
+                  ['Date', 'date'],
+                  ['Where', 'where'],
+                  ['Status', null],
+                  ['Homepage', null],
+                  ['', null],
+                ] as const
+              ).map(([h, key]) => {
+                if (!key) {
+                  return (
+                    <th key={h || 'actions'} className="t-kicker px-4 py-3 text-[color:var(--faint)]">
+                      {h}
+                    </th>
+                  );
+                }
+                const active = sort === key;
+                const nextDir = active && dir === 'asc' ? 'desc' : 'asc';
+                const qs = new URLSearchParams({ status, sort: key, dir: nextDir, ...(search ? { q: search } : {}) });
+                return (
+                  <th key={h} className="t-kicker px-4 py-3" aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                    <Link
+                      href={`/admin/events?${qs.toString()}`}
+                      className={active ? 'text-[color:var(--surf-ink)]' : 'text-[color:var(--faint)] hover:text-[color:var(--ink)]'}
+                    >
+                      {h} {active ? (dir === 'asc' ? '▲' : '▼') : '↕'}
+                    </Link>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -189,6 +244,9 @@ export default async function AdminEventsPage({
                         {row.ends_in === 0 ? 'ends today' : `ends in ${row.ends_in} ${row.ends_in === 1 ? 'day' : 'days'}`} — renew
                       </Link>
                     )}
+                  </td>
+                  <td className="px-4 py-3 text-[color:var(--muted)]">
+                    {row.organizer_name ?? '—'}
                   </td>
                   <td className="t-mono px-4 py-3 text-xs text-[color:var(--muted)]">
                     {`${formatDate(iso, 'short')}, ${iso.slice(0, 4)}`}
@@ -229,7 +287,7 @@ export default async function AdminEventsPage({
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-[color:var(--faint)]">
+                <td colSpan={7} className="px-4 py-10 text-center text-[color:var(--faint)]">
                   Nothing matches that filter.
                 </td>
               </tr>
