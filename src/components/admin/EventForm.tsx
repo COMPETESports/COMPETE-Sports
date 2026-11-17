@@ -19,8 +19,8 @@ import {
   type LeagueDate,
 } from './LeagueSchedule';
 import { OrganizerPicker, type OrganizerOption } from './OrganizerPicker';
-import { PlacesAutocomplete } from './PlacesAutocomplete';
-import { VenuePicker, type VenueOption } from './VenuePicker';
+import { VenueSearch } from './VenueSearch';
+import type { VenueOption } from './VenuePicker';
 import { labelFor } from '@/lib/field-labels';
 import type { ParsedListing } from '@/lib/parse-listing';
 
@@ -639,32 +639,29 @@ export function EventForm({
           </p>
         </Section>
         <Section title="Venue">
-          <VenuePicker
+          {/* One box for both: our venues first, then Google. Picking a
+              Google place we already have reuses our venue. Tom, 17 Nov. */}
+          <VenueSearch
             venues={options.venues}
             current={v.venue_name}
-            onPick={(venue) =>
+            onPickVenue={(venue, place) =>
               setV((prev) => ({
                 ...prev,
                 venue_name: venue.name,
-                address_line: venue.address_line ?? '',
+                address_line: venue.address_line ?? place?.address_line ?? '',
                 city: venue.city,
                 state: venue.state,
-                postal_code: venue.postal_code ?? '',
-                // An existing venue already has whatever pin it has; do not
-                // let a stale Google lookup overwrite it.
-                venue_latitude: '',
-                venue_longitude: '',
-                venue_place_id: '',
-                venue_business_status: '',
+                postal_code: venue.postal_code ?? place?.postal_code ?? '',
+                // Picked through Google: carry its exact pin, which upgrades
+                // our venue's approximate one on save. Picked from our own
+                // list: leave the venue's pin as it is.
+                venue_latitude: place?.latitude == null ? '' : String(place.latitude),
+                venue_longitude: place?.longitude == null ? '' : String(place.longitude),
+                venue_place_id: place?.place_id ?? '',
+                venue_business_status: place?.business_status ?? '',
               }))
             }
-          />
-          {/* Looking it up on Google is what finally gets an exact pin.
-              Every venue in the database is currently placed from a ZIP
-              code or a city name, so radius search answers "5 miles from
-              me" from the middle of a postal district. Tom, 3 Nov. */}
-          <PlacesAutocomplete
-            onPick={(place) =>
+            onPickPlace={(place) =>
               setV((prev) => ({
                 ...prev,
                 venue_name: place.name || prev.venue_name,

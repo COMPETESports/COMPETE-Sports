@@ -69,6 +69,8 @@ export interface VenueRefOption {
   city: string;
   state: string;
   postal_code: string | null;
+  /** Google's id for the place, when the venue was ever looked up there. */
+  google_place_id: string | null;
   event_count: number;
 }
 
@@ -86,7 +88,7 @@ export interface VenueRefOption {
  */
 export async function loadVenueOptions(): Promise<VenueRefOption[]> {
   const rows = await sql<VenueRefOption[]>`
-    select v.id, v.name, v.address_line, v.city, v.state, v.postal_code,
+    select v.id, v.name, v.address_line, v.city, v.state, v.postal_code, v.google_place_id,
            (select count(*)::int from events e where e.venue_id = v.id) as event_count
       from venues v
      order by v.name`;

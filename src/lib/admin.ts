@@ -249,10 +249,18 @@ export async function saveEvent(
   const [sport] = await sql<{ id: string }[]>`select id from sports where slug = ${input.sport}`;
   if (!sport) return { ok: false, message: `Unknown sport "${input.sport}".` };
 
-  // ---- venue (reused when the same name/city/state already exists) ----
+  // ---- venue: reuse an existing one rather than add a duplicate ----
+  // Google's place id is certain, so it wins. Otherwise name, city and
+  // state, ignoring capitals and stray spaces: "Sand Volleyball club" is
+  // the same venue as "Sand Volleyball Club".
+  const placeId = input.venue_place_id || null;
   const [existingVenue] = await sql<{ id: string; latitude: number | null }[]>`
     select id, latitude from venues
-    where name = ${input.venue_name} and city = ${input.city} and state = ${input.state}
+    where (${placeId}::text is not null and google_place_id = ${placeId})
+       or (lower(trim(name)) = lower(trim(${input.venue_name}))
+           and lower(trim(city)) = lower(trim(${input.city}))
+           and upper(state) = upper(${input.state}))
+    order by (google_place_id is not distinct from ${placeId}) desc
     limit 1`;
 
   let venueId: string;

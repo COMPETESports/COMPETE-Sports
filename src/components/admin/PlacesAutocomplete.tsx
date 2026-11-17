@@ -36,7 +36,7 @@ export interface PlaceResult {
   longitude: number | null;
 }
 
-interface AddressComponent {
+export interface AddressComponent {
   longText?: string;
   shortText?: string;
   long_name?: string;
@@ -48,7 +48,7 @@ interface AddressComponent {
    components ask for it. */
 let mapsLoader: Promise<void> | null = null;
 
-function loadMaps(key: string): Promise<void> {
+export function loadMaps(key: string): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve();
   const w = window as unknown as { google?: { maps?: { importLibrary?: unknown } } };
   if (w.google?.maps?.importLibrary) return Promise.resolve();
@@ -90,7 +90,7 @@ function loadMaps(key: string): Promise<void> {
 }
 
 /** Pull the pieces the form needs out of Google's component list. */
-function readComponents(components: AddressComponent[] | undefined) {
+export function readComponents(components: AddressComponent[] | undefined) {
   const out = { streetNumber: '', route: '', city: '', state: '', postal: '' };
   for (const c of components ?? []) {
     // The new API returns longText/shortText; the older one long_name/short_name.

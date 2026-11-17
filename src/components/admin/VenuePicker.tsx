@@ -24,6 +24,7 @@ export interface VenueOption {
   city: string;
   state: string;
   postal_code: string | null;
+  google_place_id?: string | null;
   event_count: number;
 }
 
