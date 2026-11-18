@@ -306,62 +306,67 @@ assurance check** — standing instruction, 15 Nov 2026.
 5. **Commit** — the build check, then the GitHub Desktop summary +
    description.
 
-## State, as of 15 Nov 2026
+## State, as of 18 Nov 2026
 
 **Live at https://www.joincompete.com** since 14 Nov — Softr disconnected,
 DNS at Squarespace points at Vercel (apex 308s to www, so **www is the
 real address**; anything that lists allowed web addresses needs both).
-`NEXT_PUBLIC_SITE_URL` = https://www.joincompete.com. Email unaffected —
-tested 15 Nov. Vercel's own address: compete-sports-ashen.vercel.app.
+Always use www.joincompete.com/admin — Vercel's one-off deployment URLs
+are not on the Google key's list, so the venue search fails there.
+Email works (Resend, verified; `RESEND_API_KEY`, `MAIL_FROM` on Vercel;
+receiving stays off — it would clash with Google Workspace's MX).
 
-**Data:** 568+ events, ~24 upcoming across 9 states on 15 Nov. 1,580
-organizations. 166 venues. Migrations 001–023 run (016 deleted on purpose).
+**Data:** 23 upcoming events across 9 states (read 18 Nov). ~1,580
+organizations. Migrations 001–024 run (016 deleted on purpose).
 
-**Built since 10 Nov:**
-- Leagues visible to players (023): stay in search until their last
-  night, Event type filter, League card, season schedule on the page.
-- "Add to calendar" menu: Google / Apple / Outlook / .ics; a league or open
-  play subscribes to its whole series; entries carry the venue timezone.
-- US map: full width, Census-region colours, follows the homepage filters,
-  a state opens its events as cards.
-- Flyer reader: up to 5 images at once, and links to event pages
-  (Facebook/Instagram refused with a plain reason).
-- Delete any event from inside it, unless a player saved it.
-- CRM follow-ups: one-click "Add to Google Calendar".
-- **Open play is a dated series (15 Nov):** 1–12 weeks, switchable dates,
-  Renew, two-week warning. Spec + decisions: `claude/open-play-schedule-spec.md`.
-  Pushed 15 Nov at session end — **verify on the live site first thing.**
+**Built 17 Nov (all committed and pushed, last commit 74266da):**
+- Admin events list: opens on **Live**; Live = approved and
+  `coalesce(ends_on, starts_on) >= current_date` (series and multi-day
+  count until their last day). Sortable headers (`sort`/`dir` params:
+  name, organizer, date, where). Organizer column, searchable. Status
+  filter auto-submits (`AutoSubmitSelect`); row `StatusControl` calls
+  `router.refresh()`. Filter options: All, Live, Draft, Cancelled,
+  Archived — "Past" and "Approved (any date)" removed as duplicates.
+- Every `EventCard` shows its type chip: Tournament / League / Open play.
+- **Migration 024 — nightly auto-archive.** `archive_finished_events()`
+  moves approved events to archived the day after their last day; pg_cron
+  job `archive-finished-events` at 11:00 UTC. First run archived 112.
+  Archived events keep their page (`getEventBySlug` allows approved +
+  archived) and stay in player history (`my-events.ts`).
+- **One venue search** (`VenueSearch.tsx`, event form only): our venues
+  first, then Google suggestions (AutocompleteSuggestion, Places API New);
+  a Google place we hold (place ID or name/city/state) uses our venue.
+  `saveEvent` matches venues by `google_place_id` first, then name/city/
+  state case- and space-insensitively. Organizer pages still use the old
+  `VenuePicker` + `PlacesAutocomplete` — switch them next (15 min).
 
-**Google Cloud:** browser key now allows www.joincompete.com (the venue box
-was blocked without it). **No OAuth client exists** — Google sign-in is
-built but off; switch on after the lawyer review (P3).
+**Decided 17–18 Nov:**
+- Softball and Slow pitch softball are **two entries**.
+- **The end vision is written: `claude/vision.md`.** Read it before
+  designing anything player-facing. Practical use over attention; curated
+  notifications, never spam. Revenue: organizer annual fee, partner
+  advertising, payment-processing percentage, maybe one player
+  subscription (undefined). Organizer messages go by push and text, not
+  email. Top Plays: up votes only. Players set their own discovery radius;
+  COMPETE sets state/region feed standards; city feed undecided.
+- Suggested build order: player profile → public organizer page with
+  Follow → community feeds + notifications → organizer messages →
+  registration/payments → Top Plays.
 
-**Email works (15 Nov, late).** Resend is set up for joincompete.com
-(verified; `send`/`rsend` CNAMEs are Resend Forge, `resend._domainkey` its
-signature; `_dmarc` is Tom's own and stays). `RESEND_API_KEY` and
-`MAIL_FROM` are on Vercel. Sign-up confirmation arrived in Gmail. The first
-attempt failed with 403 because the Resend domain was typed
-"joincomplete.com". **Receiving stays off** — it would clash with Google
-Workspace's MX. Sign-up and "Send it again" now report a failed send with
-its code instead of claiming "Sent".
-
-**Decided 15 Nov:** one search card per series (league or open play), not
-one per session. Open play verified live: 12 weeks, calendar times right,
-two-week warning and Renew both work. Profile: age range required; gender
-Male/Female only, optional, clearable; mileage label live.
+**Business (Tom's):** online EIN refused twice (IRS ref 101, name
+conflict). SS-4 completed 18 Nov; fax Thu 19 to 855-641-6935, once. Bank
+account waits on the EIN. Lawyer: Pete at Polsinelli; scope doc
+"COMPETE Sports — Legal Scope for Polsinelli" (a Claude doc) holds the
+items and his fee schedule. Choose by Fri 20. DB password rotation moved
+to Fri 20. Operating agreement Mon 23.
 
 **Next, in order — start here:**
-1. **Player profile, sport by sport** — `claude/sports-and-player-profile-spec.md`.
-   Tom confirmed all of it on 15 Nov: (a) retired formats/divisions show
-   in "What you play" — `loadPreferenceOptions` in ref-data.ts filters
-   neither on `is_active`; (b) one section per sport, opening only when
-   ticked, volleyball first, pickleball second; (c) gender hides the other
-   gender's formats; (d) 20 "coming soon" sports to collect demand
-   (migration 024 — check every `from sports` query first). Open
-   question: Softball and Slow pitch softball, one entry or two?
-2. **The public organizer page** — the partner pitch, 2–3 h together.
-3. Tom's own: EIN (SS-4), call Pete, rotate the DB password, operating
-   agreement by 23 Nov, bank account, the 13 confirmed 2027 events.
+1. **Player profile, sport by sport** — `claude/sports-and-player-profile-spec.md`
+   (migration **025**, not 024). Retired formats/divisions still show:
+   `loadPreferenceOptions` in ref-data.ts ignores `is_active`. Check every
+   `from sports` query before adding coming-soon sports.
+2. Switch the organizer pages to `VenueSearch` (15 min).
+3. **The public organizer page**, with Follow in mind (vision).
 
-Full list with priorities: the build-progress artifact, and
-`claude/work-split.md` (older; the progress page is newer).
+Dated tasks: the build-progress artifact (top section) and tommy@joincompete.com's
+Google Calendar. `claude/work-split.md` is older.
