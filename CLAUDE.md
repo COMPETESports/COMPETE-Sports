@@ -305,6 +305,10 @@ assurance check** — standing instruction, 15 Nov 2026.
    conversation starts fully briefed.
 5. **Commit** — the build check, then the GitHub Desktop summary +
    description.
+6. **End-of-day summary on the calendar** (Tom, 19 Nov) — an all-day event
+   on tommy@joincompete.com for that day, titled "End of day · <date> — <theme>",
+   free, no notifications: what was done, tomorrow's tasks (Tom's and the
+   next session's), and the build-progress link.
 
 ## State, as of 19 Nov 2026
 
@@ -354,6 +358,13 @@ Choose lawyer (Pete, Polsinelli) Fri 20; DB password Fri 20; calls Fri 20;
 2027 events Sat 21; operating agreement Mon 23.
 
 **Next, in order — start here:**
+0. **SECURITY & DATA PROTECTION REVIEW — highest priority (Tom, 19 Nov).**
+   The bot sign-ups were the first sign. Go through: sign-up/sign-in abuse
+   (Turnstile), admin auth (single shared ADMIN_PASSWORD?), secrets and the
+   unrotated DB password, Supabase RLS and exposed keys, rate limits that are
+   per-instance memory only, email sending abuse, personal data stored and
+   who can see it, logging/alerts, backups. Produce a ranked list, fix the
+   top items that session.
 1. **Map colours:** Tom wants one steady colour per region, not a ramp that
    brightens with count (src/lib/map-scale.ts, map-regions.ts). Minimal.
 2. **Explain Cloudflare Turnstile** (Tom asked; only if bots return).
