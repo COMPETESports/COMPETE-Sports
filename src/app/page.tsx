@@ -188,11 +188,9 @@ function MapAndFilters({
       <StateMap sport={sport} counts={counts} linkQuery={query} filtered={filtered} showLegend={false} />
 
       <div className="mt-8">
-        <div className="mb-4 flex flex-wrap items-end justify-end gap-3">
-          <Link href="/events" className="btn-ghost">
-            Browse everything
-          </Link>
-        </div>
+        <Link href="/events" className="btn-ghost mb-4 w-full">
+          Browse everything
+        </Link>
 
         <FilterForm filters={filters} facets={facets} variant="landing" />
       </div>

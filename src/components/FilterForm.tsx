@@ -358,6 +358,11 @@ function DateRange({
   const wrap = useRef<HTMLDivElement>(null);
   const fromRef = useRef<HTMLInputElement>(null);
   const toRef = useRef<HTMLInputElement>(null);
+  // What is being picked, before it is confirmed. Choosing From no longer
+  // fires a search on its own: the visitor picks both dates, then confirms
+  // with Done or Enter, and the page says what was set (Tom, 20 Nov).
+  const [draft, setDraft] = useState({ from: from ?? '', to: to ?? '' });
+  const [confirmed, setConfirmed] = useState<string | null>(null);
 
   // Closing on an outside click or Escape is what makes it feel like a menu
   // rather than a section that got stuck open.
@@ -377,20 +382,30 @@ function DateRange({
     };
   }, [open]);
 
-  const summary =
-    from && to
-      ? `${prettyDay(from)} – ${prettyDay(to)}`
-      : from
-        ? `From ${prettyDay(from)}`
-        : to
-          ? `Until ${prettyDay(to)}`
+  const describe = (f: string, t: string) =>
+    f && t
+      ? `${prettyDay(f)} – ${prettyDay(t)}`
+      : f
+        ? `From ${prettyDay(f)}`
+        : t
+          ? `Until ${prettyDay(t)}`
           : 'Any date';
+  const summary = describe(draft.from, draft.to);
 
   const apply = (start: string, end: string) => {
     if (fromRef.current) fromRef.current.value = start;
     if (toRef.current) toRef.current.value = end;
+    setDraft({ from: start, to: end });
+    setConfirmed(describe(start, end));
     setOpen(false);
     onChange();
+  };
+  const confirm = () => apply(fromRef.current?.value ?? '', toRef.current?.value ?? '');
+  const onEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      confirm();
+    }
   };
 
   const presets: Array<[string, () => void]> = [
@@ -410,7 +425,7 @@ function DateRange({
         aria-expanded={open}
         aria-haspopup="dialog"
       >
-        <span className={from || to ? '' : 'text-[color:var(--faint)]'}>{summary}</span>
+        <span className={draft.from || draft.to ? '' : 'text-[color:var(--faint)]'}>{summary}</span>
         <span aria-hidden className="text-[color:var(--faint)]">
           {open ? '▴' : '▾'}
         </span>
@@ -441,8 +456,9 @@ function DateRange({
               type="date"
               ref={fromRef}
               defaultValue={from ?? ''}
-              onChange={onChange}
-              className="field"
+              onChange={(e) => setDraft((d) => ({ ...d, from: e.target.value }))}
+              onKeyDown={onEnter}
+              className="field field-date"
             />
           </div>
           <div>
@@ -455,12 +471,23 @@ function DateRange({
               type="date"
               ref={toRef}
               defaultValue={to ?? ''}
-              onChange={onChange}
-              className="field"
+              min={draft.from || undefined}
+              onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))}
+              onKeyDown={onEnter}
+              className="field field-date"
             />
           </div>
+          <button type="button" onClick={confirm} className="btn-primary w-full">
+            Done
+          </button>
         </div>
       </div>
+
+      {confirmed && !open && (
+        <p role="status" className="mt-2 text-xs text-[color:var(--grass)]">
+          ✓ Dates set: {confirmed}
+        </p>
+      )}
     </div>
   );
 }

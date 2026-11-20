@@ -99,7 +99,6 @@ export function ProfileForm({
               pattern="[0-9]{5}"
               maxLength={5}
               className="field"
-              placeholder="63110"
             />
             <p className="mt-1.5 text-xs text-[color:var(--faint)]">
               {profile?.home_city

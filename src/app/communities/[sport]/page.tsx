@@ -62,7 +62,7 @@ export default async function SportCommunityPage({
       </div>
 
       <div className="wrap py-10">
-        <StateMap sport={match.slug} counts={counts} />
+        <StateMap sport={match.slug} counts={counts} showLegend={false} />
 
         {dormantStates > 0 && (
           <p className="panel mt-8 p-4 text-sm leading-relaxed text-[color:var(--muted)]">

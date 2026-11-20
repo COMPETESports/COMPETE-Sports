@@ -48,7 +48,6 @@ export function JoinForm() {
           maxLength={60}
           autoComplete="name"
           className="field"
-          placeholder="Tommy H."
         />
       </div>
 
@@ -97,7 +96,6 @@ export function JoinForm() {
           maxLength={5}
           autoComplete="postal-code"
           className="field"
-          placeholder="63110"
         />
         <p className="mt-1.5 text-xs text-[color:var(--faint)]">
           So we can show you events near you.

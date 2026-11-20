@@ -429,6 +429,19 @@
   .field::placeholder {
     color: var(--faint);
   }
+  /* iPhone Safari gives date inputs a fixed minimum width, so they ran past
+     the edge of the date panel (Tom, 20 Nov). Let them shrink to the box. */
+  .field-date {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: left;
+  }
+  .field-date::-webkit-date-and-time-value {
+    text-align: left;
+  }
   .field:focus {
     border-color: var(--beach);
     outline: none;
