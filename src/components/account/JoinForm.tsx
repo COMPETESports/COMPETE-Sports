@@ -71,6 +71,25 @@ export function JoinForm() {
         </p>
       </div>
 
+      <div>
+        <label className="label" htmlFor="home_postal_code">
+          Home ZIP code
+        </label>
+        <input
+          id="home_postal_code"
+          name="home_postal_code"
+          required
+          inputMode="numeric"
+          pattern="[0-9]{5}"
+          maxLength={5}
+          autoComplete="postal-code"
+          className="field"
+          placeholder="63110"
+        />
+        <p className="mt-1.5 text-xs text-[color:var(--faint)]">
+          So we can show you events near you.
+        </p>
+      </div>
       <fieldset>
         <legend className="label">Age range</legend>
         <div className="flex flex-wrap gap-2">
@@ -106,7 +125,9 @@ export function JoinForm() {
 
       <label className="flex gap-2.5 text-sm leading-relaxed">
         <input type="checkbox" name="age_13_plus" value="yes" required className="mt-1" />
-        <span className="text-[color:var(--muted)]">I am 13 or older.</span>
+        <span className="text-[color:var(--muted)]">
+          I confirm I am 13 or older and the age range above is mine.
+        </span>
       </label>
 
       <label className="flex gap-2.5 text-sm leading-relaxed">

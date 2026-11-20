@@ -160,16 +160,18 @@ function MapAndFilters({
     <section id="map" className="wrap scroll-mt-4 py-9 sm:py-11">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
+          {/* A heading only when it says something: how many match. The
+              unfiltered map needs no title (Tom, 19 Nov). */}
           {filtered && (
-            <p className="t-kicker mb-1.5" style={{ color: 'var(--grape)' }}>
-              Your filters
-            </p>
+            <>
+              <p className="t-kicker mb-1.5" style={{ color: 'var(--grape)' }}>
+                Your filters
+              </p>
+              <h2 className="t-display text-2xl sm:text-3xl">
+                {`${matching} ${matching === 1 ? 'event matches' : 'events match'}`}
+              </h2>
+            </>
           )}
-          <h2 className="t-display text-2xl sm:text-3xl">
-            {filtered
-              ? `${matching} ${matching === 1 ? 'event matches' : 'events match'}`
-              : 'Where the events are'}
-          </h2>
         </div>
         {filtered && (
           <div className="flex flex-wrap gap-2">
@@ -186,10 +188,7 @@ function MapAndFilters({
       <StateMap sport={sport} counts={counts} linkQuery={query} filtered={filtered} showLegend={false} />
 
       <div className="mt-8">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="t-display text-2xl sm:text-3xl">Find your event</h2>
-          </div>
+        <div className="mb-4 flex flex-wrap items-end justify-end gap-3">
           <Link href="/events" className="btn-ghost">
             Browse everything
           </Link>

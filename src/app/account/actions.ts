@@ -92,12 +92,17 @@ export async function register(_prev: FormState, data: FormData): Promise<FormSt
 
   if (!VALID_BRACKETS.has(bracket)) return { error: 'Choose your age range.' };
 
+  // Required at sign-up since 19 Nov (Tom): it is what fills the Local list
+  // and how event news is matched to a player.
+  const zip = str(data, 'home_postal_code');
+  if (!/^\d{5}$/.test(zip)) return { error: 'Enter your five-digit home ZIP code.' };
+
   // The 13+ floor. COPPA attaches a verifiable-parental-consent obligation
   // to personal information collected from anyone under 13, so the product
   // rule is that they do not hold accounts — and the confirmation is an
   // explicit tick, not an assumption.
   if (data.get('age_13_plus') !== 'yes') {
-    return { error: 'You need to confirm you are 13 or older to create an account.' };
+    return { error: 'Confirm you are 13 or older and that the age range is yours.' };
   }
 
   if (data.get('accept_terms') !== 'yes') {
@@ -106,6 +111,8 @@ export async function register(_prev: FormState, data: FormData): Promise<FormSt
 
   const result = await registerWithPassword({ email, password, displayName, ageBracket: bracket });
   if (!result.ok) return { error: result.error };
+
+  await saveAthleteProfile(result.account.id, { homePostalCode: zip });
 
   const { userAgent } = await requestContext();
   await startSession(result.account.id, userAgent ?? undefined);
@@ -301,8 +308,8 @@ export async function saveProfile(_prev: FormState, data: FormData): Promise<For
   if (displayName.length > 60) return { error: 'That name is too long — 60 characters maximum.' };
 
   const zipRaw = str(data, 'home_postal_code');
-  if (zipRaw && !/^\d{5}$/.test(zipRaw)) {
-    return { error: 'A home ZIP is five digits.' };
+  if (!/^\d{5}$/.test(zipRaw)) {
+    return { error: 'Your home ZIP is required: five digits.' };
   }
 
   const bracket = str(data, 'age_bracket') as AgeBracket;

@@ -88,12 +88,13 @@ export function ProfileForm({
 
           <div>
             <label className="label" htmlFor="home_postal_code">
-              Home ZIP
+              Home ZIP — required
             </label>
             <input
               id="home_postal_code"
               name="home_postal_code"
               defaultValue={profile?.home_postal_code ?? ''}
+              required
               inputMode="numeric"
               pattern="[0-9]{5}"
               maxLength={5}

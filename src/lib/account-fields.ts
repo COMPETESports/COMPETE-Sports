@@ -17,7 +17,7 @@ export type AgeBracket =
   | '55_plus';
 
 export const AGE_BRACKETS: { value: AgeBracket; label: string }[] = [
-  { value: 'under_18', label: 'Under 18' },
+  { value: 'under_18', label: '13–17' },
   { value: '18_24', label: '18–24' },
   { value: '25_34', label: '25–34' },
   { value: '35_44', label: '35–44' },

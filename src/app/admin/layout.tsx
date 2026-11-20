@@ -15,6 +15,7 @@ const SECTIONS = [
   { href: '/admin/events', label: 'Events', note: 'Enter and publish' },
   { href: '/admin/organizers', label: 'Organizers', note: 'Who runs them' },
   { href: '/admin/venues', label: 'Venues', note: 'Where they happen' },
+  { href: '/admin/players', label: 'Players', note: 'Who has signed up' },
   { href: '/admin/compliance', label: 'Compliance', note: 'Age and consent' },
   { href: '/admin/demand', label: 'Demand', note: 'Sports players want' },
   // Temporary. Delete this line and the page once the sections are empty.
