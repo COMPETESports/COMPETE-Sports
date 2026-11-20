@@ -306,67 +306,59 @@ assurance check** — standing instruction, 15 Nov 2026.
 5. **Commit** — the build check, then the GitHub Desktop summary +
    description.
 
-## State, as of 18 Nov 2026
+## State, as of 19 Nov 2026
 
-**Live at https://www.joincompete.com** since 14 Nov — Softr disconnected,
-DNS at Squarespace points at Vercel (apex 308s to www, so **www is the
-real address**; anything that lists allowed web addresses needs both).
-Always use www.joincompete.com/admin — Vercel's one-off deployment URLs
-are not on the Google key's list, so the venue search fails there.
-Email works (Resend, verified; `RESEND_API_KEY`, `MAIL_FROM` on Vercel;
-receiving stays off — it would clash with Google Workspace's MX).
+**Live at https://www.joincompete.com.** Always use www.joincompete.com/admin
+(Vercel one-off deployment URLs are not on the Google key's list). Email via
+Resend works; receiving stays off.
 
-**Data:** 23 upcoming events across 9 states (read 18 Nov). ~1,580
-organizations. Migrations 001–024 run (016 deleted on purpose).
+**Data:** 36 upcoming events across 10 states (read 19 Nov; Kansas 12 new).
+Migrations 001–026 run (016 deleted on purpose). ~33 bot accounts deleted.
 
-**Built 17 Nov (all committed and pushed, last commit 74266da):**
-- Admin events list: opens on **Live**; Live = approved and
-  `coalesce(ends_on, starts_on) >= current_date` (series and multi-day
-  count until their last day). Sortable headers (`sort`/`dir` params:
-  name, organizer, date, where). Organizer column, searchable. Status
-  filter auto-submits (`AutoSubmitSelect`); row `StatusControl` calls
-  `router.refresh()`. Filter options: All, Live, Draft, Cancelled,
-  Archived — "Past" and "Approved (any date)" removed as duplicates.
-- Every `EventCard` shows its type chip: Tournament / League / Open play.
-- **Migration 024 — nightly auto-archive.** `archive_finished_events()`
-  moves approved events to archived the day after their last day; pg_cron
-  job `archive-finished-events` at 11:00 UTC. First run archived 112.
-  Archived events keep their page (`getEventBySlug` allows approved +
-  archived) and stay in player history (`my-events.ts`).
-- **One venue search** (`VenueSearch.tsx`, event form only): our venues
-  first, then Google suggestions (AutocompleteSuggestion, Places API New);
-  a Google place we hold (place ID or name/city/state) uses our venue.
-  `saveEvent` matches venues by `google_place_id` first, then name/city/
-  state case- and space-insensitively. Organizer pages still use the old
-  `VenuePicker` + `PlacesAutocomplete` — switch them next (15 min).
+**Built 19 Nov:**
+- `today()` (src/lib/dates.ts) and countdown labels use **US Central**, not
+  UTC. Admin events Live uses `${today()}::date`. Other admin pages still use
+  `current_date` (UTC) — harmless, fix if it matters.
+- **Player profile round one** (025): `sports.launch_status` live/next/
+  coming_soon, 20 coming-soon sports (is_active=false; `getActiveSports`
+  filters to live/next). `WhatYouPlay.tsx`: groups, a section per live/next
+  sport, gender hides the other gender's formats, retired formats/divisions
+  hidden. Admin → Demand (`loadSportDemand`).
+- **Homepage:** one-line title; kickers, "Where the events are", "Find your
+  event" and the homepage map legend removed (`StateMap showLegend={false}`).
+- **Sign-up:** ZIP required (register saves it via saveAthleteProfile;
+  profile can't clear it); age option "13–17"; one confirmation tick.
+  **Bot protection** `src/lib/bot-check.ts`: honeypot, 3 s minimum fill,
+  random-name check, 3 sign-ups/hour per IP. Tests in tests/bot-check.test.ts.
+- **Admin → Players** (+ `/admin/players/[id]`, `src/lib/admin-players.ts`,
+  026 `account_admin_log`): Account Verified/Unverified, Texts Enrolled/
+  Declined, home city only; bulk delete of "bot?" rows; edit with required
+  permission note; email change resets verification and re-sends; resend /
+  mark confirmed; delete, or CLOSE when sms_consents/age_bracket_changes
+  rows exist (age_bracket_changes refuses deletes). Staff can't move a player
+  into/out of 13–17.
+- **Tournament engine pieces 1–3** (`src/lib/tournament/`: scoring.ts,
+  pools.ts, round-robin.ts; tests/tournament.test.ts, 15 tests).
+  Decisions and research: `claude/tournament-engine-spec.md`.
 
-**Decided 17–18 Nov:**
-- Softball and Slow pitch softball are **two entries**.
-- **The end vision is written: `claude/vision.md`.** Read it before
-  designing anything player-facing. Practical use over attention; curated
-  notifications, never spam. Revenue: organizer annual fee, partner
-  advertising, payment-processing percentage, maybe one player
-  subscription (undefined). Organizer messages go by push and text, not
-  email. Top Plays: up votes only. Players set their own discovery radius;
-  COMPETE sets state/region feed standards; city feed undecided.
-- Suggested build order: player profile → public organizer page with
-  Follow → community feeds + notifications → organizer messages →
-  registration/payments → Top Plays.
+**Decided 19 Nov (see the specs):** tiebreakers end in point differential;
+work teams on for all surfaces, editable; true double elimination; crossover
+on; first-round pool rematch only if unavoidable; withdrawn team's results
+voided. 13+ stays; three short profile pages; volleyball divisions per
+surface; free agent per sport with positions; no player followings; pickleball
+DUPR or self-rating, singles and doubles separately; communication prefs =
+what / how / how often. `claude/sports-and-player-profile-spec.md`.
 
-**Business (Tom's):** online EIN refused twice (IRS ref 101, name
-conflict). SS-4 completed 18 Nov; fax Thu 19 to 855-641-6935, once. Bank
-account waits on the EIN. Lawyer: Pete at Polsinelli; scope doc
-"COMPETE Sports — Legal Scope for Polsinelli" (a Claude doc) holds the
-items and his fee schedule. Choose by Fri 20. DB password rotation moved
-to Fri 20. Operating agreement Mon 23.
+**Business (Tom's):** SS-4 fax moved to Fri 20 (online refused, ref 101).
+Choose lawyer (Pete, Polsinelli) Fri 20; DB password Fri 20; calls Fri 20;
+2027 events Sat 21; operating agreement Mon 23.
 
 **Next, in order — start here:**
-1. **Player profile, sport by sport** — `claude/sports-and-player-profile-spec.md`
-   (migration **025**, not 024). Retired formats/divisions still show:
-   `loadPreferenceOptions` in ref-data.ts ignores `is_active`. Check every
-   `from sports` query before adding coming-soon sports.
-2. Switch the organizer pages to `VenueSearch` (15 min).
-3. **The public organizer page**, with Follow in mind (vision).
+1. **Map colours:** Tom wants one steady colour per region, not a ramp that
+   brightens with count (src/lib/map-scale.ts, map-regions.ts). Minimal.
+2. **Explain Cloudflare Turnstile** (Tom asked; only if bots return).
+3. **Player profile round two** — three pages, migration **027**.
+4. Tournament engine pieces 4–7 while Tom works.
+5. Organizer pages → `VenueSearch` (15 min).
 
-Dated tasks: the build-progress artifact (top section) and tommy@joincompete.com's
-Google Calendar. `claude/work-split.md` is older.
+Dated tasks: build-progress artifact (top) and tommy@joincompete.com's calendar.

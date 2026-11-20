@@ -74,8 +74,8 @@ export default async function PlayersPage({
       <p className="t-kicker text-[color:var(--surf-ink)]">Staff</p>
       <h1 className="t-display mt-2 text-3xl">Players</h1>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-[color:var(--muted)]">
-        {total} {total === 1 ? 'account' : 'accounts'}, newest first. A phone
-        number is shown with whether that player agreed to texts.
+        {total} {total === 1 ? 'account' : 'accounts'}, newest first. Account
+        shows whether the email is verified; Texts shows whether they enrolled in text messages.
       </p>
 
       {ok && <p className="panel tone-good mt-4 max-w-xl p-3 text-sm">{ok}</p>}
@@ -115,7 +115,9 @@ export default async function PlayersPage({
               <th className="py-2 pr-2" aria-label="Select" />
               <th className="py-2 pr-4">Player</th>
               <th className="py-2 pr-4">Email</th>
+              <th className="py-2 pr-4">Account</th>
               <th className="py-2 pr-4">Phone</th>
+              <th className="py-2 pr-4">Texts</th>
               <th className="py-2 pr-4">Home</th>
               <th className="py-2 pr-4">Age</th>
               <th className="py-2 pr-4">Plays</th>
@@ -125,7 +127,7 @@ export default async function PlayersPage({
           <tbody>
             {shown.length === 0 && (
               <tr>
-                <td colSpan={8} className="py-6 text-[color:var(--muted)]">
+                <td colSpan={10} className="py-6 text-[color:var(--muted)]">
                   {search ? `Nobody matches “${search}”.` : 'No players yet.'}
                 </td>
               </tr>
@@ -141,23 +143,19 @@ export default async function PlayersPage({
                 </td>
                 <td className="py-2.5 pr-4">
                   <a href={`mailto:${r.email}`} className="underline decoration-[color:var(--surf)]">{r.email}</a>
-                  {!r.verified && <span className="chip-muted ml-2">unconfirmed</span>}
+                </td>
+                <td className="py-2.5 pr-4 whitespace-nowrap" style={{ color: r.verified ? 'var(--grass)' : 'var(--faint)' }}>
+                  {r.verified ? 'Verified' : 'Unverified'}
+                </td>
+                <td className="py-2.5 pr-4 whitespace-nowrap">
+                  {r.phone_e164 ? displayPhone(r.phone_e164) : <span className="text-[color:var(--faint)]">—</span>}
+                </td>
+                {/* Enrolled = agreed to texts; Declined = did not (or withdrew). */}
+                <td className="py-2.5 pr-4 whitespace-nowrap" style={{ color: r.sms_ok ? 'var(--grass)' : 'var(--faint)' }}>
+                  {r.sms_ok ? 'Enrolled' : 'Declined'}
                 </td>
                 <td className="py-2.5 pr-4">
-                  {r.phone_e164 ? (
-                    <>
-                      {displayPhone(r.phone_e164)}
-                      <span className="t-mono ml-2 text-[10px] text-[color:var(--faint)]">
-                        {r.sms_ok ? 'texts OK' : 'no text consent'}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-[color:var(--faint)]">—</span>
-                  )}
-                </td>
-                <td className="py-2.5 pr-4">
-                  {r.home_city ? `${r.home_city}, ${r.home_state} ` : ''}
-                  <span className="text-[color:var(--faint)]">{r.home_postal_code ?? '—'}</span>
+                  {r.home_city ? `${r.home_city}, ${r.home_state}` : <span className="text-[color:var(--faint)]">—</span>}
                 </td>
                 <td className="py-2.5 pr-4">{r.age_bracket ? AGE[r.age_bracket] ?? r.age_bracket : '—'}</td>
                 <td className="py-2.5 pr-4">{r.sports ?? <span className="text-[color:var(--faint)]">—</span>}</td>
