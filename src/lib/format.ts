@@ -1,3 +1,4 @@
+import { today } from './dates';
 import type { DiscoveryEvent } from './types';
 
 /** Formats an ISO date without letting the browser's timezone shift it. */
@@ -40,8 +41,9 @@ export function formatDistance(miles: number | null): string | null {
 export function daysUntil(iso: string): number {
   const [y, m, d] = iso.split('-').map(Number);
   const target = Date.UTC(y, m - 1, d);
-  const now = new Date();
-  const start = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  // Counted from today in Central time, not UTC (see today()).
+  const [ty, tm, td] = today().split('-').map(Number);
+  const start = Date.UTC(ty, tm - 1, td);
   return Math.round((target - start) / 86_400_000);
 }
 

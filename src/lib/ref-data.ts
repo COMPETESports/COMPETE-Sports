@@ -151,21 +151,52 @@ export interface RefRow {
  * vocabulary comes from the same tables the event filters use, so the two
  * can never drift apart.
  */
+export type LaunchStatus = 'live' | 'next' | 'coming_soon';
+
+export interface PreferenceSport {
+  id: string;
+  slug: string;
+  name: string;
+  launch_status: LaunchStatus;
+}
+
+/** A format carries its gender, so the profile can hide the other one's. */
+export interface PreferenceFormat extends RefRow {
+  gender: 'mens' | 'womens' | 'coed' | 'reverse_coed' | 'open';
+}
+
+/** A division carries its plain-English descriptor ("BB" means nothing alone). */
+export interface PreferenceDivision extends RefRow {
+  descriptor: string | null;
+}
+
+/**
+ * Everything the player profile's "What you play" offers.
+ *
+ * Every sport with a launch status (025): live and next get their own
+ * questions; coming-soon sports are ticked for demand only. Retired formats
+ * and divisions (is_active = false) are left out — they used to show here
+ * because this query never checked (Tom, 15 Nov).
+ */
 export async function loadPreferenceOptions() {
   const [sports, surfaces, formats, divisions] = await Promise.all([
-    sql<{ id: string; slug: string; name: string }[]>`
-      select id, slug, name from sports where is_active order by display_order, name`,
+    sql<PreferenceSport[]>`
+      select id, slug, name, launch_status from sports
+       order by case launch_status when 'live' then 0 when 'next' then 1 else 2 end,
+                display_order, name`,
     sql<RefRow[]>`
       select s.id, s.slug, s.name, sp.slug as sport_slug, sp.name as sport_name
         from surfaces s join sports sp on sp.id = s.sport_id
        order by sp.display_order, s.display_order`,
-    sql<RefRow[]>`
-      select f.id, f.slug, f.name, sp.slug as sport_slug, sp.name as sport_name
+    sql<PreferenceFormat[]>`
+      select f.id, f.slug, f.name, f.gender, sp.slug as sport_slug, sp.name as sport_name
         from formats f join sports sp on sp.id = f.sport_id
+       where f.is_active
        order by sp.display_order, f.display_order`,
-    sql<RefRow[]>`
-      select d.id, d.slug, d.name, sp.slug as sport_slug, sp.name as sport_name
+    sql<PreferenceDivision[]>`
+      select d.id, d.slug, d.name, d.descriptor, sp.slug as sport_slug, sp.name as sport_name
         from divisions d join sports sp on sp.id = d.sport_id
+       where d.is_active
        order by sp.display_order, d.display_order`,
   ]);
 
@@ -175,6 +206,17 @@ export async function loadPreferenceOptions() {
     formats: [...formats],
     divisions: [...divisions],
   };
+}
+
+/** How many players ticked each sport, most first — what to add next. */
+export async function loadSportDemand() {
+  const rows = await sql<{ name: string; launch_status: LaunchStatus; players: number }[]>`
+    select sp.name, sp.launch_status, count(a.account_id)::int as players
+      from sports sp
+      left join athlete_sports a on a.sport_id = sp.id
+     group by sp.id, sp.name, sp.launch_status
+     order by count(a.account_id) desc, sp.name`;
+  return [...rows];
 }
 
 /**

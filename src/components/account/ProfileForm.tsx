@@ -9,13 +9,14 @@ import {
   SMS_MARKETING_DISCLOSURE,
   SMS_TRANSACTIONAL_DISCLOSURE,
 } from '@/lib/sms-consent';
-import type { RefRow } from '@/lib/ref-data';
+import type { PreferenceDivision, PreferenceFormat, PreferenceSport, RefRow } from '@/lib/ref-data';
+import { WhatYouPlay } from './WhatYouPlay';
 
 interface Options {
-  sports: { id: string; slug: string; name: string }[];
+  sports: PreferenceSport[];
   surfaces: RefRow[];
-  formats: RefRow[];
-  divisions: RefRow[];
+  formats: PreferenceFormat[];
+  divisions: PreferenceDivision[];
 }
 
 /**
@@ -181,6 +182,18 @@ export function ProfileForm({
         </fieldset>
       </section>
 
+      {/* ----------------------------------------------------- what you play */}
+      {/* Above the texts since 19 Nov: it is what makes the site yours, and
+          it reads gender from the section just before it. */}
+      <WhatYouPlay
+        sports={options.sports}
+        surfaces={options.surfaces}
+        formats={options.formats}
+        divisions={options.divisions}
+        selected={selected}
+        gender={gender}
+      />
+
       {/* ---------------------------------------------------------- texts */}
       <section className="panel p-5">
         <h2 className="t-head text-lg">Text messages</h2>
@@ -254,52 +267,6 @@ export function ProfileForm({
         )}
       </section>
 
-      {/* ----------------------------------------------------- what you play */}
-      <section className="panel p-5">
-        <h2 className="t-head text-lg">What you play</h2>
-        <p className="mt-2 text-sm leading-relaxed text-[color:var(--muted)]">
-          This narrows your Local list and, if you turn texts on, decides which
-          new events are worth interrupting you for.
-        </p>
-
-        <fieldset className="mt-5">
-          <legend className="label">Sports</legend>
-          <div className="flex flex-wrap gap-2">
-            {options.sports.map((sport) => (
-              <label key={sport.id} className="toggle-chip">
-                <input
-                  type="checkbox"
-                  name="pref_sports"
-                  value={sport.id}
-                  defaultChecked={selected.sports.includes(sport.id)}
-                  className="sr-only"
-                />
-                <span>{sport.name}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <PrefGroup
-          label="Surfaces"
-          name="pref_surfaces"
-          rows={options.surfaces}
-          selected={selected.surfaces}
-        />
-        <PrefGroup
-          label="Formats"
-          name="pref_formats"
-          rows={options.formats}
-          selected={selected.formats}
-        />
-        <PrefGroup
-          label="Divisions"
-          name="pref_divisions"
-          rows={options.divisions}
-          selected={selected.divisions}
-        />
-      </section>
-
       {state?.error && (
         <p
           role="alert"
@@ -316,61 +283,6 @@ export function ProfileForm({
         <Submit />
       </div>
     </form>
-  );
-}
-
-/**
- * Surfaces, formats and divisions belong to a sport, so they are grouped by
- * one. Hiding the sport heading when there is only one avoids a lonely
- * "Volleyball" label above every group before pickleball has any data.
- */
-function PrefGroup({
-  label,
-  name,
-  rows,
-  selected,
-}: {
-  label: string;
-  name: string;
-  rows: RefRow[];
-  selected: string[];
-}) {
-  if (!rows.length) return null;
-
-  const sports = [...new Set(rows.map((r) => r.sport_name))];
-  const showSportHeadings = sports.length > 1;
-
-  return (
-    <fieldset className="mt-5">
-      <legend className="label">{label}</legend>
-      <div className="grid gap-3">
-        {sports.map((sportName) => (
-          <div key={sportName}>
-            {showSportHeadings && (
-              <p className="t-mono mb-1.5 text-[10px] uppercase tracking-[0.15em] text-[color:var(--faint)]">
-                {sportName}
-              </p>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {rows
-                .filter((row) => row.sport_name === sportName)
-                .map((row) => (
-                  <label key={row.id} className="toggle-chip">
-                    <input
-                      type="checkbox"
-                      name={name}
-                      value={row.id}
-                      defaultChecked={selected.includes(row.id)}
-                      className="sr-only"
-                    />
-                    <span>{row.name}</span>
-                  </label>
-                ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </fieldset>
   );
 }
 

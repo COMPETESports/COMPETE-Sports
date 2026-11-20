@@ -31,10 +31,12 @@ export default async function AccountPage({
     <div className="grid max-w-3xl gap-8">
       {welcome && (
         <div className="panel tone-good p-5">
-          <p className="t-head text-base">You are in.</p>
+          <p className="t-head text-base">Welcome to COMPETE — you are in.</p>
           <p className="mt-2 text-sm leading-relaxed">
-            Add your home ZIP below and your local events appear on the
-            homepage. Everything else on this page is optional.
+            Two minutes makes the site yours: your <strong>home ZIP</strong>,
+            how far you will drive, and <strong>what you play</strong>. Then
+            press Save at the bottom. Everything except your age range is
+            optional, and you can change any of it later.
           </p>
         </div>
       )}

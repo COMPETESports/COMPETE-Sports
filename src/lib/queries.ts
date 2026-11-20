@@ -518,7 +518,11 @@ export async function countUnmappedVenues(
 
 export async function getActiveSports() {
   const rows = await sql<{ slug: string; name: string; is_active: boolean }[]>`
-    select slug, name, is_active from sports order by display_order`;
+    select slug, name, is_active from sports
+     -- Coming-soon sports collect demand on the profile only; they are not
+     -- communities until they have events (025).
+     where launch_status in ('live', 'next')
+     order by display_order`;
   return [...rows];
 }
 

@@ -16,6 +16,7 @@ const SECTIONS = [
   { href: '/admin/organizers', label: 'Organizers', note: 'Who runs them' },
   { href: '/admin/venues', label: 'Venues', note: 'Where they happen' },
   { href: '/admin/compliance', label: 'Compliance', note: 'Age and consent' },
+  { href: '/admin/demand', label: 'Demand', note: 'Sports players want' },
   // Temporary. Delete this line and the page once the sections are empty.
   { href: '/admin/cleanup', label: 'Cleanup', note: 'Events with gaps' },
 ];

@@ -1,3 +1,4 @@
+import { today } from '@/lib/dates';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
@@ -52,7 +53,7 @@ export default async function AdminEventsPage({
   // Still running until its last day: multi-day tournaments, leagues and open
   // play included. The same rule archives finished events each night
   // (supabase/024_auto_archive.sql), so the two never disagree.
-  const isUpcoming = sql`(coalesce(e.ends_on, e.starts_on) >= current_date)`;
+  const isUpcoming = sql`(coalesce(e.ends_on, e.starts_on) >= ${today()}::date)`;
 
   // Click a column heading to sort by it; click again to reverse (17 Nov).
   const orderBy = {
@@ -75,7 +76,7 @@ export default async function AdminEventsPage({
            v.city, v.state, o.name as organizer_name,
            (v.latitude is not null) as has_coords, e.featured,
            case when e.event_type = 'open_play' and e.status = 'approved'
-                then (coalesce(e.ends_on, e.starts_on) - current_date)::int end as ends_in
+                then (coalesce(e.ends_on, e.starts_on) - ${today()}::date)::int end as ends_in
     from events e
     left join venues v on v.id = e.venue_id
     left join organizers o on o.id = e.organizer_id
