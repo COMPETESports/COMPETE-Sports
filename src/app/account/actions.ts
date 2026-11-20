@@ -35,6 +35,7 @@ import { normalisePhone } from '@/lib/phone';
 import { sendMail } from '@/lib/mailer';
 import { recordAgeBracketChange, notifyAgeBracketChange } from '@/lib/compliance';
 import { tooManyAttempts } from '@/lib/rate-limit';
+import { botReason } from '@/lib/bot-check';
 import { setRelation, type EventRelation } from '@/lib/my-events';
 
 export type FormState = { error?: string; notice?: string } | null;
@@ -76,6 +77,18 @@ async function requestContext() {
 // ---------------------------------------------------------------------
 
 export async function register(_prev: FormState, data: FormData): Promise<FormState> {
+  // Bots first, before anything is written or any email sent (19 Nov).
+  const { ip } = await requestContext();
+  const reason = botReason(data);
+  if (reason) {
+    console.warn('[signup] refused as a bot:', reason, ip ?? 'no-ip');
+    return reason === 'random-name'
+      ? { error: 'Please use your real name.' }
+      : { error: 'Something went wrong. Reload the page and try again.' };
+  }
+  const gate = tooManyAttempts(`signup:${ip ?? 'unknown'}`, 3, 3600);
+  if (gate.limited) return { error: 'Too many sign-ups from here. Try again in an hour.' };
+
   const email = normaliseEmail(str(data, 'email'));
   const displayName = str(data, 'display_name');
   const password = str(data, 'password');

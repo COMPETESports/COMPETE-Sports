@@ -2,7 +2,10 @@ import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { sql } from '@/lib/db';
 import { AGE_BRACKETS } from '@/lib/account-fields';
+import Link from 'next/link';
 import { displayPhone } from '@/lib/phone';
+import { looksLikeBotName } from '@/lib/bot-check';
+import { deleteSelected } from './actions';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Players', robots: { index: false, follow: false } };
@@ -34,10 +37,10 @@ const AGE = Object.fromEntries(AGE_BRACKETS.map((b) => [b.value, b.label]));
 export default async function PlayersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; bots?: string; ok?: string; err?: string }>;
 }) {
   if (!(await isSignedIn())) redirect('/admin');
-  const { q = '' } = await searchParams;
+  const { q = '', bots, ok, err } = await searchParams;
   const search = q.trim();
   const like = `%${search}%`;
 
@@ -63,6 +66,8 @@ export default async function PlayersPage({
      limit 500`;
 
   const [{ total }] = await sql<{ total: number }[]>`select count(*)::int as total from accounts`;
+  const flagged = rows.filter((r) => looksLikeBotName(r.display_name));
+  const shown = bots ? flagged : rows;
 
   return (
     <div className="wrap py-10">
@@ -73,15 +78,41 @@ export default async function PlayersPage({
         number is shown with whether that player agreed to texts.
       </p>
 
+      {ok && <p className="panel tone-good mt-4 max-w-xl p-3 text-sm">{ok}</p>}
+      {err && <p role="alert" className="panel tone-warn mt-4 max-w-xl p-3 text-sm">{err}</p>}
+
       <form className="mt-6 flex max-w-xl gap-2">
         <input name="q" defaultValue={search} placeholder="Name, email, city or ZIP" className="field" />
         <button className="btn-primary">Search</button>
       </form>
 
+      {flagged.length > 0 && (
+        <p className="mt-4 text-sm">
+          <strong>{flagged.length}</strong> {flagged.length === 1 ? 'name looks' : 'names look'} machine-generated.{' '}
+          {bots ? (
+            <Link href="/admin/players" className="underline">Show everyone</Link>
+          ) : (
+            <Link href="/admin/players?bots=1" className="underline">Show only those</Link>
+          )}
+        </p>
+      )}
+
+      {/* One form around the table, so ticked rows can be deleted together. */}
+      <form action={deleteSelected}>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <input name="confirm" placeholder="Type DELETE" className="field max-w-[10rem]" />
+        <button className="btn-ghost" style={{ color: 'var(--beach)', borderColor: 'var(--beach)' }}>
+          Delete ticked accounts
+        </button>
+        <span className="text-xs text-[color:var(--faint)]">
+          Accounts with text-consent or age records are closed instead of deleted.
+        </span>
+      </div>
       <div className="mt-6 overflow-x-auto">
         <table className="w-full min-w-[900px] text-left text-sm">
           <thead className="t-mono text-[10px] uppercase tracking-wider text-[color:var(--faint)]">
             <tr>
+              <th className="py-2 pr-2" aria-label="Select" />
               <th className="py-2 pr-4">Player</th>
               <th className="py-2 pr-4">Email</th>
               <th className="py-2 pr-4">Phone</th>
@@ -92,16 +123,22 @@ export default async function PlayersPage({
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 && (
+            {shown.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-6 text-[color:var(--muted)]">
+                <td colSpan={8} className="py-6 text-[color:var(--muted)]">
                   {search ? `Nobody matches “${search}”.` : 'No players yet.'}
                 </td>
               </tr>
             )}
-            {rows.map((r) => (
+            {shown.map((r) => (
               <tr key={r.id} className="border-t" style={{ borderColor: 'var(--line)' }}>
-                <td className="py-2.5 pr-4 font-semibold">{r.display_name}</td>
+                <td className="py-2.5 pr-2">
+                  <input type="checkbox" name="ids" value={r.id} defaultChecked={Boolean(bots)} aria-label={`Select ${r.display_name}`} />
+                </td>
+                <td className="py-2.5 pr-4 font-semibold">
+                  <Link href={`/admin/players/${r.id}`} className="underline decoration-[color:var(--surf)]">{r.display_name}</Link>
+                  {looksLikeBotName(r.display_name) && <span className="chip-muted ml-2">bot?</span>}
+                </td>
                 <td className="py-2.5 pr-4">
                   <a href={`mailto:${r.email}`} className="underline decoration-[color:var(--surf)]">{r.email}</a>
                   {!r.verified && <span className="chip-muted ml-2">unconfirmed</span>}
@@ -130,6 +167,7 @@ export default async function PlayersPage({
           </tbody>
         </table>
       </div>
+      </form>
     </div>
   );
 }

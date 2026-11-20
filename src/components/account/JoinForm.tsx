@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { register, type FormState } from '@/app/account/actions';
 import { AGE_BRACKETS } from '@/lib/account-fields';
 import { MIN_PASSWORD_LENGTH } from '@/lib/password-rules';
+import { HONEYPOT_FIELD, STARTED_FIELD } from '@/lib/bot-check';
 
 /**
  * Sign-up.
@@ -21,9 +22,21 @@ import { MIN_PASSWORD_LENGTH } from '@/lib/password-rules';
 export function JoinForm() {
   const [state, action] = useActionState<FormState, FormData>(register, null);
   const [bracket, setBracket] = useState('');
+  // When the form appeared, set in the browser: a bot that posts straight
+  // away, or never runs the page, has no believable value (see bot-check).
+  const [started, setStarted] = useState('');
+  useEffect(() => setStarted(String(Date.now())), []);
 
   return (
     <form action={action} className="space-y-4">
+      <input type="hidden" name={STARTED_FIELD} value={started} />
+      {/* Honeypot: invisible to people, irresistible to form-filling bots. */}
+      <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+        <label>
+          Company website
+          <input type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" defaultValue="" />
+        </label>
+      </div>
       <div>
         <label className="label" htmlFor="display_name">
           Your name
