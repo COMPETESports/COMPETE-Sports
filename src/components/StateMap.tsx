@@ -30,6 +30,7 @@ export function StateMap({
   counts,
   linkQuery,
   filtered = false,
+  showLegend = true,
 }: {
   sport: string;
   counts: StateCount[];
@@ -41,6 +42,8 @@ export function StateMap({
   linkQuery?: string;
   /** Filters are applied, so "nothing here" means "nothing that matches". */
   filtered?: boolean;
+  /** The homepage hides the region and shade key (Tom, 19 Nov); Communities keeps it. */
+  showLegend?: boolean;
 }) {
   const [active, setActive] = useState<string | null>(null);
 
@@ -161,7 +164,7 @@ export function StateMap({
         )}
       </div>
 
-      <Legend filtered={filtered} />
+      {showLegend && <Legend filtered={filtered} />}
     </div>
   );
 }

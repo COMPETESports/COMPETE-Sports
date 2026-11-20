@@ -123,13 +123,10 @@ function Masthead() {
        which a visitor needs before they can act. */
     <section className="pat-chevron relative overflow-hidden">
       <div className="wrap relative py-8 sm:py-11">
-        <p className="t-kicker !text-[color:var(--grass)]">
-          Adult recreational sports · United States
-        </p>
-        <h1 className="t-display t-3d mt-3 text-[1.85rem] leading-[1.35] sm:text-[3.4rem] sm:leading-[1.14]">
-          Discover your
-          <br />
-          next event.
+        {/* One line across, at every width: the size scales with the
+            screen rather than wrapping (Tom, 19 Nov). */}
+        <h1 className="t-display t-3d whitespace-nowrap text-[clamp(1.15rem,5.4vw,3.4rem)] leading-[1.2]">
+          Discover your next event.
         </h1>
       </div>
     </section>
@@ -163,10 +160,12 @@ function MapAndFilters({
     <section id="map" className="wrap scroll-mt-4 py-9 sm:py-11">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="t-kicker" style={{ color: 'var(--grape)' }}>
-            {filtered ? 'Your filters' : 'Pick a state'}
-          </p>
-          <h2 className="t-display mt-1.5 text-2xl sm:text-3xl">
+          {filtered && (
+            <p className="t-kicker mb-1.5" style={{ color: 'var(--grape)' }}>
+              Your filters
+            </p>
+          )}
+          <h2 className="t-display text-2xl sm:text-3xl">
             {filtered
               ? `${matching} ${matching === 1 ? 'event matches' : 'events match'}`
               : 'Where the events are'}
@@ -184,15 +183,12 @@ function MapAndFilters({
         )}
       </div>
 
-      <StateMap sport={sport} counts={counts} linkQuery={query} filtered={filtered} />
+      <StateMap sport={sport} counts={counts} linkQuery={query} filtered={filtered} showLegend={false} />
 
       <div className="mt-8">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="t-kicker" style={{ color: 'var(--grape)' }}>
-              Narrow it down
-            </p>
-            <h2 className="t-display mt-1.5 text-2xl sm:text-3xl">Find your event</h2>
+            <h2 className="t-display text-2xl sm:text-3xl">Find your event</h2>
           </div>
           <Link href="/events" className="btn-ghost">
             Browse everything
@@ -214,7 +210,7 @@ function SectionHead({
   href,
   linkLabel,
 }: {
-  kicker: string;
+  kicker?: string;
   title: string;
   accent: string;
   href?: string;
@@ -223,10 +219,12 @@ function SectionHead({
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <p className="t-kicker" style={{ color: accent }}>
-          {kicker}
-        </p>
-        <h2 className="t-display mt-1.5 text-2xl sm:text-3xl">{title}</h2>
+        {kicker && (
+          <p className="t-kicker mb-1.5" style={{ color: accent }}>
+            {kicker}
+          </p>
+        )}
+        <h2 className="t-display text-2xl sm:text-3xl">{title}</h2>
       </div>
       {href && linkLabel && (
         <Link href={href} className="btn-ghost">
@@ -255,7 +253,6 @@ function FeaturedRail({ events }: { events: DiscoveryEvent[] }) {
     <section className="relative">
       <div className="wrap py-12 sm:py-14">
         <SectionHead
-          kicker="Hand picked"
           title="Featured events"
           accent="var(--coral-ink)"
           href="/events"
@@ -301,7 +298,7 @@ function LocalRail({
     <section className="band-aqua relative">
       <div className="wrap py-12 sm:py-14">
         <SectionHead
-          kicker={origin ? `Within ${radius} miles of ${origin.label}` : 'Near you'}
+          kicker={origin ? `Within ${radius} miles of ${origin.label}` : undefined}
           title="Events near you"
           accent="var(--surf-ink)"
           href={origin ? '/events' : undefined}
