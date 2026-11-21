@@ -164,3 +164,27 @@ export const CONFIDENCE_TONE: Record<number, string> = {
   0: 'var(--faint)', 1: 'var(--coral-ink)', 2: 'var(--coral-ink)',
   3: 'var(--beach)', 4: 'var(--indoor)', 5: 'var(--grass)',
 };
+
+/**
+ * Surface slugs repeat across sports -- volleyball and pickleball both
+ * have "indoor" -- so a bare slug can't say which sport's indoor is
+ * meant, and ticking one ticked both (Tom, 21 Nov). An organization's
+ * surfaces are stored as "sport:surface", e.g. "volleyball:indoor".
+ */
+export const surfaceKey = (s: { sport_slug: string; slug: string }) => `${s.sport_slug}:${s.slug}`;
+
+/**
+ * Rows saved before 21 Nov hold bare slugs. A bare "indoor" was shown
+ * ticked under every chosen sport that has indoor, so it expands to
+ * exactly that: what the screen already showed, now stored unambiguously.
+ */
+export function qualifySurfaces(saved: string[], sportSlugs: string[], all: { slug: string; sport_slug: string }[]): string[] {
+  const out = new Set<string>();
+  for (const v of saved) {
+    if (v.includes(':')) { out.add(v); continue; }
+    for (const s of all) {
+      if (s.slug === v && sportSlugs.includes(s.sport_slug)) out.add(surfaceKey(s));
+    }
+  }
+  return [...out];
+}

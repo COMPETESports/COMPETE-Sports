@@ -32,6 +32,8 @@ export interface DiscoveryEvent {
   geo_precision: string | null;
   format_slugs: string[];
   format_names: string[];
+  /** Format plus sub-format, e.g. "Coed Quads – Solo Blind Draw". Falls back to format_names. */
+  format_labels: string[];
   genders: string[];
   division_slugs: string[];
   division_names: string[];

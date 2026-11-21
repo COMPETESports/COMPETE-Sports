@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState, useTransition } from 'react';
+import { surfaceKey } from '@/lib/organizer-fields';
 import { useRouter } from 'next/navigation';
 import { PlacesAutocomplete } from '@/components/admin/PlacesAutocomplete';
 import { followUpCalendarLink } from '@/lib/calendar';
@@ -15,6 +17,7 @@ import {
 
 export interface SportOpt { slug: string; name: string }
 export interface SurfaceOpt { slug: string; name: string; sport_slug: string }
+
 
 /**
  * One organization, everything about it, on one screen.
@@ -103,7 +106,7 @@ export function OrganizerProfile({
       // Dropping a sport drops its surfaces with it, or the record would
       // claim beach volleyball from an organization that no longer runs
       // volleyball at all.
-      const keep = surfaces.filter((s) => next.includes(s.sport_slug)).map((s) => s.slug);
+      const keep = surfaces.filter((s) => next.includes(s.sport_slug)).map(surfaceKey);
       setForm((p) => ({
         ...p, sport_slugs: next,
         surface_slugs: p.surface_slugs.filter((x) => keep.includes(x)),
@@ -155,6 +158,12 @@ export function OrganizerProfile({
             </button>
           );
         })}
+        {/* Not a panel: opens the event form with this organizer filled in. */}
+        <Link href={`/admin/events/new?organizer=${id}`}
+          className="t-head ml-auto whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-[13px]"
+          style={{ color: 'var(--grass)' }}>
+          + New event
+        </Link>
       </nav>
 
       {tab === 'info' && (
@@ -237,8 +246,8 @@ export function OrganizerProfile({
               {offered.map((s) => (
                 <Check key={`${s.sport_slug}-${s.slug}`}
                   label={form.sport_slugs.length > 1 ? `${s.name} (${s.sport_slug})` : s.name}
-                  on={form.surface_slugs.includes(s.slug)}
-                  toggle={() => toggle('surface_slugs', s.slug)} />
+                  on={form.surface_slugs.includes(surfaceKey(s))}
+                  toggle={() => toggle('surface_slugs', surfaceKey(s))} />
               ))}
             </div>
           )}

@@ -550,6 +550,9 @@ function normalise(row: DiscoveryEvent): DiscoveryEvent {
     surface_names: row.surface_names ?? [],
     format_slugs: row.format_slugs ?? [],
     format_names: row.format_names ?? [],
+    // From 027. Before that migration runs the column is absent, and an
+    // event with no brackets has none -- both fall back to the plain names.
+    format_labels: row.format_labels?.length ? row.format_labels : (row.format_names ?? []),
     genders: row.genders ?? [],
     division_slugs: row.division_slugs ?? [],
     division_names: row.division_names ?? [],

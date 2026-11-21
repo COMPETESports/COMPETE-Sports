@@ -6,6 +6,7 @@ import { loadVenueOptions, loadSportSurfaceOptions } from '@/lib/ref-data';
 import { MergeOrganizer } from '@/components/admin/MergeOrganizer';
 import { OrganizerVenues } from '@/components/admin/OrganizerVenues';
 import { OrganizerProfile } from '@/components/admin/OrganizerProfile';
+import { qualifySurfaces } from '@/lib/organizer-fields';
 import { DeleteOrganizer } from '@/components/admin/DeleteOrganizer';
 
 export const dynamic = 'force-dynamic';
@@ -54,7 +55,10 @@ export default async function OrganizerPage({
             contact_email: str(full.row.contact_email),
             category: str(full.row.category),
             sport_slugs: Array.isArray(full.row.sport_slugs) ? full.row.sport_slugs as string[] : [],
-            surface_slugs: Array.isArray(full.row.surface_slugs) ? full.row.surface_slugs as string[] : [],
+            surface_slugs: qualifySurfaces(
+              Array.isArray(full.row.surface_slugs) ? full.row.surface_slugs as string[] : [],
+              Array.isArray(full.row.sport_slugs) ? full.row.sport_slugs as string[] : [],
+              taxonomy.surfaces),
             address: str(full.row.address), postal_code: str(full.row.postal_code),
             courts: str(full.row.courts),
             booking_platform: str(full.row.booking_platform),

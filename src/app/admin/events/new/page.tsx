@@ -5,6 +5,8 @@ import { loadOrganizerOptions, loadRefOptions, loadVenueOptions } from '@/lib/re
 import { hhmm, isUuid, loadBrackets, loadEvent, loadLeagueDates } from '@/lib/event-form-data';
 import { generateLeagueDates, renewalStart } from '@/lib/series-dates';
 import { EventForm, type EventFormValues } from '@/components/admin/EventForm';
+import { organizerFull, organizerVenues } from '@/lib/organizers-admin';
+import { sql } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'New event', robots: { index: false, follow: false } };
@@ -65,12 +67,26 @@ const EMPTY: EventFormValues = {
 export default async function NewEventPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; renew?: string }>;
+  searchParams: Promise<{ from?: string; renew?: string; organizer?: string }>;
 }) {
   if (!(await isSignedIn())) redirect('/admin');
 
-  const { from, renew } = await searchParams;
-  const source = from && isUuid(from) ? await loadEvent(from) : null;
+  const { from, renew, organizer } = await searchParams;
+
+  // New event for one organizer (Tom, 21 Nov), opened from the organizer's
+  // own page. Their most recent event is the best template there is --
+  // venue, money, brackets, policies -- so it is copied exactly like
+  // Duplicate. With no past event, the organizer record itself fills
+  // what it can: name, email, website, sport, home venue, surfaces.
+  const org = !from && organizer && isUuid(organizer) ? await organizerFull(organizer) : null;
+  let templateId: string | null = from && isUuid(from) ? from : null;
+  if (org) {
+    const [latest] = await sql<{ id: string }[]>`
+      select id from events where organizer_id = ${organizer!}
+       order by starts_on desc nulls last, created_at desc limit 1`;
+    templateId = latest?.id ?? null;
+  }
+  const source = templateId ? await loadEvent(templateId) : null;
 
   let values: EventFormValues = EMPTY;
   if (source) {
@@ -122,6 +138,41 @@ export default async function NewEventPage({
     };
   }
 
+  if (org) {
+    const r = org.row as Record<string, unknown>;
+    const str = (v: unknown) => (typeof v === 'string' ? v : '');
+    const sports = Array.isArray(r.sport_slugs) ? (r.sport_slugs as string[]) : [];
+    const surfaceKeys = Array.isArray(r.surface_slugs) ? (r.surface_slugs as string[]) : [];
+    const name = str(r.name);
+    const email = str(r.contact_email) || str(r.email);
+    if (source) {
+      // A copied event is renamed in practice; keep the old name as a
+      // starting point but make sure the organizer is this one.
+      values = { ...values, organizer_name: name, organizer_email: email || values.organizer_email };
+    } else {
+      const sport = sports[0] ?? 'volleyball';
+      const venues = await organizerVenues(organizer!);
+      const home = venues.find((v) => v.is_home) ?? (venues.length === 1 ? venues[0] : null);
+      values = {
+        ...EMPTY,
+        organizer_name: name,
+        organizer_email: email,
+        sport,
+        event_page_url: str(r.website_url),
+        // Stored as "sport:surface" since 21 Nov; older rows hold bare slugs.
+        surfaces: surfaceKeys
+          .map((k) => (k.includes(':') ? k.split(':') : [sport, k]))
+          .filter(([sp]) => sp === sport)
+          .map(([, slug]) => slug),
+        venue_name: home?.name ?? '',
+        address_line: home?.address_line ?? '',
+        city: home?.city ?? str(r.city),
+        state: home?.state ?? str(r.state),
+        postal_code: home?.postal_code ?? '',
+      };
+    }
+  }
+
   // Renew (15 Nov 2026): the same open play, continuing after its last
   // date. Everything above is already copied; this adds the next run's
   // dates, so the form opens ready to check and save rather than blank.
@@ -157,7 +208,7 @@ export default async function NewEventPage({
         ← Events
       </Link>
       <h1 className="t-head mt-3 text-2xl">
-        {renewing ? 'Renew open play' : source ? 'Duplicate event' : 'New event'}
+        {renewing ? 'Renew open play' : org ? `New event · ${values.organizer_name}` : source ? 'Duplicate event' : 'New event'}
       </h1>
 
       {renewing ? (
@@ -169,6 +220,25 @@ export default async function NewEventPage({
           <p className="mt-2">
             <strong>Check the dates and change anything that has changed</strong>,
             then save. It starts as a draft; set it to Approved to put it live.
+          </p>
+        </div>
+      ) : org ? (
+        <div className="panel tone-warn mt-4 p-4 text-sm">
+          {source ? (
+            <p>
+              Pre-filled from <strong>{source.name}</strong>, their most recent
+              event — venue, money, policies and {values.brackets.length}{' '}
+              {values.brackets.length === 1 ? 'bracket' : 'brackets'}.
+            </p>
+          ) : (
+            <p>
+              No past events for this organizer, so it&apos;s filled from their
+              record — contact, website, sport, surfaces and home venue where known.
+            </p>
+          )}
+          <p className="mt-2">
+            <strong>Name, dates and deadline need you.</strong> It starts as a
+            draft; set it to Approved to put it live.
           </p>
         </div>
       ) : source ? (

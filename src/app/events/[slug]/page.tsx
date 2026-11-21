@@ -200,7 +200,7 @@ export default async function EventDetailPage({
           <section className="panel p-5">
             <h2 className="t-kicker mb-4 text-[color:var(--muted)]">Who can play</h2>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <Detail label="Formats" value={event.format_names.join(', ') || '—'} />
+              <Detail label="Formats" value={event.format_labels.join(', ') || '—'} />
               <Detail label="Divisions" value={event.division_names.join(', ') || '—'} />
               <Detail label="Playing as" value={genders.join(', ') || '—'} />
               <Detail label="Surface" value={event.surface_names.join(', ') || '—'} />
