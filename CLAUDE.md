@@ -269,7 +269,8 @@ assurance check** — standing instruction, 15 Nov 2026.
 **The QA check**, the same at both ends so the two can be compared:
 1. **Code** — `git status` (anything uncommitted?), last commits, and
    `tsc` type-check (`node node_modules/typescript/bin/tsc --noEmit`).
-2. **Live site** — open https://www.joincompete.com in the browser: the
+2. **Live site — REQUIRED at both start and end, never skipped (Tom,
+   21 Nov)** — open https://www.joincompete.com in the browser: the
    homepage map draws with numbers on it, search returns cards, one event
    page opens. Numbers on the map also prove the database is awake.
 3. **Carry-overs** — every "Still yours" item from the last session
@@ -305,8 +306,9 @@ assurance check** — standing instruction, 15 Nov 2026.
    conversation starts fully briefed.
 5. **Commit** — the build check, then the GitHub Desktop summary +
    description.
-6. **End-of-day summary on the calendar** (Tom, 19 Nov) — an all-day event
-   on tommy@joincompete.com for that day, titled "End of day · <date> — <theme>",
+6. **End-of-day summary on the calendar** (Tom, 19 Nov) — an event on
+   tommy@joincompete.com at **10:00 PM Central** that day (30 min, Tom,
+   21 Nov — not all-day), titled "End of day · <date> — <theme>",
    free, no notifications: what was done, tomorrow's tasks (Tom's and the
    next session's), and the build-progress link.
 
