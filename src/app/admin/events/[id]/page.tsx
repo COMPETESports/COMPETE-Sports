@@ -66,7 +66,7 @@ export default async function EditEventPage({
       select a.email,
              to_char(e.submitted_at at time zone 'America/Chicago', 'Mon FMDD, YYYY at FMHH12:MI AM') as submitted_at,
              e.review_note, e.status,
-             (select c.name || ' · ' || coalesce(c.email, '')
+             (select concat_ws(' · ', c.name, c.email, c.phone)
                 from organizer_contacts c
                where c.organizer_id = e.organizer_id
                  and c.notes like ${'%(event ' + id + ').'}

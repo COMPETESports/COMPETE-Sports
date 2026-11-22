@@ -426,7 +426,12 @@ export function EventForm({
             }
           />
           )}
-          <Field label="Organizer name" error={err('organizer_name')} auto={isAuto('organizer_name')}>
+          <Field
+            label="Organization name"
+            error={err('organizer_name')}
+            auto={isAuto('organizer_name')}
+            className={submitting ? 'sm:col-span-2' : ''}
+          >
             <input name="organizer_name" {...text('organizer_name')} required={submitting} className="field" />
           </Field>
           {!submitting && (
@@ -438,10 +443,12 @@ export function EventForm({
               event. Stored privately, never shown on the site. */}
           {submitting && (
             <>
-              <Field label="Organizer contact — first name" error={err('organizer_contact_first')}>
+              {/* Stacked, one per row, in the order someone reads a business
+                  card (Tom, 22 Nov). */}
+              <Field label="Organizer contact — first name" error={err('organizer_contact_first')} className="sm:col-span-2">
                 <input name="organizer_contact_first" required autoComplete="off" className="field" />
               </Field>
-              <Field label="Organizer contact — last name" error={err('organizer_contact_last')}>
+              <Field label="Organizer contact — last name" error={err('organizer_contact_last')} className="sm:col-span-2">
                 <input name="organizer_contact_last" required autoComplete="off" className="field" />
               </Field>
               <Field
@@ -452,6 +459,14 @@ export function EventForm({
                 className="sm:col-span-2"
               >
                 <input type="email" name="organizer_email" required {...text('organizer_email')} className="field" />
+              </Field>
+              <Field
+                label="Organizer contact — phone"
+                hint="Internal use only. Never shown on the site."
+                error={err('organizer_contact_phone')}
+                className="sm:col-span-2"
+              >
+                <input type="tel" name="organizer_contact_phone" required autoComplete="off" inputMode="tel" className="field" />
               </Field>
             </>
           )}

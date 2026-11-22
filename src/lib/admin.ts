@@ -368,9 +368,13 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
   // so Tom can confirm the event before approving it. Required there.
   const contactFirst = String(formData.get('organizer_contact_first') ?? '').trim().slice(0, 80);
   const contactLast = String(formData.get('organizer_contact_last') ?? '').trim().slice(0, 80);
+  const contactPhone = String(formData.get('organizer_contact_phone') ?? '').trim().slice(0, 40);
   if (!staff) {
     const missing: Record<string, string> = {};
     if (!input.organizer_name) missing.organizer_name = 'Which organization runs it?';
+    if (contactPhone.replace(/\D/g, '').length < 10) {
+      missing.organizer_contact_phone = 'A phone number for the organizer contact, with area code.';
+    }
     if (!contactFirst) missing.organizer_contact_first = 'First name of the organizer contact.';
     if (!contactLast) missing.organizer_contact_last = 'Last name of the organizer contact.';
     if (!input.organizer_email) missing.organizer_email = 'An email for the organizer contact.';
@@ -608,8 +612,9 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
   // unverified and tied to this event, never on the public organizer record.
   if (mode.kind === 'submission' && organizerId && input.organizer_email) {
     await sql`
-      insert into organizer_contacts (organizer_id, name, email, notes)
+      insert into organizer_contacts (organizer_id, name, email, phone, notes)
       select ${organizerId}, ${`${contactFirst} ${contactLast}`.trim()}, ${input.organizer_email},
+             ${contactPhone || null},
              ${`Unverified — from a public submission (event ${eventId}).`}
        where not exists (
          select 1 from organizer_contacts
