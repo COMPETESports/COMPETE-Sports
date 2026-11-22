@@ -3,8 +3,6 @@
 import { z } from 'zod';
 import { sql } from './db';
 import { isSignedIn } from './auth';
-import { currentAccount } from './accounts';
-import { tooManyAttempts } from './rate-limit';
 import { FIELD_LABELS as LABELS } from './field-labels';
 import { STATES, type ParsedListing } from './parse-listing';
 
@@ -190,22 +188,9 @@ export async function readFlyer(input: {
   url?: string;
   sport?: string;
 }): Promise<FlyerReadResult> {
-  // Staff can read images and links. A signed-in account with a confirmed
-  // email may read a LINK only, 10 a day (public submission form, Tom
-  // 22 Nov: images stay staff-only, each read costs about a cent).
-  if (!(await isSignedIn())) {
-    const account = await currentAccount();
-    if (!account || !account.email_verified_at) {
-      return { ok: false, message: 'Sign in with a confirmed account first.' };
-    }
-    const hasImages = (input.images?.length ?? 0) > 0 || !!input.imageBase64;
-    if (hasImages || !input.url?.trim()) {
-      return { ok: false, message: 'Paste a link to the event page, or paste its text into the box.' };
-    }
-    if (tooManyAttempts(`link-read:${account.id}`, 10, 60 * 60 * 24).limited) {
-      return { ok: false, message: "That's 10 links today. Paste the event's text instead — that's unlimited." };
-    }
-  }
+  // Staff only. The public form reads pasted text, which is free; images
+  // and links cost money per read and stay with staff (Tom, 22 Nov).
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
 
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) {

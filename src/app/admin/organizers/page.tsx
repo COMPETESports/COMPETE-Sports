@@ -78,6 +78,9 @@ export default async function OrganizersPage({
           <p className="t-kicker text-[color:var(--grass)]">Organizers</p>
           <h1 className="t-display mt-1 text-2xl sm:text-3xl">Every organization</h1>
         </div>
+        <Link href="/admin/organizers/new" className="btn-primary">
+          + New organization
+        </Link>
       </div>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

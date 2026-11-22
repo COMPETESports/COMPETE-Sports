@@ -91,7 +91,11 @@ export function PasteBox({
 }: {
   onParsed: (fields: ParsedListing, filled: string[]) => void;
   sport?: string;
-  /** False on the public submission form: images are staff-only (cost). */
+  /**
+   * False on the public submission form: images AND links are staff-only,
+   * because both go through the paid AI reader. Tom, 22 Nov: "People know
+   * their event information." Pasted text is read for free.
+   */
   allowImages?: boolean;
 }) {
   const [text, setText] = useState('');
@@ -196,7 +200,7 @@ export function PasteBox({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="t-kicker text-[color:var(--surf-ink)]">
-            {allowImages ? 'Paste a post or a flyer' : 'Paste a post or a link'}
+            {allowImages ? 'Paste a post or a flyer' : 'Paste the event post'}
           </h2>
           {allowImages ? (
             <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--muted)]">
@@ -206,8 +210,8 @@ export function PasteBox({
             </p>
           ) : (
             <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--muted)]">
-              Paste a link to the event&apos;s page, or the text of its post or
-              email. The form below is filled in for you to check.
+              Paste the text of the event&apos;s post, flyer or email and we fill
+              in what we can below. Check every field.
             </p>
           )}
         </div>
@@ -309,8 +313,9 @@ export function PasteBox({
           </div>)}
 
           {/* ---- link ---- */}
+          {allowImages && (<>
           <label htmlFor="paste-url" className="label mt-4">
-            {allowImages ? 'Or a link to the event page' : 'A link to the event page'}
+            Or a link to the event page
           </label>
           <input
             id="paste-url"
@@ -324,6 +329,7 @@ export function PasteBox({
             placeholder="https://… (not Facebook or Instagram — screenshot those)"
             className="field"
           />
+          </>)}
 
           {/* ---- text ---- */}
           <label htmlFor="paste" className="sr-only">

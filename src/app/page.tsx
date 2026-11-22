@@ -1,22 +1,20 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { EventCard } from '@/components/EventCard';
-import { FilterForm } from '@/components/FilterForm';
 import { HomeSearch } from '@/components/HomeSearch';
 import { StateMap } from '@/components/StateMap';
 import {
-  getFacetsForSport,
   getFeaturedEvents,
   getLocalEvents,
   getRegionalEvents,
   getStateCounts,
 } from '@/lib/queries';
-import { buildQuery, hasAnyFilter, parseFilters, type RawParams } from '@/lib/search-params';
+import { parseFilters, type RawParams } from '@/lib/search-params';
 import { geocode } from '@/lib/geocode';
 import { regionForState, type Region } from '@/lib/regions';
 import { currentAccount, getAthleteProfile } from '@/lib/accounts';
 import { HOME_ZIP_COOKIE, LOCAL_RADIUS_MILES } from '@/lib/home-location';
-import type { DiscoveryEvent, Facets, SearchFilters } from '@/lib/types';
+import type { DiscoveryEvent } from '@/lib/types';
 import type { StateCount } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
@@ -41,11 +39,11 @@ export default async function HomePage({
 }) {
   const sport = 'volleyball';
 
-  // The homepage filters submit back to the homepage (10 Nov 2026) and the
-  // map recolours to what they match, rather than sending the visitor off
-  // to a results list before they have seen where the matches are.
-  const params = await searchParams;
-  const filters = parseFilters({ ...params, sport });
+  // No filters on the homepage since 22 Nov 2026 (Tom: simplify it). The
+  // map shows everything; filtering lives on /events. Old links that still
+  // carry filter parameters simply show the whole map.
+  await searchParams;
+  const filters = parseFilters({ sport });
 
   // Where "near you" comes from, in order of how much we trust it: the
   // signed-in player's profile — their ZIP and the radius they actually
@@ -75,11 +73,10 @@ export default async function HomePage({
   // defaulting someone into the Midwest.
   const region = regionForState(profile?.home_state ?? geocoded?.state ?? null);
 
-  const [featured, local, stateCounts, facets] = await Promise.all([
+  const [featured, local, stateCounts] = await Promise.all([
     getFeaturedEvents(sport, 3),
     origin ? getLocalEvents(sport, origin.lat, origin.lng, radius, 6) : Promise.resolve([]),
     getStateCounts(sport, filters),
-    getFacetsForSport(sport),
   ]);
 
   // Regional runs after local so it can skip whatever local already showed
@@ -99,7 +96,7 @@ export default async function HomePage({
   return (
     <>
       <Masthead />
-      <MapAndFilters sport={sport} counts={stateCounts} facets={facets} filters={filters} params={params} />
+      <MapSection sport={sport} counts={stateCounts} />
       <FeaturedRail events={featured} />
       <LocalRail
         events={local}
@@ -135,65 +132,15 @@ function Masthead() {
 
 /* --------------------------------------------------------- map + filters */
 
-function MapAndFilters({
-  sport,
-  counts,
-  facets,
-  filters,
-  params,
-}: {
-  sport: string;
-  counts: StateCount[];
-  facets: Facets;
-  filters: SearchFilters;
-  params: RawParams;
-}) {
-  const filtered = hasAnyFilter(filters);
-  const matching = counts.reduce((n, c) => n + c.upcoming, 0);
-
-  // The filters, carried onto every state link and the "see them" link, so
-  // the cards a visitor lands on are exactly the ones the map counted.
-  // `state` is dropped: the state comes from whichever one they click.
-  const query = buildQuery(params, { state: null, page: null, sport: null }).replace(/^\?/, '');
-
+/**
+ * The map on its own (22 Nov 2026). Filters used to sit underneath and
+ * recolour it; Tom took them off the homepage to keep it simple -- the map,
+ * then featured events. A state still opens straight to its cards.
+ */
+function MapSection({ sport, counts }: { sport: string; counts: StateCount[] }) {
   return (
     <section id="map" className="wrap scroll-mt-4 py-9 sm:py-11">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          {/* A heading only when it says something: how many match. The
-              unfiltered map needs no title (Tom, 19 Nov). */}
-          {filtered && (
-            <>
-              <p className="t-kicker mb-1.5" style={{ color: 'var(--grape)' }}>
-                Your filters
-              </p>
-              <h2 className="t-display text-2xl sm:text-3xl">
-                {`${matching} ${matching === 1 ? 'event matches' : 'events match'}`}
-              </h2>
-            </>
-          )}
-        </div>
-        {filtered && (
-          <div className="flex flex-wrap gap-2">
-            <Link href={`/events${query ? `?${query}` : ''}`} className="btn-primary">
-              See them as cards
-            </Link>
-            <Link href="/#map" className="btn-ghost">
-              Clear filters
-            </Link>
-          </div>
-        )}
-      </div>
-
-      <StateMap sport={sport} counts={counts} linkQuery={query} filtered={filtered} showLegend={false} />
-
-      <div className="mt-8">
-        <Link href="/events" className="btn-ghost mb-4 w-full">
-          Browse everything
-        </Link>
-
-        <FilterForm filters={filters} facets={facets} variant="landing" />
-      </div>
+      <StateMap sport={sport} counts={counts} linkQuery="" filtered={false} showLegend={false} />
     </section>
   );
 }

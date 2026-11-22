@@ -71,7 +71,7 @@ async function SubmitForm() {
   return (
     <>
       <ul className="mt-6 space-y-1.5 text-sm text-[color:var(--muted)]">
-        <li>• <strong className="text-[color:var(--ink)]">Paste the event&apos;s link or post</strong> below and we fill in what we can. Check every field.</li>
+        <li>• <strong className="text-[color:var(--ink)]">Paste the event&apos;s post or flyer text</strong> below and we fill in what we can. Check every field.</li>
         <li>• Only add what the organizer has published. Leave a field blank rather than guess.</li>
         <li>• Volleyball only for now.</li>
       </ul>

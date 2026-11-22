@@ -50,6 +50,64 @@ const KEY_SQL = sql`
     '(volleyball|vb|sports|s)+$', ''
   )`;
 
+/**
+ * New organization by hand (Tom, 22 Nov) -- the organizer list's answer to
+ * "+ New event". Checks for a likely duplicate first, by the same name key
+ * the duplicate review uses, and only creates on a second "create anyway".
+ * Returns the new id so the page can open its profile for the rest.
+ */
+export async function createOrganizer(input: {
+  name: string;
+  city: string;
+  state: string;
+  website: string;
+  category: string;
+  force: boolean;
+}): Promise<
+  | { ok: true; id: string }
+  | { ok: false; message: string; matches?: { id: string; name: string; city: string | null; state: string | null; events: number }[] }
+> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  const name = input.name.trim().slice(0, 200);
+  if (name.length < 2) return { ok: false, message: 'Give the organization a name.' };
+  const state = input.state.trim().toUpperCase().slice(0, 2);
+  if (state && !/^[A-Z]{2}$/.test(state)) return { ok: false, message: 'State is two letters, e.g. MO.' };
+  let website = input.website.trim();
+  if (website && !/^https?:\/\//i.test(website)) website = `https://${website}`;
+
+  if (!input.force) {
+    const key = name.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/(volleyball|vb|sports|s)+$/, '');
+    const matches = await sql<{ id: string; name: string; city: string | null; state: string | null; events: number }[]>`
+      select o.id, o.name, o.city, o.state,
+             (select count(*)::int from events e where e.organizer_id = o.id) as events
+        from organizers o
+       where ${KEY_SQL} = ${key} or o.name ilike ${'%' + name + '%'}
+       order by events desc
+       limit 8`;
+    if (matches.length) {
+      return { ok: false, message: 'These look similar. Open one, or create it anyway.', matches: [...matches] };
+    }
+  }
+
+  const base = name
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'organization';
+  const [clash] = await sql<{ id: string }[]>`select id from organizers where slug = ${base}`;
+  const slug = clash ? `${base}-${Date.now().toString(36).slice(-4)}` : base;
+
+  const [row] = await sql<{ id: string }[]>`
+    insert into organizers (slug, name, city, state, website_url)
+    values (${slug}, ${name}, ${input.city.trim() || null}, ${state || null}, ${website || null})
+    returning id`;
+  await sql`
+    insert into organizer_private (organizer_id, origin, category)
+    values (${row.id}, 'manual', ${input.category.trim() || null})
+    on conflict (organizer_id) do nothing`;
+
+  revalidatePath('/admin/organizers');
+  return { ok: true, id: row.id };
+}
+
 export async function listOrganizers(): Promise<OrganizerRow[]> {
   if (!(await isSignedIn())) return [];
   const rows = await sql<OrganizerRow[]>`
