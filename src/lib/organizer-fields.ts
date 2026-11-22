@@ -50,8 +50,14 @@ export interface OrganizerFilters {
   events?: string;
   /** An exact confidence step, '0' to '5'. */
   confidence?: string;
-  /** 'confidence' puts the most promising first. */
+  /**
+   * Column to order by. 'confidence' (most promising first) predates the
+   * clickable headers; the rest come from them: name, state, status,
+   * events, last, next. Empty keeps the default follow-up order.
+   */
   sort?: string;
+  /** 'asc' or 'desc' for a column sort. Each column has a natural default. */
+  dir?: string;
   /** 'yes' = shares a normalised name with another record. */
   review?: string;
   page?: number;

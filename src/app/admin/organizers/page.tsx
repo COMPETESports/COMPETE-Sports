@@ -52,7 +52,7 @@ export default async function OrganizersPage({
   const filters: OrganizerFilters = {
     q: sp.q, state: sp.state, status: sp.status, sports: sp.sports,
     contactable: sp.contactable, events: sp.events, review: sp.review,
-    confidence: sp.confidence, sort: sp.sort,
+    confidence: sp.confidence, sort: sp.sort, dir: sp.dir,
     page: sp.page ? Number(sp.page) : 1,
   };
 
@@ -119,7 +119,10 @@ export default async function OrganizersPage({
         <Select name="confidence" value={sp.confidence} label="Any confidence"
           options={CONFIDENCE} />
         <Select name="sort" value={sp.sort} label="Default order"
-          options={[['confidence', 'Most promising first']]} />
+          options={[['confidence', 'Most promising first'], ['events', 'Most events'],
+            ['name', 'Name A–Z'], ['state', 'State'], ['status', 'Pipeline stage'],
+            ['last', 'Last touch'], ['next', 'Next action date']]} />
+        {sp.dir && <input type="hidden" name="dir" value={sp.dir} />}
         <Select name="review" value={sp.review} label="All records"
           options={[['yes', 'Possible duplicates']]} />
         <div className="flex gap-2 sm:col-span-6">
@@ -140,14 +143,14 @@ export default async function OrganizersPage({
           <table className="w-full min-w-[1180px] text-sm">
             <thead>
               <tr className="border-b-2 border-[color:var(--line)] text-left">
-                <Th>Organization</Th>
+                <SortTh col="name" natural="asc" sp={sp} qs={qs}>Organization</SortTh>
                 <Th>Sport</Th>
                 <Th>Contact</Th>
-                <Th>Status</Th>
-                <Th>Confidence</Th>
-                <Th>Events</Th>
-                <Th>Last touch</Th>
-                <Th>Next</Th>
+                <SortTh col="status" natural="asc" sp={sp} qs={qs}>Status</SortTh>
+                <SortTh col="confidence" natural="desc" sp={sp} qs={qs}>Confidence</SortTh>
+                <SortTh col="events" natural="desc" sp={sp} qs={qs}>Events</SortTh>
+                <SortTh col="last" natural="desc" sp={sp} qs={qs}>Last touch</SortTh>
+                <SortTh col="next" natural="asc" sp={sp} qs={qs}>Next</SortTh>
               </tr>
             </thead>
             <tbody>
@@ -282,6 +285,31 @@ export default async function OrganizersPage({
 
 function today() {
   return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * A header you can click to sort by. First click uses the column's
+ * natural direction (most events first, A to Z); clicking again flips it.
+ */
+function SortTh({
+  col, natural, sp, qs, children,
+}: {
+  col: string; natural: 'asc' | 'desc';
+  sp: Record<string, string | undefined>;
+  qs: (over: Record<string, string | number | undefined>) => string;
+  children: React.ReactNode;
+}) {
+  const on = sp.sort === col;
+  const dir = on ? (sp.dir ?? natural) : natural;
+  const next = on ? (dir === 'asc' ? 'desc' : 'asc') : natural;
+  return (
+    <th className="t-mono px-3 py-2 text-[10px] font-bold uppercase tracking-[0.15em]">
+      <Link href={qs({ sort: col, dir: next, page: undefined })}
+        className={on ? 'text-[color:var(--ink)]' : 'text-[color:var(--faint)] hover:text-[color:var(--muted)]'}>
+        {children}{on ? (dir === 'asc' ? ' ↑' : ' ↓') : ''}
+      </Link>
+    </th>
+  );
 }
 
 function Th({ children }: { children: React.ReactNode }) {

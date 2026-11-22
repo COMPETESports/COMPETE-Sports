@@ -393,6 +393,30 @@ export async function deleteOrganizer(
  * being rescued -- the events would survive with no organizer at all,
  * and nothing would show it had happened.
  */
+/**
+ * Any organization by name or city, for merging records the automatic
+ * name match doesn't pair up -- "Belleville Parks & Rec" and "City of
+ * Belleville" are the same people and share no key (Tom, 21 Nov).
+ */
+export async function findOrganizersToMerge(
+  q: string,
+  excludeId: string,
+): Promise<{ id: string; name: string; city: string | null; state: string | null; events: number }[]> {
+  if (!(await isSignedIn())) return [];
+  const term = q.trim();
+  if (term.length < 2) return [];
+  const like = `%${term}%`;
+  const rows = await sql<{ id: string; name: string; city: string | null; state: string | null; events: number }[]>`
+    select o.id, o.name, o.city, o.state,
+           (select count(*)::int from events e where e.organizer_id = o.id) as events
+      from organizers o
+     where o.id <> ${excludeId}
+       and (o.name ilike ${like} or o.city ilike ${like})
+     order by (o.name ilike ${term + '%'}) desc, o.name
+     limit 12`;
+  return [...rows];
+}
+
 export async function mergeOrganizers(
   loserId: string,
   winnerId: string,
@@ -594,8 +618,24 @@ export async function listOrganizersPaged(f: OrganizerFilters) {
   // 'confidence' instead leads with the most promising, for working a
   // call list top-down. Unjudged records sink either way -- null is not
   // a low score, it just has not been looked at.
-  const order = f.sort === 'confidence'
-    ? sql`order by x.confidence_score desc nulls last,
+  // Clickable column headers (Tom, 21 Nov). Each column has the direction
+  // you'd want on first click -- most events, newest touch, A to Z -- and
+  // a second click flips it. Ties always fall back to the name.
+  const desc = f.dir === 'desc';
+  const flip = (natural: 'asc' | 'desc') =>
+    f.dir === 'asc' || f.dir === 'desc' ? (desc ? sql`desc` : sql`asc`) : (natural === 'desc' ? sql`desc` : sql`asc`);
+  const eventsCount = sql`(select count(*) from events e where e.organizer_id = o.id)`;
+  const order =
+    f.sort === 'name'   ? sql`order by o.name ${flip('asc')}` :
+    f.sort === 'state'  ? sql`order by o.state ${flip('asc')} nulls last, o.city nulls last, o.name` :
+    f.sort === 'status' ? sql`order by case coalesce(x.status, 'prospect')
+             when 'partner' then 1 when 'in_conversation' then 2
+             when 'contacted' then 3 when 'prospect' then 4 else 5 end ${flip('asc')}, o.name` :
+    f.sort === 'events' ? sql`order by ${eventsCount} ${flip('desc')}, o.name` :
+    f.sort === 'last'   ? sql`order by x.last_contacted_at ${flip('desc')} nulls last, o.name` :
+    f.sort === 'next'   ? sql`order by x.next_action_on ${flip('asc')} nulls last, o.name` :
+    f.sort === 'confidence'
+    ? sql`order by x.confidence_score ${flip('desc')} nulls last,
            (x.next_action_on is not null and x.next_action_on <= current_date + 7) desc,
            x.next_action_on asc nulls last,
            o.name`

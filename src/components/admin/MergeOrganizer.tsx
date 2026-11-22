@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { mergeOrganizers } from '@/lib/organizers-admin';
+import { findOrganizersToMerge, mergeOrganizers } from '@/lib/organizers-admin';
 
 /**
  * Fold a duplicate record into this one.
@@ -29,9 +29,31 @@ export function MergeOrganizer({
     return mergeOrganizers(loserId, winnerId);
   }, null);
 
-  if (!siblings.length) return null;
+  // Search any record, not just the ones whose names happen to match.
+  const [q, setQ] = useState('');
+  const [found, setFound] = useState<{ id: string; name: string; city: string | null; state: string | null; events: number }[]>([]);
+  useEffect(() => {
+    if (q.trim().length < 2) { setFound([]); return; }
+    const t = setTimeout(() => {
+      findOrganizersToMerge(q, winnerId).then(setFound).catch(() => setFound([]));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q, winnerId]);
+  const [open, setOpen] = useState(false);
 
   const total = siblings.reduce((n, s) => n + s.events, 0);
+  const sibIds = new Set(siblings.map((s) => s.id));
+  const extra = found.filter((f) => !sibIds.has(f.id));
+
+  if (!siblings.length && !open) {
+    return (
+      <section className="panel mt-6 p-5">
+        <button type="button" onClick={() => setOpen(true)} className="btn-ghost">
+          Merge another record into this one…
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -39,12 +61,15 @@ export function MergeOrganizer({
       style={{ borderColor: 'color-mix(in srgb, var(--beach) 45%, transparent)' }}
     >
       <h2 className="t-head text-base" style={{ color: 'var(--beach)' }}>
-        {siblings.length === 1
+        {siblings.length === 0
+          ? 'Merge another record into this one'
+          : siblings.length === 1
           ? 'Another record looks like this organization'
           : `${siblings.length} other records look like this organization`}
       </h2>
       <p className="mt-1.5 text-sm text-[color:var(--muted)]">
-        Holding {total} {total === 1 ? 'event' : 'events'} between them. Merging
+        {siblings.length > 0 && <>Holding {total} {total === 1 ? 'event' : 'events'} between them. </>}
+        Open the record you want to keep, then pick the one to fold in. Merging
         moves those events onto <strong>{winnerName}</strong> and deletes the
         other record. <strong>This cannot be undone.</strong>
       </p>
@@ -66,6 +91,26 @@ export function MergeOrganizer({
               </span>
             </label>
           ))}
+          <input value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="Search any organization by name or city"
+            className="field" aria-label="Search organizations to merge" />
+          {extra.map((s) => (
+            <label key={s.id}
+              className="flex cursor-pointer items-center gap-3 rounded-xl border p-3"
+              style={{ borderColor: 'var(--line)' }}>
+              <input type="radio" name="loserId" value={s.id} required />
+              <span className="min-w-0">
+                <span className="t-head block text-sm">{s.name}</span>
+                <span className="block text-xs text-[color:var(--muted)]">
+                  {[s.city, s.state].filter(Boolean).join(', ') || 'No city'} ·{' '}
+                  {s.events} {s.events === 1 ? 'event' : 'events'} would move here
+                </span>
+              </span>
+            </label>
+          ))}
+          {q.trim().length >= 2 && extra.length === 0 && (
+            <p className="text-xs text-[color:var(--faint)]">No other matches.</p>
+          )}
         </div>
         <MergeButton winnerName={winnerName} />
       </form>

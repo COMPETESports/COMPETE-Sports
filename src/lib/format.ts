@@ -73,7 +73,7 @@ export function mapsUrl(event: DiscoveryEvent): string {
 
 /** A short, human summary of who an event is for. */
 export function audienceLine(event: DiscoveryEvent): string {
-  const formats = event.format_names.slice(0, 3).join(' · ');
-  const extra = event.format_names.length > 3 ? ` +${event.format_names.length - 3}` : '';
+  const formats = event.format_labels.slice(0, 3).join(' · ');
+  const extra = event.format_labels.length > 3 ? ` +${event.format_labels.length - 3}` : '';
   return formats ? `${formats}${extra}` : 'Formats to be announced';
 }
