@@ -67,8 +67,10 @@ type TabId = 'info' | 'contacts' | 'pipeline' | 'venues' | 'history';
  */
 export function OrganizerProfile({
   id, initial, contacts, sports, surfaces, offeringsNote,
-  venueAddresses, venuesSlot, historySlot, eventCount,
+  venueAddresses, venuesSlot, historySlot, eventCount, categories = [],
 }: {
+  /** Types already in use, most common first, for the Type picker. */
+  categories?: { category: string; n: number }[];
   id: string;
   initial: OrganizerProfileForm;
   contacts: OrganizerContact[];
@@ -170,8 +172,15 @@ export function OrganizerProfile({
         <section className="panel mt-5 p-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Name" v={form.name} on={(x) => set('name', x)} className="sm:col-span-2" />
+            {/* Type to search the types already in use, or enter a new one. */}
             <Field label="Type" v={form.category} on={(x) => set('category', x)}
-              hint="Bar sand courts, parks & rec, social league…" />
+              list="organizer-types" placeholder="Start typing to search…"
+              hint="Pick an existing type so they group together; type a new one if none fit." />
+            <datalist id="organizer-types">
+              {categories.map((c) => (
+                <option key={c.category} value={c.category}>{`${c.n} ${c.n === 1 ? 'organizer' : 'organizers'}`}</option>
+              ))}
+            </datalist>
             <Field label="Registration platform" v={form.booking_platform}
               on={(x) => set('booking_platform', x)} hint="LeagueApps, paper, none…" />
             <Field label="Phone" v={form.phone} on={(x) => set('phone', x)} type="tel" />
@@ -612,10 +621,12 @@ function Chevron({ open }: { open: boolean }) {
 }
 
 function Field({
-  label, v, on, hint, type = 'text', maxLength, placeholder, className = '',
+  label, v, on, hint, type = 'text', maxLength, placeholder, className = '', list,
 }: {
   label: string; v: string; on: (v: string) => void; hint?: string;
   type?: string; maxLength?: number; placeholder?: string; className?: string;
+  /** id of a <datalist> to suggest from as you type. */
+  list?: string;
 }) {
   return (
     <label className={`grid gap-1 ${className}`}>
@@ -623,7 +634,7 @@ function Field({
         {label}
       </span>
       <input type={type} value={v} onChange={(e) => on(e.target.value)}
-        maxLength={maxLength} placeholder={placeholder} className="field" />
+        maxLength={maxLength} placeholder={placeholder} list={list} className="field" />
       {hint && <span className="text-[11px] text-[color:var(--faint)]">{hint}</span>}
     </label>
   );

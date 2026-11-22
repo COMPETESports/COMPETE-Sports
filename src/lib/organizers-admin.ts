@@ -719,6 +719,23 @@ export async function organizerCounts() {
 }
 
 /** States that actually appear, with counts, for the filter dropdown. */
+/**
+ * Every Type already used, most common first, for the type-and-search
+ * picker on the organizer page (Tom, 21 Nov). Picking from what exists
+ * keeps "Parks & Rec" from also turning up as "parks and recreation".
+ */
+export async function organizerCategories() {
+  if (!(await isSignedIn())) return [];
+  const rows = await sql<{ category: string; n: number }[]>`
+    select trim(category) as category, count(*)::int as n
+      from organizer_private
+     where nullif(trim(category), '') is not null
+     group by trim(category)
+     order by n desc, trim(category)
+  `;
+  return [...rows];
+}
+
 export async function organizerStates() {
   if (!(await isSignedIn())) return [];
   const rows = await sql<{ state: string; n: number }[]>`

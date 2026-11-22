@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { MAP_VIEWBOX, US_STATES } from '@/lib/us-states';
-import { BUCKETS, EMPTY_STEP, dormantStep, stepFor } from '@/lib/map-scale';
+import { ACTIVE_STEP, EMPTY_STEP, dormantStep, stepFor } from '@/lib/map-scale';
 import { MAP_REGIONS } from '@/lib/map-regions';
 import type { StateCount } from '@/lib/queries';
 
@@ -170,9 +170,8 @@ export function StateMap({
 }
 
 /**
- * Two rows: which colour is which region, then what the shades mean.
- * The shade row is drawn in one region's ramp only as an example -- the
- * same four steps apply in every colour.
+ * Two rows: which colour is which region, then the two dark states.
+ * One steady colour per region since 21 Nov, so there are no shade steps.
  */
 function Legend({ filtered }: { filtered: boolean }) {
   const sample = MAP_REGIONS.find((r) => r.slug === 'midwest') ?? MAP_REGIONS[0];
@@ -182,7 +181,7 @@ function Legend({ filtered }: { filtered: boolean }) {
       <ul className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Regions">
         {MAP_REGIONS.map((r) => (
           <li key={r.slug} className="flex items-center gap-1.5">
-            <span aria-hidden className="h-3 w-3" style={{ background: r.hue }} />
+            <span aria-hidden className="h-3 w-3" style={{ background: r.ramp[ACTIVE_STEP] }} />
             <span className="t-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
               {r.name}
             </span>
@@ -210,14 +209,6 @@ function Legend({ filtered }: { filtered: boolean }) {
             {filtered ? 'Events here, none match' : 'Community here, nothing scheduled'}
           </span>
         </li>
-        {[...BUCKETS].reverse().map((b, i) => (
-          <li key={b.label} className="flex items-center gap-1.5">
-            <span aria-hidden className="h-3 w-3" style={{ background: sample.ramp[i] }} />
-            <span className="t-mono text-[10px] uppercase tracking-wider text-[color:var(--faint)]">
-              {b.label}
-            </span>
-          </li>
-        ))}
       </ul>
     </div>
   );

@@ -77,19 +77,30 @@ function bucketIndex(upcoming: number): number {
   return 0;
 }
 
+/**
+ * One steady colour per region (Tom, 21 Nov). The four-step ramp made the
+ * busiest states washed-out peach and the quietest muddy brown -- Missouri
+ * and Kansas looked "ugly", Ohio (the vivid step) looked right. So every
+ * state with events now takes its region's vivid step, whatever the count;
+ * the count is printed on the state and in the hover card.
+ *
+ * Borders are drawn in the page background, not a lighter shade of the
+ * fill. Two neighbours in the same region are now the same colour, and the
+ * old "next step up" outline vanished at the top step -- which is why the
+ * Missouri/Kansas line disappeared.
+ */
+export const ACTIVE_STEP = 2;
+
 export function stepFor(upcoming: number, total: number, state: string): ScaleStep {
   const region = regionForMapState(state);
   if (upcoming > 0 && region) {
-    const i = bucketIndex(upcoming);
-    const b = BUCKETS[3 - i];
     return {
-      min: b.min,
-      label: b.label,
-      fill: region.ramp[i],
-      // The outline is the next step up, so neighbouring states separate.
-      stroke: region.ramp[Math.min(i + 1, 3)],
-      strokeWidth: 0.75,
-      text: region.text[i] === 'dark' ? DARK : LIGHT,
+      min: 1,
+      label: 'Events listed',
+      fill: region.ramp[ACTIVE_STEP],
+      stroke: DARK,
+      strokeWidth: 1.25,
+      text: region.text[ACTIVE_STEP] === 'dark' ? DARK : LIGHT,
     };
   }
   if (total > 0 && region) return dormantStep(region);

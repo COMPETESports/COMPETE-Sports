@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
-import { organizerProfile, organizerFull, organizerVenues } from '@/lib/organizers-admin';
+import { organizerProfile, organizerFull, organizerVenues, organizerCategories } from '@/lib/organizers-admin';
 import { loadVenueOptions, loadSportSurfaceOptions } from '@/lib/ref-data';
 import { MergeOrganizer } from '@/components/admin/MergeOrganizer';
 import { OrganizerVenues } from '@/components/admin/OrganizerVenues';
@@ -33,11 +33,12 @@ export default async function OrganizerPage({
   const found = await organizerProfile(id);
   if (!found) notFound();
 
-  const [linkedVenues, allVenues, full, taxonomy] = await Promise.all([
+  const [linkedVenues, allVenues, full, taxonomy, categories] = await Promise.all([
     organizerVenues(id),
     loadVenueOptions(),
     organizerFull(id),
     loadSportSurfaceOptions(),
+    organizerCategories(),
   ]);
 
   // organizerProfile already proved this organizer exists and the caller
@@ -175,6 +176,7 @@ export default async function OrganizerPage({
         sports={taxonomy.sports}
         surfaces={taxonomy.surfaces}
         offeringsNote={full.row.offerings ? String(full.row.offerings) : null}
+        categories={categories}
         venueAddresses={linkedVenues}
         eventCount={total}
         venuesSlot={venuesSlot}
