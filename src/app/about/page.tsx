@@ -75,14 +75,12 @@ export default async function AboutPage() {
         <section>
           <h2 className="t-head text-xl">Organizers</h2>
           <p className="mt-3 leading-relaxed text-[color:var(--muted)]">
-            Listing is free. Send us the event and it goes up. Registration
+            Listing is free. Add the event with a free account and it goes up
+            once we&apos;ve checked it. Registration
             stays wherever you already run it — COMPETE sends players to your
             page, it does not take your entries.
           </p>
-          <a
-            href="mailto:hello@joincompete.com?subject=List%20my%20event%20on%20COMPETE"
-            className="btn-primary mt-5"
-          >
+          <a href="/submit" className="btn-primary mt-5">
             List an event
           </a>
         </section>

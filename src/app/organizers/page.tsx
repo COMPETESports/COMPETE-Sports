@@ -121,6 +121,9 @@ export default async function OrganizersPage() {
             <Link href="/join?as=organizer" className="btn-primary">
               Get started
             </Link>
+            <Link href="/submit" className="btn-ghost">
+              List an event
+            </Link>
             <a
               href="mailto:hello@joincompete.com?subject=Listing%20my%20events%20on%20COMPETE"
               className="btn-ghost"

@@ -7,6 +7,8 @@ import { sql } from './db';
 import { setEventFeatured } from './queries';
 import { isSignedIn } from './auth';
 import { geocode } from './geocode';
+import { currentAccount } from './accounts';
+import { sendMail } from './mailer';
 
 /**
  * The Phase 1 admin-managed event entry workflow: create, edit and
@@ -88,7 +90,7 @@ const EventInput = z.object({
       }),
     )
     .min(1, 'Add at least one bracket.'),
-  status: z.enum(['draft', 'approved', 'cancelled', 'archived']).default('draft'),
+  status: z.enum(['draft', 'pending', 'approved', 'declined', 'cancelled', 'archived']).default('draft'),
 })
   /**
    * A league needs a night and at least one night that plays. Checked
@@ -176,9 +178,127 @@ export async function saveEvent(
   formData: FormData,
 ): Promise<ActionState> {
   if (!(await isSignedIn())) redirect('/admin');
+  return persistEvent(formData, { kind: 'staff' });
+}
+
+/** Submissions one account can make in 24 hours. */
+const SUBMISSIONS_PER_DAY = 5;
+
+/**
+ * The public submission form (22 Nov 2026). Signed-in accounts with a
+ * confirmed email only -- Tom's call, and the strongest bot protection
+ * available until the security review. The event is created as 'pending'
+ * and stays invisible until Tom approves it.
+ */
+export async function submitEvent(
+  _prev: ActionState | null,
+  formData: FormData,
+): Promise<ActionState> {
+  const account = await currentAccount();
+  if (!account) return { ok: false, message: 'Sign in to submit an event.' };
+  if (!account.email_verified_at) {
+    return {
+      ok: false,
+      message: 'Confirm your email first — use the link we sent when you signed up, or ask for a new one from your account page.',
+    };
+  }
+
+  const [{ n }] = await sql<{ n: number }[]>`
+    select count(*)::int as n from events
+     where submitted_by = ${account.id} and submitted_at > now() - interval '1 day'`;
+  if (n >= SUBMISSIONS_PER_DAY) {
+    return {
+      ok: false,
+      message: `That's ${SUBMISSIONS_PER_DAY} events in the last day, which is the limit for now. Try again tomorrow, or email hello@joincompete.com.`,
+    };
+  }
+
+  const result = await persistEvent(formData, { kind: 'submission', accountId: account.id });
+  if (result.ok && result.saved) {
+    console.info(`[submission] ${result.saved.id} from account ${account.id}`);
+  }
+  return result;
+}
+
+/**
+ * Approve or decline a submission, and tell the submitter. Staff only.
+ * A decline needs a reason: it goes in the email, and an unexplained no
+ * is how a helpful friend stops helping.
+ */
+export async function reviewSubmission(
+  id: string,
+  decision: 'approve' | 'decline',
+  reason: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isSignedIn())) return { ok: false, message: 'Sign in first.' };
+  const note = reason.trim().slice(0, 1000);
+  if (decision === 'decline' && !note) {
+    return { ok: false, message: 'Add a short reason — it goes in the email to the submitter.' };
+  }
+
+  const [row] = await sql<{ name: string; slug: string; email: string | null; display_name: string | null }[]>`
+    update events e set
+      status       = ${decision === 'approve' ? 'approved' : 'declined'},
+      published_at = case when ${decision} = 'approve' and e.published_at is null then now() else e.published_at end,
+      reviewed_at  = now(),
+      review_note  = ${decision === 'decline' ? note : null}
+    from events before
+    left join accounts a on a.id = before.submitted_by
+    where e.id = ${id} and before.id = e.id
+    returning e.name, e.slug, a.email, a.display_name`;
+  if (!row) return { ok: false, message: 'That event no longer exists.' };
+
+  revalidatePath('/');
+  revalidatePath('/admin/events');
+  revalidatePath('/admin');
+
+  if (!row.email) {
+    return { ok: true, message: decision === 'approve' ? 'Approved and live.' : 'Declined.' };
+  }
+
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const hello = row.display_name ? `Hi ${row.display_name.split(' ')[0]},` : 'Hi,';
+  const sent = await sendMail(
+    decision === 'approve'
+      ? {
+          to: row.email,
+          subject: `Your event is live on COMPETE: ${row.name}`,
+          text:
+            `${hello}\n\nThanks for adding ${row.name}. It's approved and live:\n\n` +
+            `${site}/events/${row.slug}\n\nKeep them coming.\n\nTom, COMPETE\n`,
+        }
+      : {
+          to: row.email,
+          subject: `About the event you submitted: ${row.name}`,
+          text:
+            `${hello}\n\nThanks for submitting ${row.name}. We didn't publish it this time:\n\n` +
+            `${note}\n\nIf that's fixable, you're welcome to submit it again at ${site}/submit.\n\nTom, COMPETE\n`,
+        },
+  );
+  const verb = decision === 'approve' ? 'Approved and live' : 'Declined';
+  return sent.ok
+    ? { ok: true, message: `${verb}. ${row.email} has been emailed.` }
+    : { ok: true, message: `${verb}, but the email to ${row.email} failed (${sent.detail ?? 'unknown'}).` };
+}
+
+/**
+ * Who is saving. Staff can do anything the form allows. A submission
+ * (public form, 22 Nov) always creates a NEW event as 'pending', and may
+ * not change anything that already exists: an existing venue's address and
+ * pin, or an existing organizer's name and email, stay as staff left them.
+ */
+type SaveMode = { kind: 'staff' } | { kind: 'submission'; accountId: string };
+
+/**
+ * NOT exported, on purpose. In a 'use server' file every exported async
+ * function becomes callable from a browser, and this one checks nothing.
+ * saveEvent and submitEvent each check who is calling before they get here.
+ */
+async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionState> {
+  const staff = mode.kind === 'staff';
 
   const raw = {
-    id: (formData.get('id') as string) || undefined,
+    id: staff ? ((formData.get('id') as string) || undefined) : undefined,
     name: formData.get('name'),
     event_type: formData.get('event_type') ?? 'tournament',
     sport: formData.get('sport') ?? 'volleyball',
@@ -223,8 +343,9 @@ export async function saveEvent(
     // The "Save as draft" button sends its own name, and a clicked submit
     // button's value is the one the browser sends - so one click parks the
     // event without having to also change the dropdown.
-    status:
-      formData.get('intent') === 'draft' ? 'draft' : (formData.get('status') ?? 'draft'),
+    status: !staff
+      ? 'draft'
+      : formData.get('intent') === 'draft' ? 'draft' : (formData.get('status') ?? 'draft'),
   };
 
   const parsed = EventInput.safeParse(raw);
@@ -237,6 +358,9 @@ export async function saveEvent(
     return { ok: false, message: 'Some fields need fixing.', fieldErrors };
   }
   const input = parsed.data;
+  // A submission is always 'pending' -- set here, after validation, so the
+  // form can never ask for anything else.
+  const status: string = staff ? input.status : 'pending';
 
   if (input.ends_on && input.ends_on < input.starts_on) {
     return {
@@ -266,11 +390,13 @@ export async function saveEvent(
   let venueId: string;
   if (existingVenue) {
     venueId = existingVenue.id;
-    await sql`
-      update venues set
-        address_line = ${input.address_line || null},
-        postal_code = ${input.postal_code || null}
-      where id = ${venueId}`;
+    if (staff) {
+      await sql`
+        update venues set
+          address_line = ${input.address_line || null},
+          postal_code = ${input.postal_code || null}
+        where id = ${venueId}`;
+    }
   } else {
     const [row] = await sql<{ id: string }[]>`
       insert into venues (name, address_line, city, state, postal_code)
@@ -292,7 +418,8 @@ export async function saveEvent(
   const hasExact =
     typeof input.venue_latitude === 'number' && typeof input.venue_longitude === 'number';
 
-  if (hasExact) {
+  // A submitter can place a NEW venue, but never move an existing one.
+  if (hasExact && (staff || !existingVenue)) {
     await sql`
       update venues set
         latitude = ${input.venue_latitude!}, longitude = ${input.venue_longitude!},
@@ -325,13 +452,21 @@ export async function saveEvent(
   let organizerId: string | null = null;
   if (input.organizer_name) {
     const orgSlug = slugify(input.organizer_name);
-    const [row] = await sql<{ id: string }[]>`
-      insert into organizers (slug, name, contact_email)
-      values (${orgSlug}, ${input.organizer_name}, ${input.organizer_email || null})
-      on conflict (slug) do update
-        set name = excluded.name,
-            contact_email = coalesce(excluded.contact_email, organizers.contact_email)
-      returning id`;
+    // organizers.contact_email is PUBLIC. A submitter's typed email is
+    // never written there: Tom adds it on review if the organizer wants it.
+    const [row] = staff
+      ? await sql<{ id: string }[]>`
+          insert into organizers (slug, name, contact_email)
+          values (${orgSlug}, ${input.organizer_name}, ${input.organizer_email || null})
+          on conflict (slug) do update
+            set name = excluded.name,
+                contact_email = coalesce(excluded.contact_email, organizers.contact_email)
+          returning id`
+      : await sql<{ id: string }[]>`
+          insert into organizers (slug, name)
+          values (${orgSlug}, ${input.organizer_name})
+          on conflict (slug) do update set name = organizers.name
+          returning id`;
     organizerId = row.id;
   }
 
@@ -412,9 +547,9 @@ export async function saveEvent(
         payout_text = ${input.payout_text || null},
         event_page_url = ${input.event_page_url || null},
         flyer_url = ${input.flyer_url || null},
-        notes = ${input.notes || null}, status = ${input.status},
+        notes = ${input.notes || null}, status = ${status},
         published_at = case
-          when ${input.status} = 'approved' and published_at is null then now()
+          when ${status} = 'approved' and published_at is null then now()
           else published_at end
       where id = ${input.id}
       returning id`;
@@ -431,7 +566,8 @@ export async function saveEvent(
         start_time, check_in_time, meeting_time, end_time, is_ongoing,
         league_days, league_weeks, playoffs,
         registration_deadline, entry_fee_cents, fee_basis, payout_text,
-        event_page_url, flyer_url, notes, status, source, created_by, published_at
+        event_page_url, flyer_url, notes, status, source, created_by, published_at,
+        submitted_by, submitted_at
       ) values (
         ${slug}, ${input.name}, ${input.event_type}, ${sport.id}, ${venueId}, ${organizerId},
         ${startsOn}, ${endsOn},
@@ -441,8 +577,11 @@ export async function saveEvent(
         ${isLeague ? input.playoffs : false},
         ${input.registration_deadline || null}, ${feeCents}, ${input.fee_basis},
         ${input.payout_text || null}, ${input.event_page_url || null},
-        ${input.flyer_url || null}, ${input.notes || null}, ${input.status},
-        'admin', 'admin', ${input.status === 'approved' ? sql`now()` : null}
+        ${input.flyer_url || null}, ${input.notes || null}, ${status},
+        ${staff ? 'admin' : 'submission'}, ${staff ? 'admin' : 'submission'},
+        ${status === 'approved' ? sql`now()` : null},
+        ${mode.kind === 'submission' ? mode.accountId : null},
+        ${mode.kind === 'submission' ? sql`now()` : null}
       )
       returning id`;
     eventId = row.id;
@@ -467,17 +606,26 @@ export async function saveEvent(
   revalidatePath('/admin/events');
   const [saved] = await sql<{ slug: string }[]>`select slug from events where id = ${eventId}`;
 
+  if (!staff) {
+    revalidatePath('/admin');
+    return {
+      ok: true,
+      message: 'Thanks — your event is in the review queue. We will email you when it is approved.',
+      saved: { id: eventId, slug: saved?.slug ?? '', status },
+    };
+  }
+
   return {
     ok: true,
     message:
-      input.status === 'approved'
+      status === 'approved'
         ? input.id
           ? 'Updated and live on the site.'
           : 'Created and live on the site.'
         : input.id
           ? 'Updated. Still a draft, so not public yet.'
           : 'Created as a draft, so not public yet.',
-    saved: { id: eventId, slug: saved?.slug ?? '', status: input.status },
+    saved: { id: eventId, slug: saved?.slug ?? '', status },
   };
 }
 
@@ -688,7 +836,7 @@ export async function deleteEvent(id: string): Promise<ActionState> {
 
 export async function setEventStatus(id: string, status: string): Promise<void> {
   if (!(await isSignedIn())) redirect('/admin');
-  if (!['draft', 'approved', 'cancelled', 'archived'].includes(status)) return;
+  if (!['draft', 'pending', 'approved', 'declined', 'cancelled', 'archived'].includes(status)) return;
 
   await sql`
     update events set

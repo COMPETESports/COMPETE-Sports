@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { saveEvent, type ActionState } from '@/lib/admin';
+import { saveEvent, submitEvent, type ActionState } from '@/lib/admin';
 import { DeleteEvent } from './DeleteEvent';
 import { PasteBox } from './PasteBox';
 import {
@@ -121,8 +121,15 @@ const EVENT_TYPES: { slug: string; name: string; blurb: string }[] = [
 export function EventForm({
   values,
   options,
+  mode = 'staff',
 }: {
   values: EventFormValues;
+  /**
+   * 'submit' is the public form (22 Nov): it creates a pending event for
+   * Tom to review, reads pasted text and links but not images, and has no
+   * status, draft or delete controls.
+   */
+  mode?: 'staff' | 'submit';
   options: {
     surfaces: RefOption[];
     formats: FormatOption[];
@@ -132,7 +139,11 @@ export function EventForm({
     organizers: OrganizerOption[];
   };
 }) {
-  const [state, action] = useActionState<ActionState | null, FormData>(saveEvent, null);
+  const submitting = mode === 'submit';
+  const [state, action] = useActionState<ActionState | null, FormData>(
+    submitting ? submitEvent : saveEvent,
+    null,
+  );
 
   /**
    * Both panels that report the outcome of a save - the confirmation and
@@ -272,7 +283,7 @@ export function EventForm({
     <div className="mt-6 space-y-6">
       {/* Paste-and-parse is for entering something new; editing an existing
           record starts from what is already saved. */}
-      {!values.id && <PasteBox onParsed={applyParsed} sport={v.sport} />}
+      {!values.id && <PasteBox onParsed={applyParsed} sport={v.sport} allowImages={!submitting} />}
 
       <form action={action} className="space-y-6">
         {values.id && <input type="hidden" name="id" value={values.id} />}
@@ -325,7 +336,16 @@ export function EventForm({
         {/* A save that worked ends with somewhere to go. A green line on
             its own leaves you wondering whether publishing to a live site
             actually did anything. Tom, 27 Oct. */}
-        {state?.saved && (
+        {state?.saved && submitting && (
+          <div role="status" className="panel tone-good p-4">
+            <p className="t-head text-base">{state.message}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a href="/submit" className="btn-primary !py-2 !text-xs">Submit another</a>
+              <Link href="/events" className="btn-ghost !py-2 !text-xs">Browse events</Link>
+            </div>
+          </div>
+        )}
+        {state?.saved && !submitting && (
           <div role="status" className="panel tone-good p-4">
             <p className="t-head text-base">{state.message}</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -393,6 +413,7 @@ export function EventForm({
               made from whatever was entered, so "Angry Dragons" where
               "Angry Dragon Volleyball" exists mints a second record and
               splits 36 events across two pages. Tom, 3 Nov. */}
+{options.organizers.length > 0 && (
           <OrganizerPicker
             organizers={options.organizers}
             current={v.organizer_name}
@@ -404,12 +425,15 @@ export function EventForm({
               }))
             }
           />
+          )}
           <Field label="Organizer name" error={err('organizer_name')} auto={isAuto('organizer_name')}>
             <input name="organizer_name" {...text('organizer_name')} className="field" />
           </Field>
-          <Field label="Organizer email" error={err('organizer_email')} auto={isAuto('organizer_email')}>
-            <input type="email" name="organizer_email" {...text('organizer_email')} className="field" />
-          </Field>
+          {!submitting && (
+            <Field label="Organizer email" error={err('organizer_email')} auto={isAuto('organizer_email')}>
+              <input type="email" name="organizer_email" {...text('organizer_email')} className="field" />
+            </Field>
+          )}
           <Field
             label="Event / registration page"
             hint="Full URL including https://"
@@ -729,19 +753,22 @@ export function EventForm({
             <input name="postal_code" {...text('postal_code')} inputMode="numeric" className="field" />
           </Field>
         </Section>
-        <Section title="Publishing">
+        {!submitting && <Section title="Publishing">
           <Field label="Status" hint="Only approved events appear publicly">
             <select name="status" value={v.status} onChange={(e) => set('status', e.target.value)} className="field">
               <option value="draft">Draft — not public</option>
+              <option value="pending">Submitted — waiting for review</option>
               <option value="approved">Approved — live on the site</option>
+              <option value="declined">Declined</option>
               <option value="cancelled">Cancelled</option>
               <option value="archived">Archived</option>
             </select>
           </Field>
-        </Section>
+        </Section>}
 
         <div className="flex flex-wrap items-center gap-2">
-          <Submit isEdit={!!values.id} />
+          <Submit isEdit={!!values.id} submitting={submitting} />
+          {!submitting && (<>
           {/* One click parks it, whatever the status dropdown says. A
               clicked submit button is the only one whose name the browser
               sends, so saveEvent can tell this apart from a normal save. */}
@@ -754,17 +781,18 @@ export function EventForm({
           {values.id && (
             <DeleteEvent id={values.id} name={values.name || 'this event'} status={values.status} />
           )}
+          </>)}
         </div>
       </form>
     </div>
   );
 }
 
-function Submit({ isEdit }: { isEdit: boolean }) {
+function Submit({ isEdit, submitting }: { isEdit: boolean; submitting: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button type="submit" className="btn-primary" disabled={pending}>
-      {pending ? 'Saving…' : isEdit ? 'Save changes' : 'Create event'}
+      {pending ? 'Saving…' : submitting ? 'Submit for review' : isEdit ? 'Save changes' : 'Create event'}
     </button>
   );
 }

@@ -99,6 +99,12 @@ function SiteHeader({ signedIn }: { signedIn: boolean }) {
             Communities
           </Link>
           <Link
+            href="/submit"
+            className="t-kicker hidden px-2 py-2 text-[color:var(--muted)] hover:text-[color:var(--indoor)] md:block"
+          >
+            List an event
+          </Link>
+          <Link
             href="/about"
             className="t-kicker hidden px-2 py-2 text-[color:var(--muted)] hover:text-[color:var(--indoor)] sm:block"
           >
@@ -152,12 +158,9 @@ function SiteFooter() {
             <Link href="/about" className="hover:text-[color:var(--beach)]">
               About COMPETE
             </Link>
-            <a
-              href="mailto:hello@joincompete.com?subject=List%20my%20event%20on%20COMPETE"
-              className="hover:text-[color:var(--beach)]"
-            >
-              Organizers: list an event
-            </a>
+            <Link href="/submit" className="hover:text-[color:var(--beach)]">
+              List an event
+            </Link>
             <Link href="/privacy" className="hover:text-[color:var(--beach)]">
               Privacy policy
             </Link>

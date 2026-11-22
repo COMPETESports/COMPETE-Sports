@@ -1,0 +1,45 @@
+import type { EventFormValues } from '@/components/admin/EventForm';
+
+/**
+ * A blank event form. Shared by staff "New event" and the public
+ * submission form (22 Nov 2026) so the two can never drift apart.
+ */
+export const EMPTY_EVENT: EventFormValues = {
+  name: '',
+  event_type: 'tournament',
+  sport: 'volleyball',
+  starts_on: '',
+  ends_on: '',
+  start_time: '',
+  check_in_time: '',
+  meeting_time: '',
+  registration_deadline: '',
+  league_days: [],
+  league_weeks: '',
+  league_dates: [],
+  playoffs: false,
+  end_time: '',
+  is_ongoing: false,
+  entry_fee: '',
+  fee_basis: 'per_player',
+  payout_text: '',
+  event_page_url: '',
+  flyer_url: '',
+  notes: '',
+  venue_name: '',
+  venue_latitude: '',
+  venue_longitude: '',
+  venue_place_id: '',
+  venue_business_status: '',
+  address_line: '',
+  city: '',
+  state: '',
+  postal_code: '',
+  organizer_name: '',
+  organizer_email: '',
+  surfaces: [],
+  formats: [],
+  divisions: [],
+  brackets: [],
+  status: 'draft',
+};

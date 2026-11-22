@@ -87,9 +87,12 @@ interface Outcome {
 export function PasteBox({
   onParsed,
   sport = 'volleyball',
+  allowImages = true,
 }: {
   onParsed: (fields: ParsedListing, filled: string[]) => void;
   sport?: string;
+  /** False on the public submission form: images are staff-only (cost). */
+  allowImages?: boolean;
 }) {
   const [text, setText] = useState('');
   // Several images of one event, read together (14 Nov 2026): a flyer
@@ -129,6 +132,7 @@ export function PasteBox({
   /** A pasted image beats pasted text: if the clipboard holds both, the
    *  image is what the person meant. Each paste ADDS to the set. */
   function onPaste(e: React.ClipboardEvent) {
+    if (!allowImages) return;
     const files = Array.from(e.clipboardData.items)
       .filter((i) => i.type.startsWith('image/'))
       .map((i) => i.getAsFile())
@@ -191,12 +195,21 @@ export function PasteBox({
     <section className="panel border-[color:var(--surf-ink)] p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="t-kicker text-[color:var(--surf-ink)]">Paste a post or a flyer</h2>
-          <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--muted)]">
-            Drop in up to {MAX_IMAGES} images of one event, paste a link to its
-            page, or paste the text of a post. The fields below are filled in
-            for you to check.
-          </p>
+          <h2 className="t-kicker text-[color:var(--surf-ink)]">
+            {allowImages ? 'Paste a post or a flyer' : 'Paste a post or a link'}
+          </h2>
+          {allowImages ? (
+            <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--muted)]">
+              Drop in up to {MAX_IMAGES} images of one event, paste a link to its
+              page, or paste the text of a post. The fields below are filled in
+              for you to check.
+            </p>
+          ) : (
+            <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--muted)]">
+              Paste a link to the event&apos;s page, or the text of its post or
+              email. The form below is filled in for you to check.
+            </p>
+          )}
         </div>
         <button
           type="button"
@@ -211,7 +224,7 @@ export function PasteBox({
       {open && (
         <>
           {/* ---- image ---- */}
-          <div
+          {allowImages && (<div
             onDragOver={(e) => {
               e.preventDefault();
               setDragging(true);
@@ -293,11 +306,11 @@ export function PasteBox({
                 e.target.value = '';
               }}
             />
-          </div>
+          </div>)}
 
           {/* ---- link ---- */}
           <label htmlFor="paste-url" className="label mt-4">
-            Or a link to the event page
+            {allowImages ? 'Or a link to the event page' : 'A link to the event page'}
           </label>
           <input
             id="paste-url"

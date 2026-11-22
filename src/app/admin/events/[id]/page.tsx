@@ -11,6 +11,8 @@ import {
   loadLeagueDates,
 } from '@/lib/event-form-data';
 import { EventForm } from '@/components/admin/EventForm';
+import { ReviewSubmission } from '@/components/admin/ReviewSubmission';
+import { sql } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Edit event', robots: { index: false, follow: false } };
@@ -55,10 +57,17 @@ export default async function EditEventPage({
   }));
   const guessedBrackets = bracketRows.some((b) => !b.confirmed);
 
-  const [options, venues, organizers] = await Promise.all([
+  const [options, venues, organizers, [submission]] = await Promise.all([
     loadRefOptions(row.sport_slug),
     loadVenueOptions(),
     loadOrganizerOptions(),
+    // Public submissions (22 Nov): who sent it, and any decline reason.
+    sql<{ email: string | null; submitted_at: string | null; review_note: string | null; status: string }[]>`
+      select a.email,
+             to_char(e.submitted_at at time zone 'America/Chicago', 'Mon FMDD, YYYY at FMHH12:MI AM') as submitted_at,
+             e.review_note, e.status
+        from events e left join accounts a on a.id = e.submitted_by
+       where e.id = ${id} and e.source = 'submission'`,
   ]);
 
   return (
@@ -94,6 +103,16 @@ export default async function EditEventPage({
           )}
         </div>
       </div>
+
+      {submission && (submission.status === 'pending' || submission.status === 'declined') && (
+        <ReviewSubmission
+          id={row.id}
+          status={submission.status}
+          submitter={submission.email}
+          submittedAt={submission.submitted_at}
+          reviewNote={submission.review_note}
+        />
+      )}
 
       {guessedBrackets && (
         <p className="panel tone-warn mt-4 p-3 text-sm">

@@ -8,6 +8,8 @@ import { setEventStatus } from '@/lib/admin';
 const TONE: Record<string, string> = {
   approved: 'tone-good',
   draft: 'tone-mute',
+  pending: 'tone-warn',
+  declined: 'tone-faint',
   cancelled: 'tone-bad',
   archived: 'tone-faint',
 };
@@ -34,7 +36,7 @@ export function StatusControl({ id, status }: { id: string; status: string }) {
         TONE[status] ?? TONE.draft
       } ${pending ? 'opacity-50' : ''}`}
     >
-      {['draft', 'approved', 'cancelled', 'archived'].map((s) => (
+      {['draft', 'pending', 'approved', 'declined', 'cancelled', 'archived'].map((s) => (
         <option key={s} value={s} className="bg-[color:var(--surface)] text-[color:var(--ink)]">
           {s}
         </option>

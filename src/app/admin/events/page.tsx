@@ -87,13 +87,15 @@ export default async function AdminEventsPage({
     limit 300`;
 
   const [tally] = await sql<
-    { all: number; live: number; draft: number;
+    { all: number; live: number; draft: number; pending: number; declined: number;
       approved: number; cancelled: number; archived: number }[]
   >`
     select
       count(*)::int as all,
       count(*) filter (where status = 'approved' and ${isUpcoming})::int as live,
       count(*) filter (where status = 'draft')::int     as draft,
+      count(*) filter (where status = 'pending')::int   as pending,
+      count(*) filter (where status = 'declined')::int  as declined,
       count(*) filter (where status = 'approved')::int  as approved,
       count(*) filter (where status = 'cancelled')::int as cancelled,
       count(*) filter (where status = 'archived')::int  as archived
@@ -127,6 +129,17 @@ export default async function AdminEventsPage({
         </div>
       </div>
 
+      {/* Public submissions (22 Nov): the queue is just this list filtered
+          to 'pending'. Open one to approve or decline it. */}
+      {countFor('pending') > 0 && status !== 'pending' && (
+        <p className="panel tone-warn mt-5 p-3 text-sm">
+          <strong>
+            {countFor('pending')} submitted {countFor('pending') === 1 ? 'event is' : 'events are'} waiting for review.
+          </strong>{' '}
+          <Link href="/admin/events?status=pending" className="underline">Review them →</Link>
+        </p>
+      )}
+
       {missingCoords > 0 && (
         <p className="panel tone-warn mt-5 p-3 text-sm">
           {missingCoords} of these have no map coordinates and will not appear in
@@ -157,7 +170,9 @@ export default async function AdminEventsPage({
             {[
               ['all', 'All'],
               ['live', 'Live on the site'],
+              ['pending', 'Submitted — to review'],
               ['draft', 'Draft'],
+              ['declined', 'Declined'],
               ['cancelled', 'Cancelled'],
               ['archived', 'Archived'],
             ].map(([s, label]) => (

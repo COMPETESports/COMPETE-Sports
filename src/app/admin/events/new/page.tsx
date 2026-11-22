@@ -5,51 +5,13 @@ import { loadOrganizerOptions, loadRefOptions, loadVenueOptions } from '@/lib/re
 import { hhmm, isUuid, loadBrackets, loadEvent, loadLeagueDates } from '@/lib/event-form-data';
 import { generateLeagueDates, renewalStart } from '@/lib/series-dates';
 import { EventForm, type EventFormValues } from '@/components/admin/EventForm';
+import { EMPTY_EVENT as EMPTY } from '@/lib/event-form-empty';
 import { organizerFull, organizerVenues } from '@/lib/organizers-admin';
 import { sql } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'New event', robots: { index: false, follow: false } };
 
-const EMPTY: EventFormValues = {
-  name: '',
-  event_type: 'tournament',
-  sport: 'volleyball',
-  starts_on: '',
-  ends_on: '',
-  start_time: '',
-  check_in_time: '',
-  meeting_time: '',
-  registration_deadline: '',
-  league_days: [],
-  league_weeks: '',
-  league_dates: [],
-  playoffs: false,
-  end_time: '',
-  is_ongoing: false,
-  entry_fee: '',
-  fee_basis: 'per_player',
-  payout_text: '',
-  event_page_url: '',
-  flyer_url: '',
-  notes: '',
-  venue_name: '',
-  venue_latitude: '',
-  venue_longitude: '',
-  venue_place_id: '',
-  venue_business_status: '',
-  address_line: '',
-  city: '',
-  state: '',
-  postal_code: '',
-  organizer_name: '',
-  organizer_email: '',
-  surfaces: [],
-  formats: [],
-  divisions: [],
-  brackets: [],
-  status: 'draft',
-};
 
 /**
  * New event, optionally pre-filled from an existing one via ?from=<id>.
