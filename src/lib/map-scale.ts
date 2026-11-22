@@ -11,7 +11,7 @@
  * desert read as different places. That gives five hues:
  *
  *   Northeast  teal    the site's indoor blue
- *   Midwest    brown   BM Hearthstone Brown #604D44 (was orange until 21 Nov)
+ *   Midwest    brown   BM Wenge #3C2D2B + Hearthstone Brown #604D44 (was orange to 21 Nov)
  *   South      purple  the site's turf purple
  *   Pacific    green   a new lime, kept clear of grass's mint
  *   Mountain   red     a new neon red

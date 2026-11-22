@@ -125,7 +125,7 @@ function Masthead() {
       <div className="wrap relative py-8 sm:py-11">
         {/* One line across, at every width: the size scales with the
             screen rather than wrapping (Tom, 19 Nov). */}
-        <h1 className="t-display t-3d whitespace-nowrap text-[clamp(1.15rem,5.4vw,3.4rem)] leading-[1.2]">
+        <h1 className="t-display t-3d whitespace-nowrap text-center text-[clamp(1.15rem,5.4vw,3.4rem)] leading-[1.2]">
           Discover your next event.
         </h1>
       </div>

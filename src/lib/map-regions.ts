@@ -41,12 +41,12 @@ export const MAP_REGIONS: readonly MapRegion[] = [
   },
   {
     slug: 'midwest',
-    // Benjamin Moore Hearthstone Brown 2109-20, #604D44, as the quietest
-    // step, warming lighter for busier states (Tom, 21 Nov). Replaced orange,
-    // then a calamansi yellow that didn't fit.
+    // Benjamin Moore browns (Tom, 21 Nov): Wenge AF-180 #3C2D2B for the
+    // quietest states, Hearthstone Brown 2109-20 #604D44 next, warming
+    // lighter for the busiest. Replaced orange, then a yellow that didn't fit.
     name: 'Midwest',
-    hue: '#876c5e',
-    ramp: ['#604d44', '#735c50', '#876c5e', '#9b7d6c'],
+    hue: '#7d6656',
+    ramp: ['#3c2d2b', '#604d44', '#7d6656', '#9b7d6c'],
     text: ['light', 'light', 'light', 'dark'],
     states: ['IA', 'IL', 'IN', 'KS', 'MI', 'MN', 'MO', 'ND', 'NE', 'OH', 'SD', 'WI'],
   },
