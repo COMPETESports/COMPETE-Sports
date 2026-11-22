@@ -41,10 +41,11 @@ export const MAP_REGIONS: readonly MapRegion[] = [
   },
   {
     slug: 'midwest',
+    // Calamansi yellow, ending at #FCFFA4 (Tom, 21 Nov) -- replaced orange.
     name: 'Midwest',
-    hue: '#ff7a1a',
-    ramp: ['#b8571c', '#d4641b', '#e86f1a', '#f3751a'],
-    text: ['light', 'dark', 'dark', 'dark'],
+    hue: '#fcffa4',
+    ramp: ['#d8db6e', '#e6e980', '#f2f593', '#fcffa4'],
+    text: ['dark', 'dark', 'dark', 'dark'],
     states: ['IA', 'IL', 'IN', 'KS', 'MI', 'MN', 'MO', 'ND', 'NE', 'OH', 'SD', 'WI'],
   },
   {
