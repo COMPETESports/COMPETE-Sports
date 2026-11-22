@@ -310,65 +310,72 @@ assurance check** — standing instruction, 15 Nov 2026.
    free, no notifications: what was done, tomorrow's tasks (Tom's and the
    next session's), and the build-progress link.
 
-## State, as of 19 Nov 2026
+## State, as of 21 Nov 2026
 
 **Live at https://www.joincompete.com.** Always use www.joincompete.com/admin
 (Vercel one-off deployment URLs are not on the Google key's list). Email via
 Resend works; receiving stays off.
 
-**Data:** 36 upcoming events across 10 states (read 19 Nov; Kansas 12 new).
-Migrations 001–026 run (016 deleted on purpose). ~33 bot accounts deleted.
+**Data:** Migrations 001–027 run (016 deleted on purpose). Tom entered the
+Belleville IL events, Missouri Sand Volleyball events and a Stratman event
+on 21 Nov. Research doc for adding events: "Adult volleyball events near
+St. Louis — winter 2026–27" (Docs artifact E3tEVWPhc6swcWWZuf3zCV) —
+~25 confirmed, the rest "check first".
 
-**Built 19 Nov:**
-- `today()` (src/lib/dates.ts) and countdown labels use **US Central**, not
-  UTC. Admin events Live uses `${today()}::date`. Other admin pages still use
-  `current_date` (UTC) — harmless, fix if it matters.
-- **Player profile round one** (025): `sports.launch_status` live/next/
-  coming_soon, 20 coming-soon sports (is_active=false; `getActiveSports`
-  filters to live/next). `WhatYouPlay.tsx`: groups, a section per live/next
-  sport, gender hides the other gender's formats, retired formats/divisions
-  hidden. Admin → Demand (`loadSportDemand`).
-- **Homepage:** one-line title; kickers, "Where the events are", "Find your
-  event" and the homepage map legend removed (`StateMap showLegend={false}`).
-- **Sign-up:** ZIP required (register saves it via saveAthleteProfile;
-  profile can't clear it); age option "13–17"; one confirmation tick.
-  **Bot protection** `src/lib/bot-check.ts`: honeypot, 3 s minimum fill,
-  random-name check, 3 sign-ups/hour per IP. Tests in tests/bot-check.test.ts.
-- **Admin → Players** (+ `/admin/players/[id]`, `src/lib/admin-players.ts`,
-  026 `account_admin_log`): Account Verified/Unverified, Texts Enrolled/
-  Declined, home city only; bulk delete of "bot?" rows; edit with required
-  permission note; email change resets verification and re-sends; resend /
-  mark confirmed; delete, or CLOSE when sms_consents/age_bracket_changes
-  rows exist (age_bracket_changes refuses deletes). Staff can't move a player
-  into/out of 13–17.
-- **Tournament engine pieces 1–3** (`src/lib/tournament/`: scoring.ts,
-  pools.ts, round-robin.ts; tests/tournament.test.ts, 15 tests).
-  Decisions and research: `claude/tournament-engine-spec.md`.
+**How Tom runs migrations (settled 21 Nov — do NOT overcomplicate):** open
+the .sql file, copy all, paste into the Supabase web SQL editor, Run. No
+psql, no Homebrew, nothing local. Terminal is for `cd ~/Desktop/COMPETE-Sports`
+then npm/git only. Explain any new term or tool BEFORE giving a command.
 
-**Decided 19 Nov (see the specs):** tiebreakers end in point differential;
-work teams on for all surfaces, editable; true double elimination; crossover
-on; first-round pool rematch only if unavoidable; withdrawn team's results
-voided. 13+ stays; three short profile pages; volleyball divisions per
-surface; free agent per sport with positions; no player followings; pickleball
-DUPR or self-rating, singles and doubles separately; communication prefs =
-what / how / how often. `claude/sports-and-player-profile-spec.md`.
+**Built 20–21 Nov:**
+- Quick fixes (563fd83): date picker confirms, mobile date boxes fit,
+  full-width Browse, sign-up tidy, Communities map legend off.
+- **Organizer surfaces** stored as "sport:surface" (e.g. volleyball:indoor)
+  in organizer_private.surface_slugs; `qualifySurfaces`/`surfaceKey` in
+  organizer-fields.ts expand old bare slugs on load. Fixed indoor
+  volleyball ticking indoor pickleball.
+- **027_format_labels.sql**: `event_discovery.format_labels` = format +
+  sub-format from event_brackets ("Coed Quads – Solo Blind Draw"). Event
+  page and cards (audienceLine) use it; normalise() falls back to
+  format_names. Sleigh, Set, Spike! must have Solo Blind Draw set on its
+  bracket to show it — not yet confirmed by Tom.
+- **+ New event** on each organizer page → /admin/events/new?organizer=<id>:
+  copies their latest event (like Duplicate), else fills from the
+  organizer record. Draft, dates blank. Tested OK by Tom (Belleville).
+- **Merge any two organizers**: MergeOrganizer shows on every organizer
+  page with a search (`findOrganizersToMerge`); the page you're on wins.
+- **Organizers list**: clickable headers sort (name, status, confidence,
+  events, last, next; second click flips, `dir` param); sort dropdown too.
+- **Organizer Type**: datalist of existing types (`organizerCategories`).
+- **Map**: shading by count kept but ramps narrowed; borders drawn in the
+  page background (fixes missing MO/KS line). Midwest now Benjamin Moore
+  Wenge #3C2D2B → Hearthstone Brown #604D44 → #7d6656 → #9b7d6c (Tom tried
+  orange, then calamansi yellow — rejected). Watch whether Wenge is too
+  dark on the dark map. Homepage title centered.
+- Eggnog background: ON HOLD (Tom didn't like it).
+- Tests: 56 unit tests pass (run in VM with a separate tsx in /tmp;
+  project node_modules are macOS binaries).
 
-**Business (Tom's):** SS-4 fax moved to Fri 20 (online refused, ref 101).
-Choose lawyer (Pete, Polsinelli) Fri 20; DB password Fri 20; calls Fri 20;
-2027 events Sat 21; operating agreement Mon 23.
+**Decided earlier (see specs):** tournament rules and profile decisions in
+`claude/tournament-engine-spec.md` and `claude/sports-and-player-profile-spec.md`.
+
+**Business (Tom's), all still open and due — review at session start:**
+SS-4 fax (ref 101), choose lawyer (Pete, Polsinelli), rotate DB password,
+calls to Flannagan's and Players Sport & Social, terms & privacy, venue
+pins, remaining 2027 events; operating agreement Mon 23.
 
 **Next, in order — start here:**
-0. **SECURITY & DATA PROTECTION REVIEW — highest priority (Tom, 19 Nov).**
-   The bot sign-ups were the first sign. Go through: sign-up/sign-in abuse
-   (Turnstile), admin auth (single shared ADMIN_PASSWORD?), secrets and the
-   unrotated DB password, Supabase RLS and exposed keys, rate limits that are
-   per-instance memory only, email sending abuse, personal data stored and
-   who can see it, logging/alerts, backups. Produce a ranked list, fix the
-   top items that session.
-1. **Map colours:** Tom wants one steady colour per region, not a ramp that
-   brightens with count (src/lib/map-scale.ts, map-regions.ts). Minimal.
-2. **Explain Cloudflare Turnstile** (Tom asked; only if bots return).
-3. **Player profile round two** — three pages, migration **027**.
+0. **SECURITY & DATA PROTECTION REVIEW — highest priority (Tom, 19 Nov),
+   still not started.** Sign-up/sign-in abuse (Turnstile), admin auth
+   (single shared ADMIN_PASSWORD?), secrets and the unrotated DB password,
+   Supabase RLS and exposed keys, per-instance-memory rate limits, email
+   abuse, personal data and who sees it, logging/alerts, backups. Ranked
+   list, fix the top items that session.
+1. **Public volleyball event submission form** for outside users, with a
+   review queue (after security; Tom's friends will add events).
+2. **Explain Cloudflare Turnstile** (Tom asked).
+3. **Player profile round two** — three pages, migration **028** (027 was
+   used for format labels).
 4. Tournament engine pieces 4–7 while Tom works.
 5. Organizer pages → `VenueSearch` (15 min).
 
