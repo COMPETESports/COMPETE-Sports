@@ -41,12 +41,12 @@ export const MAP_REGIONS: readonly MapRegion[] = [
   },
   {
     slug: 'midwest',
-    // Orchid pink, ending at #ED80E9 for the busiest states (Tom, 22 Nov).
-    // Tried before it: orange, calamansi yellow, Benjamin Moore browns.
+    // Lemon yellow, ending at #FFF44F for the busiest states (Tom, 22 Nov).
+    // Tried before it: orange, calamansi yellow, Benjamin Moore browns, orchid.
     name: 'Midwest',
-    hue: '#d871d3',
-    ramp: ['#a5509f', '#c063bb', '#d871d3', '#ed80e9'],
-    text: ['light', 'dark', 'dark', 'dark'],
+    hue: '#eee140',
+    ramp: ['#c9be2c', '#dccf36', '#eee140', '#fff44f'],
+    text: ['dark', 'dark', 'dark', 'dark'],
     states: ['IA', 'IL', 'IN', 'KS', 'MI', 'MN', 'MO', 'ND', 'NE', 'OH', 'SD', 'WI'],
   },
   {

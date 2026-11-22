@@ -11,7 +11,7 @@
  * desert read as different places. That gives five hues:
  *
  *   Northeast  teal    the site's indoor blue
- *   Midwest    pink    orchid #ED80E9 (orange until 21 Nov, then browns)
+ *   Midwest    yellow  lemon #FFF44F (orange until 21 Nov; several tried since)
  *   South      purple  the site's turf purple
  *   Pacific    green   a new lime, kept clear of grass's mint
  *   Mountain   red     a new neon red
