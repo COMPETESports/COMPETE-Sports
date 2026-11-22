@@ -33,6 +33,8 @@ export const FIELD_LABELS: Record<string, string> = {
   postal_code: 'ZIP code',
   organizer_name: 'Organizer name',
   organizer_email: 'Organizer email',
+  organizer_contact_first: 'Organizer contact first name',
+  organizer_contact_last: 'Organizer contact last name',
   surfaces: 'Surface',
   formats: 'Format',
   divisions: 'Divisions',

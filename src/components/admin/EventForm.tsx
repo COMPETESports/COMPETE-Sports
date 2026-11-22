@@ -427,12 +427,33 @@ export function EventForm({
           />
           )}
           <Field label="Organizer name" error={err('organizer_name')} auto={isAuto('organizer_name')}>
-            <input name="organizer_name" {...text('organizer_name')} className="field" />
+            <input name="organizer_name" {...text('organizer_name')} required={submitting} className="field" />
           </Field>
           {!submitting && (
             <Field label="Organizer email" error={err('organizer_email')} auto={isAuto('organizer_email')}>
               <input type="email" name="organizer_email" {...text('organizer_email')} className="field" />
             </Field>
+          )}
+          {/* Public form only (Tom, 22 Nov): who to contact to confirm the
+              event. Stored privately, never shown on the site. */}
+          {submitting && (
+            <>
+              <Field label="Organizer contact — first name" error={err('organizer_contact_first')}>
+                <input name="organizer_contact_first" required autoComplete="off" className="field" />
+              </Field>
+              <Field label="Organizer contact — last name" error={err('organizer_contact_last')}>
+                <input name="organizer_contact_last" required autoComplete="off" className="field" />
+              </Field>
+              <Field
+                label="Organizer contact — email"
+                hint="Private. We use it only to confirm the event; it is never shown on the site."
+                error={err('organizer_email')}
+                auto={isAuto('organizer_email')}
+                className="sm:col-span-2"
+              >
+                <input type="email" name="organizer_email" required {...text('organizer_email')} className="field" />
+              </Field>
+            </>
           )}
           <Field
             label="Event / registration page"

@@ -338,7 +338,9 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
     state: String(formData.get('state') ?? '').toUpperCase(),
     postal_code: formData.get('postal_code'),
     organizer_name: formData.get('organizer_name'),
-    organizer_email: formData.get('organizer_email'),
+    // `?? undefined`: the field is not on every form, and a field the
+    // browser never sent is null, which .optional() refuses (Tom, 22 Nov).
+    organizer_email: formData.get('organizer_email') ?? undefined,
     brackets: readBrackets(formData.get('brackets')),
     // The "Save as draft" button sends its own name, and a clicked submit
     // button's value is the one the browser sends - so one click parks the
@@ -361,6 +363,21 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
   // A submission is always 'pending' -- set here, after validation, so the
   // form can never ask for anything else.
   const status: string = staff ? input.status : 'pending';
+
+  // The public form asks who to contact at the organization (Tom, 22 Nov),
+  // so Tom can confirm the event before approving it. Required there.
+  const contactFirst = String(formData.get('organizer_contact_first') ?? '').trim().slice(0, 80);
+  const contactLast = String(formData.get('organizer_contact_last') ?? '').trim().slice(0, 80);
+  if (!staff) {
+    const missing: Record<string, string> = {};
+    if (!input.organizer_name) missing.organizer_name = 'Which organization runs it?';
+    if (!contactFirst) missing.organizer_contact_first = 'First name of the organizer contact.';
+    if (!contactLast) missing.organizer_contact_last = 'Last name of the organizer contact.';
+    if (!input.organizer_email) missing.organizer_email = 'An email for the organizer contact.';
+    if (Object.keys(missing).length) {
+      return { ok: false, message: 'Some fields need fixing.', fieldErrors: missing };
+    }
+  }
 
   if (input.ends_on && input.ends_on < input.starts_on) {
     return {
@@ -585,6 +602,18 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
       )
       returning id`;
     eventId = row.id;
+  }
+
+  // A submitted contact goes in the PRIVATE contacts table, marked as
+  // unverified and tied to this event, never on the public organizer record.
+  if (mode.kind === 'submission' && organizerId && input.organizer_email) {
+    await sql`
+      insert into organizer_contacts (organizer_id, name, email, notes)
+      select ${organizerId}, ${`${contactFirst} ${contactLast}`.trim()}, ${input.organizer_email},
+             ${`Unverified — from a public submission (event ${eventId}).`}
+       where not exists (
+         select 1 from organizer_contacts
+          where organizer_id = ${organizerId} and lower(email) = lower(${input.organizer_email}))`;
   }
 
   // The flat lists are derived, never entered. They exist so a one-axis

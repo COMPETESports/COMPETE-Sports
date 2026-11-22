@@ -62,10 +62,15 @@ export default async function EditEventPage({
     loadVenueOptions(),
     loadOrganizerOptions(),
     // Public submissions (22 Nov): who sent it, and any decline reason.
-    sql<{ email: string | null; submitted_at: string | null; review_note: string | null; status: string }[]>`
+    sql<{ email: string | null; submitted_at: string | null; review_note: string | null; status: string; contact: string | null }[]>`
       select a.email,
              to_char(e.submitted_at at time zone 'America/Chicago', 'Mon FMDD, YYYY at FMHH12:MI AM') as submitted_at,
-             e.review_note, e.status
+             e.review_note, e.status,
+             (select c.name || ' · ' || coalesce(c.email, '')
+                from organizer_contacts c
+               where c.organizer_id = e.organizer_id
+                 and c.notes like ${'%(event ' + id + ').'}
+               limit 1) as contact
         from events e left join accounts a on a.id = e.submitted_by
        where e.id = ${id} and e.source = 'submission'`,
   ]);
@@ -111,6 +116,7 @@ export default async function EditEventPage({
           submitter={submission.email}
           submittedAt={submission.submitted_at}
           reviewNote={submission.review_note}
+          contact={submission.contact}
         />
       )}
 

@@ -15,12 +15,14 @@ export function ReviewSubmission({
   submitter,
   submittedAt,
   reviewNote,
+  contact,
 }: {
   id: string;
   status: string;
   submitter: string | null;
   submittedAt: string | null;
   reviewNote: string | null;
+  contact?: string | null;
 }) {
   const [reason, setReason] = useState('');
   const [declining, setDeclining] = useState(false);
@@ -45,6 +47,11 @@ export function ReviewSubmission({
         {submittedAt && <> on {submittedAt}</>}.
         {' '}Check it against the organizer&apos;s own page, fix anything below and <strong>save first</strong>, then approve.
       </p>
+      {contact && (
+        <p className="mt-1">
+          Organizer contact they gave: <strong>{contact}</strong> (saved to the organizer&apos;s Contacts, marked unverified).
+        </p>
+      )}
       {status === 'declined' && reviewNote && <p className="mt-1">Reason given: {reviewNote}</p>}
 
       {status === 'pending' && (
