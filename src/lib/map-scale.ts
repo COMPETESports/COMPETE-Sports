@@ -21,6 +21,10 @@
  * a region. Tom's call, 10 Nov, made knowing that rule. It holds because
  * the map carries no surface chips, and its legend names the regions.
  *
+ * NOTE 21 Nov: ramps were narrowed at Tom's request, so the step-to-step
+ * ratios below no longer hold -- neighbours are told apart by the dark
+ * border now. Label contrast was re-picked per step.
+ *
  * Measured, not eyeballed (scripted WCAG luminance, 10 Nov):
  * - each step at least 1.6:1 from its neighbour, in every region
  * - the dimmest step at least 1.67:1 from "nothing listed" (a first draft
@@ -78,29 +82,23 @@ function bucketIndex(upcoming: number): number {
 }
 
 /**
- * One steady colour per region (Tom, 21 Nov). The four-step ramp made the
- * busiest states washed-out peach and the quietest muddy brown -- Missouri
- * and Kansas looked "ugly", Ohio (the vivid step) looked right. So every
- * state with events now takes its region's vivid step, whatever the count;
- * the count is printed on the state and in the hover card.
- *
- * Borders are drawn in the page background, not a lighter shade of the
- * fill. Two neighbours in the same region are now the same colour, and the
- * old "next step up" outline vanished at the top step -- which is why the
- * Missouri/Kansas line disappeared.
+ * Shade by count within the region's (narrowed, 21 Nov) ramp. Borders are
+ * drawn in the page background rather than a lighter step of the fill:
+ * the old "next step up" outline equalled the fill at the top step, which
+ * is why the Missouri/Kansas line vanished.
  */
-export const ACTIVE_STEP = 2;
-
 export function stepFor(upcoming: number, total: number, state: string): ScaleStep {
   const region = regionForMapState(state);
   if (upcoming > 0 && region) {
+    const i = bucketIndex(upcoming);
+    const b = BUCKETS[3 - i];
     return {
-      min: 1,
-      label: 'Events listed',
-      fill: region.ramp[ACTIVE_STEP],
+      min: b.min,
+      label: b.label,
+      fill: region.ramp[i],
       stroke: DARK,
       strokeWidth: 1.25,
-      text: region.text[ACTIVE_STEP] === 'dark' ? DARK : LIGHT,
+      text: region.text[i] === 'dark' ? DARK : LIGHT,
     };
   }
   if (total > 0 && region) return dormantStep(region);
