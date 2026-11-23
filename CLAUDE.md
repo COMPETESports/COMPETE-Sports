@@ -318,13 +318,13 @@ assurance check** — standing instruction, 15 Nov 2026.
    free, no notifications: what was done, tomorrow's tasks (Tom's and the
    next session's), and the build-progress link.
 
-## State, as of 21 Nov 2026
+## State, as of 23 Nov 2026 (end of session)
 
 **Live at https://www.joincompete.com.** Always use www.joincompete.com/admin
 (Vercel one-off deployment URLs are not on the Google key's list). Email via
 Resend works; receiving stays off.
 
-**Data:** Migrations 001–027 run (016 deleted on purpose). Tom entered the
+**Data:** Migrations 001–030 run (016 deleted on purpose); next is **031** (player profile round two). Live 23 Nov 4:29 PM: 63 upcoming events in 13 states, 27 in 2027, 591 all seasons, 1,588 orgs (108 listed), 186 venues (32 exact pins) — read from /api/stats. Tom entered the
 Belleville IL events, Missouri Sand Volleyball events and a Stratman event
 on 21 Nov. Research doc for adding events: "Adult volleyball events near
 St. Louis — winter 2026–27" (Docs artifact E3tEVWPhc6swcWWZuf3zCV) —
@@ -334,6 +334,29 @@ St. Louis — winter 2026–27" (Docs artifact E3tEVWPhc6swcWWZuf3zCV) —
 the .sql file, copy all, paste into the Supabase web SQL editor, Run. No
 psql, no Homebrew, nothing local. Terminal is for `cd ~/Desktop/COMPETE-Sports`
 then npm/git only. Explain any new term or tool BEFORE giving a command.
+
+**Built 22–23 Nov (all pushed; last commit c051e67):**
+- **Public "List an event" (/submit)** — verified accounts only, full EventForm in
+  mode="submit" (text paste only; no links/images/flyer reader). `submitEvent` →
+  `persistEvent(mode submission)`: always a NEW 'pending' event; never edits an
+  existing venue/organizer; optional contact goes to organizer_contacts marked
+  "Unverified"; 5/day. Review queue in Admin → Events (`reviewSubmission`
+  approve/decline + email). Migrations 028 (submissions), 029 (Shorties
+  sub-format), 030 (submitter_role organizer|athlete).
+- **Organization type-ahead** (`matchPublicOrganizers`, PublicOrgName): ≥3
+  letters, 5 results, only orgs with approved/archived events — the CRM is
+  never browsable publicly.
+- **+ New organization** full form (`createOrganizer`, NewOrganizerForm):
+  type, website/socials, primary contact, home venue via VenueSearch,
+  duplicate warning.
+- Homepage = Masthead → map → Featured → rails (filters removed).
+  `/api/stats` public counts. Link previews: "COMPETE Sports · Discover your
+  next event" + opengraph-image. Header/footer "List an event".
+- Map: three buckets 1–10 / 11–20 / 21+; Midwest lemon #FFF44F ramp.
+- League final night shows "Playoffs ·" in var(--indoor).
+- Entry fee: $-prefixed money input, formats to 2 decimals on blur.
+- `OPEN_PLAY_MAX_WEEKS = 22` in series-dates.ts (form, validation, Renew).
+- Admin → Events: organizer name links to /admin/organizers/<id>.
 
 **Built 20–21 Nov:**
 - Quick fixes (563fd83): date picker confirms, mobile date boxes fit,
@@ -369,6 +392,7 @@ then npm/git only. Explain any new term or tool BEFORE giving a command.
 
 **Business (Tom's), all still open and due — review at session start:**
 SS-4 fax (ref 101), choose lawyer (Pete, Polsinelli), rotate DB password,
+bank visit Tue 24 9 AM (needs EIN — call first),
 calls to Flannagan's and Players Sport & Social, terms & privacy, venue
 pins, remaining 2027 events; operating agreement Mon 23.
 
@@ -379,11 +403,10 @@ pins, remaining 2027 events; operating agreement Mon 23.
    Supabase RLS and exposed keys, per-instance-memory rate limits, email
    abuse, personal data and who sees it, logging/alerts, backups. Ranked
    list, fix the top items that session.
-1. **Public volleyball event submission form** for outside users, with a
-   review queue (after security; Tom's friends will add events).
+1. **"My submitted events"** page (status, edit/cancel/reschedule) and the
+   **organizer "claim" flow** for people who tick "I run this event".
 2. **Explain Cloudflare Turnstile** (Tom asked).
-3. **Player profile round two** — three pages, migration **028** (027 was
-   used for format labels).
+3. **Player profile round two** — three pages, migration **031**.
 4. Tournament engine pieces 4–7 while Tom works.
 5. Organizer pages → `VenueSearch` (15 min).
 
