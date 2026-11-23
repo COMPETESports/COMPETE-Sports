@@ -23,9 +23,10 @@ test('Census regions: Missouri is Midwest, Texas is South, Pennsylvania is North
 test('a state brightens with its count, in its own region colour', () => {
   const mo = MAP_REGIONS.find((r) => r.slug === 'midwest')!;
   assert.equal(stepFor(1, 1, 'MO').fill, mo.ramp[0]);
-  assert.equal(stepFor(4, 4, 'MO').fill, mo.ramp[1]);
-  assert.equal(stepFor(8, 8, 'MO').fill, mo.ramp[2]);
-  assert.equal(stepFor(40, 40, 'MO').fill, mo.ramp[3]);
+  assert.equal(stepFor(10, 10, 'MO').fill, mo.ramp[0]);
+  assert.equal(stepFor(11, 11, 'MO').fill, mo.ramp[1]);
+  assert.equal(stepFor(20, 20, 'MO').fill, mo.ramp[1]);
+  assert.equal(stepFor(21, 21, 'MO').fill, mo.ramp[2]);
 });
 
 test('nothing matching is not the same as nothing ever listed', () => {

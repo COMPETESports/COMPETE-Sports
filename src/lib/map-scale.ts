@@ -67,17 +67,15 @@ export const EMPTY_STEP: ScaleStep = {
 
 /** Bucket bounds and labels, highest first. Same buckets as before. */
 export const BUCKETS = [
-  { min: 11, label: '11 or more' },
-  { min: 6, label: '6 – 10' },
-  { min: 3, label: '3 – 5' },
-  { min: 1, label: '1 – 2' },
+  { min: 21, label: '21 or more' },
+  { min: 11, label: '11 – 20' },
+  { min: 1, label: '1 – 10' },
 ] as const;
 
 /** Index into a region's ramp (dimmest first) for an event count. */
 function bucketIndex(upcoming: number): number {
-  if (upcoming >= 11) return 3;
-  if (upcoming >= 6) return 2;
-  if (upcoming >= 3) return 1;
+  if (upcoming >= 21) return 2;
+  if (upcoming >= 11) return 1;
   return 0;
 }
 
@@ -91,7 +89,7 @@ export function stepFor(upcoming: number, total: number, state: string): ScaleSt
   const region = regionForMapState(state);
   if (upcoming > 0 && region) {
     const i = bucketIndex(upcoming);
-    const b = BUCKETS[3 - i];
+    const b = BUCKETS[BUCKETS.length - 1 - i];
     return {
       min: b.min,
       label: b.label,

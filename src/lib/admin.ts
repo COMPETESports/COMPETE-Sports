@@ -181,6 +181,29 @@ export async function saveEvent(
   return persistEvent(formData, { kind: 'staff' });
 }
 
+/**
+ * As-you-type organization matches for the public form (Tom, 23 Nov):
+ * after 3 letters, up to 5, and only organizations that already have an
+ * event on the site -- never the CRM's researched-but-unpublished list.
+ * Signed-in, confirmed accounts only, to keep it from being scraped.
+ */
+export async function matchPublicOrganizers(
+  q: string,
+): Promise<{ id: string; name: string; city: string | null; state: string | null }[]> {
+  const account = await currentAccount();
+  if (!account?.email_verified_at) return [];
+  const term = q.trim();
+  if (term.length < 3) return [];
+  const rows = await sql<{ id: string; name: string; city: string | null; state: string | null }[]>`
+    select o.id, o.name, o.city, o.state
+      from organizers o
+     where o.name ilike ${'%' + term + '%'}
+       and exists (select 1 from events e where e.organizer_id = o.id and e.status in ('approved','archived'))
+     order by (o.name ilike ${term + '%'}) desc, o.name
+     limit 5`;
+  return [...rows];
+}
+
 /** Submissions one account can make in 24 hours. */
 const SUBMISSIONS_PER_DAY = 5;
 
@@ -369,8 +392,14 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
   const contactFirst = String(formData.get('organizer_contact_first') ?? '').trim().slice(0, 80);
   const contactLast = String(formData.get('organizer_contact_last') ?? '').trim().slice(0, 80);
   const contactPhone = String(formData.get('organizer_contact_phone') ?? '').trim().slice(0, 40);
+  // "Are you the organizer, or an athlete adding it?" (Tom, 23 Nov).
+  const roleRaw = String(formData.get('submitter_role') ?? '');
+  const submitterRole = roleRaw === 'organizer' || roleRaw === 'athlete' ? roleRaw : null;
+  // Picked from the as-you-type matches: an organization already on COMPETE.
+  const pickedOrganizer = String(formData.get('organizer_id') ?? '');
   if (!staff) {
     const missing: Record<string, string> = {};
+    if (!submitterRole) missing.submitter_role = 'Tell us whether you run this event or are adding it for someone.';
     if (!input.organizer_name) missing.organizer_name = 'Which organization runs it?';
     if (contactPhone.replace(/\D/g, '').length < 10) {
       missing.organizer_contact_phone = 'A phone number for the organizer contact, with area code.';
@@ -471,7 +500,17 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
 
   // ---- organizer ----
   let organizerId: string | null = null;
-  if (input.organizer_name) {
+  // A submitter who picked an existing organization from the matches gets
+  // that record -- but only one already public on COMPETE, so the id can't
+  // be used to attach an event to an arbitrary CRM record.
+  if (!staff && /^[0-9a-f-]{36}$/i.test(pickedOrganizer)) {
+    const [picked] = await sql<{ id: string }[]>`
+      select o.id from organizers o
+       where o.id = ${pickedOrganizer}
+         and exists (select 1 from events e where e.organizer_id = o.id and e.status in ('approved','archived'))`;
+    organizerId = picked?.id ?? null;
+  }
+  if (!organizerId && input.organizer_name) {
     const orgSlug = slugify(input.organizer_name);
     // organizers.contact_email is PUBLIC. A submitter's typed email is
     // never written there: Tom adds it on review if the organizer wants it.
@@ -588,7 +627,7 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
         league_days, league_weeks, playoffs,
         registration_deadline, entry_fee_cents, fee_basis, payout_text,
         event_page_url, flyer_url, notes, status, source, created_by, published_at,
-        submitted_by, submitted_at
+        submitted_by, submitted_at, submitter_role
       ) values (
         ${slug}, ${input.name}, ${input.event_type}, ${sport.id}, ${venueId}, ${organizerId},
         ${startsOn}, ${endsOn},
@@ -602,7 +641,8 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
         ${staff ? 'admin' : 'submission'}, ${staff ? 'admin' : 'submission'},
         ${status === 'approved' ? sql`now()` : null},
         ${mode.kind === 'submission' ? mode.accountId : null},
-        ${mode.kind === 'submission' ? sql`now()` : null}
+        ${mode.kind === 'submission' ? sql`now()` : null},
+        ${mode.kind === 'submission' ? submitterRole : null}
       )
       returning id`;
     eventId = row.id;

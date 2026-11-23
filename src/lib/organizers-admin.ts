@@ -56,14 +56,29 @@ const KEY_SQL = sql`
  * the duplicate review uses, and only creates on a second "create anyway".
  * Returns the new id so the page can open its profile for the rest.
  */
-export async function createOrganizer(input: {
+export interface NewOrganizerInput {
   name: string;
   city: string;
   state: string;
   website: string;
   category: string;
+  instagram: string;
+  facebook: string;
+  tiktok: string;
+  social: string;
+  contact: { first: string; last: string; title: string; email: string; phone: string };
+  /** Their primary (home) venue: one we already have, or a Google place. */
+  venue: { kind: 'existing'; id: string } | { kind: 'place'; place: PlacePayload } | null;
   force: boolean;
-}): Promise<
+}
+
+type PlacePayload = {
+  name: string; place_id: string; business_status: string; place_types: string[];
+  address_line: string; city: string; state: string; postal_code: string;
+  latitude: number | null; longitude: number | null;
+};
+
+export async function createOrganizer(input: NewOrganizerInput): Promise<
   | { ok: true; id: string }
   | { ok: false; message: string; matches?: { id: string; name: string; city: string | null; state: string | null; events: number }[] }
 > {
@@ -95,14 +110,45 @@ export async function createOrganizer(input: {
   const [clash] = await sql<{ id: string }[]>`select id from organizers where slug = ${base}`;
   const slug = clash ? `${base}-${Date.now().toString(36).slice(-4)}` : base;
 
+  const t = (v: string, max = 200) => v.trim().slice(0, max) || null;
   const [row] = await sql<{ id: string }[]>`
     insert into organizers (slug, name, city, state, website_url)
-    values (${slug}, ${name}, ${input.city.trim() || null}, ${state || null}, ${website || null})
+    values (${slug}, ${name}, ${t(input.city, 80)}, ${state || null}, ${website || null})
     returning id`;
   await sql`
-    insert into organizer_private (organizer_id, origin, category)
-    values (${row.id}, 'manual', ${input.category.trim() || null})
+    insert into organizer_private (organizer_id, origin, category, instagram, facebook, tiktok, social)
+    values (${row.id}, 'manual', ${t(input.category, 80)}, ${t(input.instagram)}, ${t(input.facebook)},
+            ${t(input.tiktok)}, ${t(input.social, 500)})
     on conflict (organizer_id) do nothing`;
+
+  // Primary contact (private table), marked primary.
+  const c = input.contact;
+  const contactName = `${c.first.trim()} ${c.last.trim()}`.trim();
+  if (contactName) {
+    await sql`
+      insert into organizer_contacts (organizer_id, name, title, email, phone, is_primary)
+      values (${row.id}, ${contactName.slice(0, 160)}, ${t(c.title, 80)}, ${t(c.email, 254)},
+              ${t(c.phone, 40)}, true)`;
+  }
+
+  // Primary venue: link it and mark it home.
+  let venueNote = '';
+  if (input.venue?.kind === 'existing') {
+    await linkVenue(row.id, input.venue.id);
+    await sql`update organizer_venues set is_home = true
+               where organizer_id = ${row.id} and venue_id = ${input.venue.id}`;
+  } else if (input.venue?.kind === 'place') {
+    const res = await createVenueFromPlace(row.id, input.venue.place);
+    if (res.ok) {
+      await sql`update organizer_venues ov set is_home = true
+                  from venues v
+                 where ov.venue_id = v.id and ov.organizer_id = ${row.id}
+                   and v.google_place_id = ${input.venue.place.place_id}`;
+    } else {
+      venueNote = res.message;
+    }
+  }
+  if (venueNote) console.info(`[new organizer] venue not saved: ${venueNote}`);
 
   revalidatePath('/admin/organizers');
   return { ok: true, id: row.id };

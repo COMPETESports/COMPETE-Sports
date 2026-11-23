@@ -32,6 +32,7 @@ export const FIELD_LABELS: Record<string, string> = {
   state: 'State',
   postal_code: 'ZIP code',
   organizer_name: 'Organization name',
+  submitter_role: 'Who is submitting',
   organizer_email: 'Organizer email',
   organizer_contact_first: 'Organizer contact first name',
   organizer_contact_last: 'Organizer contact last name',

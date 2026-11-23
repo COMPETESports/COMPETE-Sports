@@ -182,7 +182,7 @@ function Legend({ filtered }: { filtered: boolean }) {
       <ul className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Regions">
         {MAP_REGIONS.map((r) => (
           <li key={r.slug} className="flex items-center gap-1.5">
-            <span aria-hidden className="h-3 w-3" style={{ background: r.ramp[2] }} />
+            <span aria-hidden className="h-3 w-3" style={{ background: r.ramp[0] }} />
             <span className="t-mono text-[10px] uppercase tracking-wider text-[color:var(--muted)]">
               {r.name}
             </span>

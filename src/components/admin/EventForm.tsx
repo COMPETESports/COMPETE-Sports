@@ -19,6 +19,7 @@ import {
   type LeagueDate,
 } from './LeagueSchedule';
 import { OrganizerPicker, type OrganizerOption } from './OrganizerPicker';
+import { PublicOrgName } from './PublicOrgName';
 import { VenueSearch } from './VenueSearch';
 import type { VenueOption } from './VenuePicker';
 import { labelFor } from '@/lib/field-labels';
@@ -170,6 +171,8 @@ export function EventForm({
   // moment the person edits it by hand.
   const [v, setV] = useState<EventFormValues>(values);
   const [autoFilled, setAutoFilled] = useState<Set<string>>(new Set());
+  // Public form only: organizer, or a player adding it (23 Nov).
+  const [role, setRole] = useState<string>('');
 
   const set = (
     key: keyof EventFormValues,
@@ -426,13 +429,54 @@ export function EventForm({
             }
           />
           )}
+          {/* Public form (Tom, 23 Nov): who is submitting decides what
+              happens next -- an organizer is claiming the organization. */}
+          {submitting && (
+            <fieldset className="sm:col-span-2">
+              <legend className="label">Who&apos;s submitting? {err('submitter_role') && (
+                <span className="text-[color:var(--coral-ink)]"> — {err('submitter_role')}</span>
+              )}</legend>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {[
+                  ['organizer', 'I run this event', 'I’m the organizer or work for them'],
+                  ['athlete', 'I’m a player adding it', 'Sharing an event I know about'],
+                ].map(([val, title, blurb]) => (
+                  <label
+                    key={val}
+                    className="cursor-pointer rounded-xl border-2 px-4 py-3"
+                    style={{
+                      borderColor: role === val ? 'var(--grass)' : 'var(--line)',
+                      background: role === val ? 'color-mix(in srgb, var(--grass) 8%, transparent)' : 'transparent',
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="submitter_role"
+                      value={val}
+                      required
+                      checked={role === val}
+                      onChange={() => setRole(val)}
+                      className="sr-only"
+                    />
+                    <span className="t-head block text-sm">{title}</span>
+                    <span className="block text-xs text-[color:var(--muted)]">{blurb}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
           <Field
             label="Organization name"
+            hint={submitting ? 'Start typing — pick it if it’s already on COMPETE.' : undefined}
             error={err('organizer_name')}
             auto={isAuto('organizer_name')}
             className={submitting ? 'sm:col-span-2' : ''}
           >
-            <input name="organizer_name" {...text('organizer_name')} required={submitting} className="field" />
+            {submitting ? (
+              <PublicOrgName value={v.organizer_name} onChange={(name) => set('organizer_name', name)} />
+            ) : (
+              <input name="organizer_name" {...text('organizer_name')} className="field" />
+            )}
           </Field>
           {!submitting && (
             <Field label="Organizer email" error={err('organizer_email')} auto={isAuto('organizer_email')}>

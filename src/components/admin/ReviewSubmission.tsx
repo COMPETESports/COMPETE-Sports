@@ -16,6 +16,7 @@ export function ReviewSubmission({
   submittedAt,
   reviewNote,
   contact,
+  role,
 }: {
   id: string;
   status: string;
@@ -23,6 +24,7 @@ export function ReviewSubmission({
   submittedAt: string | null;
   reviewNote: string | null;
   contact?: string | null;
+  role?: string | null;
 }) {
   const [reason, setReason] = useState('');
   const [declining, setDeclining] = useState(false);
@@ -44,6 +46,8 @@ export function ReviewSubmission({
       </p>
       <p className="mt-1">
         By <strong>{submitter ?? 'a deleted account'}</strong>
+        {role === 'organizer' && <> — <strong>says they run this event</strong></>}
+        {role === 'athlete' && <> — a player adding it for someone else</>}
         {submittedAt && <> on {submittedAt}</>}.
         {' '}Check it against the organizer&apos;s own page, fix anything below and <strong>save first</strong>, then approve.
       </p>
