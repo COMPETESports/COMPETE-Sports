@@ -6,6 +6,7 @@ import { useFormStatus } from 'react-dom';
 import { saveEvent, submitEvent, type ActionState } from '@/lib/admin';
 import { DeleteEvent } from './DeleteEvent';
 import { PasteBox } from './PasteBox';
+import { OPEN_PLAY_MAX_WEEKS } from '@/lib/series-dates';
 import {
   BracketBuilder,
   type BracketGroup,
@@ -489,28 +490,28 @@ export function EventForm({
             <>
               {/* Stacked, one per row, in the order someone reads a business
                   card (Tom, 22 Nov). */}
-              <Field label="Organizer contact — first name" error={err('organizer_contact_first')} className="sm:col-span-2">
-                <input name="organizer_contact_first" required autoComplete="off" className="field" />
+              <Field label="Organizer contact — first name (optional)" error={err('organizer_contact_first')} className="sm:col-span-2">
+                <input name="organizer_contact_first" autoComplete="off" className="field" />
               </Field>
-              <Field label="Organizer contact — last name" error={err('organizer_contact_last')} className="sm:col-span-2">
-                <input name="organizer_contact_last" required autoComplete="off" className="field" />
+              <Field label="Organizer contact — last name (optional)" error={err('organizer_contact_last')} className="sm:col-span-2">
+                <input name="organizer_contact_last" autoComplete="off" className="field" />
               </Field>
               <Field
-                label="Organizer contact — email"
+                label="Organizer contact — email (optional)"
                 hint="Private. We use it only to confirm the event; it is never shown on the site."
                 error={err('organizer_email')}
                 auto={isAuto('organizer_email')}
                 className="sm:col-span-2"
               >
-                <input type="email" name="organizer_email" required {...text('organizer_email')} className="field" />
+                <input type="email" name="organizer_email" {...text('organizer_email')} className="field" />
               </Field>
               <Field
-                label="Organizer contact — phone"
+                label="Organizer contact — phone (optional)"
                 hint="Internal use only. Never shown on the site."
                 error={err('organizer_contact_phone')}
                 className="sm:col-span-2"
               >
-                <input type="tel" name="organizer_contact_phone" required autoComplete="off" inputMode="tel" className="field" />
+                <input type="tel" name="organizer_contact_phone" autoComplete="off" inputMode="tel" className="field" />
               </Field>
             </>
           )}
@@ -549,7 +550,7 @@ export function EventForm({
               {/* Drop in & ball, as a DATED series since 15 Nov 2026. It was
                   "runs until further notice", which read as one date on the
                   site and never expired. Now it works like a league: nights,
-                  up to 12 weeks, every date shown and switchable, renewed by
+                  up to 22 weeks (was 12), every date shown and switchable, renewed by
                   copying it forward. See claude/open-play-schedule-spec.md. */}
               <Field label="First session" error={err('starts_on')} auto={isAuto('starts_on')}>
                 <input
@@ -576,7 +577,7 @@ export function EventForm({
                 weeksLabel="How many weeks will this open play be running?"
                 nightsLabel="Which nights does it run?"
                 nightsHint="Pick every night it runs — most open play is one or two nights a week."
-                maxWeeks={12}
+                maxWeeks={OPEN_PLAY_MAX_WEEKS}
                 showPlayoffs={false}
               />
 
@@ -702,11 +703,28 @@ export function EventForm({
 
           <Field
             label={isLeague ? 'Fee for the season' : 'Entry fee'}
-            hint="e.g. 75 or 42.50"
+            hint="Dollars and cents, e.g. 75 or 42.50"
             error={err('entry_fee')}
             auto={isAuto('entry_fee')}
           >
-            <input name="entry_fee" {...text('entry_fee')} inputMode="decimal" className="field" />
+            {/* A money field (Tom, 23 Nov): a $ in front, numbers only, and
+                tidied to cents when you leave it -- "75" becomes 75.00. */}
+            <div className="relative">
+              <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--muted)]">$</span>
+              <input
+                name="entry_fee"
+                {...text('entry_fee')}
+                onBlur={(e) => {
+                  const n = Number(e.target.value.replace(/[$,\s]/g, ''));
+                  if (e.target.value.trim() && Number.isFinite(n) && n >= 0) set('entry_fee', n.toFixed(2));
+                }}
+                inputMode="decimal"
+                pattern="\$?[0-9]{1,5}([.,][0-9]{0,2})?"
+                title="An amount like 75 or 42.50"
+                placeholder="0.00"
+                className="field !pl-7 tabular-nums"
+              />
+            </div>
           </Field>
 
           <Field label="Fee is" auto={isAuto('fee_basis')}>

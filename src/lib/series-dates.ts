@@ -1,3 +1,6 @@
+/** Longest open-play run before it must be renewed (Tom, 23 Nov: was 12). */
+export const OPEN_PLAY_MAX_WEEKS = 22;
+
 /**
  * The dates of a dated series -- a league, or open play since 15 Nov 2026.
  *

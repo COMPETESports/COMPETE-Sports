@@ -211,7 +211,7 @@ export default async function EventDetailPage({
           </section>
 
           {isLeague && schedule.length > 0 && (
-            <LeagueScheduleSection schedule={schedule} today={now} next={league?.nextNight ?? null} title={isOpenPlay ? 'Session dates' : 'Season schedule'} />
+            <LeagueScheduleSection schedule={schedule} today={now} next={league?.nextNight ?? null} title={isOpenPlay ? 'Session dates' : 'Season schedule'} playoffs={!isOpenPlay && event.playoffs} />
           )}
 
           {event.notes && (
@@ -374,13 +374,19 @@ function LeagueScheduleSection({
   today,
   next,
   title,
+  playoffs = false,
 }: {
   title: string;
+  /** League ends in playoffs: the last night played is marked (Tom, 23 Nov). */
+  playoffs?: boolean;
   schedule: Array<{ plays_on: string; skipped: boolean; note: string | null }>;
   today: string;
   next: string | null;
 }) {
   let night = 0;
+  const lastNight = playoffs
+    ? [...schedule].reverse().find((r) => !r.skipped)?.plays_on ?? null
+    : null;
   return (
     <section className="panel p-5" aria-labelledby="season-schedule">
       <h2 id="season-schedule" className="t-kicker mb-4 text-[color:var(--muted)]">
@@ -402,6 +408,9 @@ function LeagueScheduleSection({
                 {formatDate(row.plays_on, 'short')}
               </span>
               <span className="t-mono text-right text-[11px] uppercase tracking-wider">
+                {row.plays_on === lastNight && (
+                  <span className="mr-2 text-[color:var(--indoor)]">Playoffs ·</span>
+                )}
                 {row.skipped
                   ? `No play${row.note ? ` · ${row.note}` : ''}`
                   : isNext

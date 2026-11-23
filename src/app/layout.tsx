@@ -14,17 +14,19 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'COMPETE — Find your next adult sports event',
+    // Link previews (iMessage, Slack) show this title. Tom, 23 Nov: it
+    // should read as the brand and the promise, not a search phrase.
+    default: 'COMPETE Sports · Discover your next event',
     template: '%s · COMPETE',
   },
   description:
     'COMPETE is where adult recreational athletes find events across the United States — tournaments, leagues, open play and more. Search by location, date, surface, format and division.',
   openGraph: {
-    title: 'COMPETE — Find your next adult sports event',
+    title: 'COMPETE Sports · Discover your next event',
     description:
       'Every adult event worth playing, in one place. Search by location, date, surface, format and division.',
     url: siteUrl,
-    siteName: 'COMPETE',
+    siteName: 'COMPETE Sports',
     type: 'website',
   },
   robots: { index: true, follow: true },

@@ -15,6 +15,8 @@ import { sendMail } from './mailer';
  * publish event records until Host publishing arrives in Phase 3.
  */
 
+import { OPEN_PLAY_MAX_WEEKS } from './series-dates';
+
 const EventInput = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(3, 'Give the event a name.').max(200),
@@ -98,17 +100,17 @@ const EventInput = z.object({
    * type is 'league' - a tournament must not be asked for either.
    */
   .superRefine((val, ctx) => {
-    // Open play is a dated series of up to 12 weeks since 15 Nov 2026.
+    // Open play is a dated series of up to 22 weeks (12 until Tom raised it, 23 Nov).
     if (val.event_type === 'open_play') {
       if (val.league_days.length === 0) {
         ctx.addIssue({ code: 'custom', path: ['league_days'], message: 'Pick which nights open play runs.' });
       }
       const weeks = Number(val.league_weeks);
-      if (!weeks || weeks < 1 || weeks > 12) {
+      if (!weeks || weeks < 1 || weeks > OPEN_PLAY_MAX_WEEKS) {
         ctx.addIssue({
           code: 'custom',
           path: ['league_weeks'],
-          message: 'Open play runs for 1 to 12 weeks. Renew it to go longer.',
+          message: `Open play runs for 1 to ${OPEN_PLAY_MAX_WEEKS} weeks. Renew it to go longer.`,
         });
       }
       if (!val.league_dates.some((d) => !d.skipped)) {
@@ -401,12 +403,11 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
     const missing: Record<string, string> = {};
     if (!submitterRole) missing.submitter_role = 'Tell us whether you run this event or are adding it for someone.';
     if (!input.organizer_name) missing.organizer_name = 'Which organization runs it?';
-    if (contactPhone.replace(/\D/g, '').length < 10) {
+    if (contactPhone && contactPhone.replace(/\D/g, '').length < 10) {
       missing.organizer_contact_phone = 'A phone number for the organizer contact, with area code.';
     }
-    if (!contactFirst) missing.organizer_contact_first = 'First name of the organizer contact.';
-    if (!contactLast) missing.organizer_contact_last = 'Last name of the organizer contact.';
-    if (!input.organizer_email) missing.organizer_email = 'An email for the organizer contact.';
+    // Contact details are optional (Tom, 23 Nov): organizers often don't
+    // publish them at first. A phone, if given, must be a whole number.
     if (Object.keys(missing).length) {
       return { ok: false, message: 'Some fields need fixing.', fieldErrors: missing };
     }
@@ -650,15 +651,18 @@ async function persistEvent(formData: FormData, mode: SaveMode): Promise<ActionS
 
   // A submitted contact goes in the PRIVATE contacts table, marked as
   // unverified and tied to this event, never on the public organizer record.
-  if (mode.kind === 'submission' && organizerId && input.organizer_email) {
+  const contactName = `${contactFirst} ${contactLast}`.trim();
+  if (mode.kind === 'submission' && organizerId && (contactName || input.organizer_email || contactPhone)) {
     await sql`
       insert into organizer_contacts (organizer_id, name, email, phone, notes)
-      select ${organizerId}, ${`${contactFirst} ${contactLast}`.trim()}, ${input.organizer_email},
+      select ${organizerId}, ${contactName || 'Unnamed contact'}, ${input.organizer_email || null},
              ${contactPhone || null},
              ${`Unverified — from a public submission (event ${eventId}).`}
        where not exists (
          select 1 from organizer_contacts
-          where organizer_id = ${organizerId} and lower(email) = lower(${input.organizer_email}))`;
+          where organizer_id = ${organizerId}
+            and ${input.organizer_email || null}::text is not null
+            and lower(email) = lower(${input.organizer_email || ''}))`;
   }
 
   // The flat lists are derived, never entered. They exist so a one-axis

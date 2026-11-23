@@ -21,6 +21,7 @@ interface Row {
   city: string | null;
   state: string | null;
   organizer_name: string | null;
+  organizer_id: string | null;
   has_coords: boolean;
   featured: boolean;
   /** Days until an open play series' last session; null otherwise. */
@@ -73,7 +74,7 @@ export default async function AdminEventsPage({
 
   const rows = await sql<Row[]>`
     select e.id, e.slug, e.name, e.starts_on, e.status,
-           v.city, v.state, o.name as organizer_name,
+           v.city, v.state, o.name as organizer_name, o.id as organizer_id,
            (v.latitude is not null) as has_coords, e.featured,
            case when e.event_type = 'open_play' and e.status = 'approved'
                 then (coalesce(e.ends_on, e.starts_on) - ${today()}::date)::int end as ends_in
@@ -259,7 +260,17 @@ export default async function AdminEventsPage({
                     )}
                   </td>
                   <td className="px-4 py-3 text-[color:var(--muted)]">
-                    {row.organizer_name ?? '—'}
+                    {/* Straight to their profile (Tom, 23 Nov). */}
+                    {row.organizer_id && row.organizer_name ? (
+                      <Link
+                        href={`/admin/organizers/${row.organizer_id}`}
+                        className="underline decoration-[color:var(--line-strong)] underline-offset-2 hover:text-[color:var(--surf-ink)]"
+                      >
+                        {row.organizer_name}
+                      </Link>
+                    ) : (
+                      row.organizer_name ?? '—'
+                    )}
                   </td>
                   <td className="t-mono px-4 py-3 text-xs text-[color:var(--muted)]">
                     {`${formatDate(iso, 'short')}, ${iso.slice(0, 4)}`}

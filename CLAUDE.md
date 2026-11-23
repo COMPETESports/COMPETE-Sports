@@ -242,6 +242,12 @@ The ones worth reading, and only when a task needs them:
 
 ## How Tom works
 
+- **Anything Tom copies goes in its own fenced code block** (Tom, 23 Nov —
+  "this is huge"): each Terminal command (`cd ~/Desktop/COMPETE-Sports`,
+  `npm run build`, …) in a separate block, and the GitHub Desktop commit
+  summary and description each in a block too, so each has a one-click
+  copy button. Never inline code for things to paste.
+
 - **Visual and kinesthetic learner.** Show him rather than describe.
 - **Any SQL or Terminal command** gets one sentence on what it does, then
   the full how-to — which file, how to open it, where to paste it. Never

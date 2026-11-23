@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { isSignedIn } from '@/lib/auth';
 import { loadOrganizerOptions, loadRefOptions, loadVenueOptions } from '@/lib/ref-data';
 import { hhmm, isUuid, loadBrackets, loadEvent, loadLeagueDates } from '@/lib/event-form-data';
-import { generateLeagueDates, renewalStart } from '@/lib/series-dates';
+import { generateLeagueDates, OPEN_PLAY_MAX_WEEKS, renewalStart } from '@/lib/series-dates';
 import { EventForm, type EventFormValues } from '@/components/admin/EventForm';
 import { EMPTY_EVENT as EMPTY } from '@/lib/event-form-empty';
 import { organizerFull, organizerVenues } from '@/lib/organizers-admin';
@@ -145,7 +145,7 @@ export default async function NewEventPage({
     const start = last ? renewalStart(last, values.league_days) : null;
     if (start) {
       renewing = true;
-      const weeks = Math.min(Number(values.league_weeks) || 12, 12);
+      const weeks = Math.min(Number(values.league_weeks) || 12, OPEN_PLAY_MAX_WEEKS);
       values = {
         ...values,
         league_weeks: String(weeks),
